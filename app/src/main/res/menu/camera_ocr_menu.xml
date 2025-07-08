@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_flash_toggle"
+        android:title="@string/flash"
+        android:icon="@drawable/ic_flash_off"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_camera_switch"
+        android:title="@string/ganti_kamera"
+        android:icon="@drawable/ic_camera_switch"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_help"
+        android:title="@string/bantuan"
+        android:icon="@drawable/ic_help"
+        app:showAsAction="never" />
+
+</menu>

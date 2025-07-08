@@ -1,0 +1,233 @@
+<resources>
+    <!-- App Name -->
+    <string name="app_name">LecturoApp</string>
+
+    <!-- Main Activity -->
+    <string name="main_title">Jadwal Dosen</string>
+    <string name="empty_schedule_message">Belum ada jadwal.\nTambah jadwal baru dengan tombol + di bawah.</string>
+    <string name="fab_add_schedule">Tambah Jadwal</string>
+    <string name="fab_camera_ocr">Scan Jadwal</string>
+
+    <string name="signup">Daftar</string>
+    <string name="login">Masuk</string>
+    <string name="message_welcome_page">Ingin mengatur jadwal kelas, tugas harian, atau bahkan jadwal konsultasi dengan mudah dan efisien? Di Lecturo aja!</string>
+    <string name="title_welcome_page">Selamat datang di Lecturo!</string>
+    <string name="title_signup_page">Lengkapi data diri di bawah ini ya!</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="message_login_page">Login dulu dan atur jadwal mengajar Anda di Lecturo.</string>
+    <string name="title_login_page">Bersiap untuk hari yang lebih terorganisir?</string>
+    <string name="name">Nama</string>
+    <string name="message_main_page">Selamat Belajar di Dicoding.</string>
+    <string name="greeting">Halo %1$s,</string>
+    <string name="logout">Keluar</string>
+
+    <string name="selamat_datang_dosen">Selamat Datang,</string>
+    <string name="nama_user">Dosen!</string>
+    <string name="Waktu_hari_ini">Senin, 7 Juli 2025</string>
+    <string name="menu_utama">Menu Utama</string>
+    <string name="jadwal_kelas">Kelas</string>
+    <string name="tugas">Tugas</string>
+    <string name="jadwal_rapat">Rapat</string>
+    <string name="janji_temu">Konsultasi</string>
+
+    <!-- Menu -->
+    <string name="action_refresh">Refresh</string>
+    <string name="action_settings">Pengaturan</string>
+    <string name="action_about">Tentang</string>
+
+    <!-- Add/Edit Schedule Activity -->
+    <string name="add_schedule_title">Tambah Jadwal</string>
+    <string name="edit_schedule_title">Edit Jadwal</string>
+    <string name="schedule_title_hint">Judul Jadwal *</string>
+    <string name="schedule_date_hint">Tanggal *</string>
+    <string name="schedule_time_hint">Waktu *</string>
+    <string name="schedule_location_hint">Lokasi *</string>
+    <string name="schedule_description_hint">Deskripsi (Opsional)</string>
+    <string name="button_save">Simpan</string>
+    <string name="button_update">Update</string>
+    <string name="button_cancel">Batal</string>
+
+    <!-- Schedule Item -->
+    <string name="schedule_edit">Edit</string>
+    <string name="schedule_delete">Hapus</string>
+    <string name="schedule_share">Bagikan</string>
+
+    <!-- Camera OCR Activity -->
+    <string name="camera_ocr_title">Scan Jadwal</string>
+    <string name="button_camera">Kamera</string>
+    <string name="button_gallery">Galeri</string>
+    <string name="button_process_ocr">Proses OCR</string>
+    <string name="ocr_result_hint">Hasil OCR akan muncul di sini...</string>
+    <string name="image_placeholder_description">Pilih gambar untuk diproses</string>
+
+    <!-- Toast Messages -->
+    <string name="toast_schedule_added">Jadwal berhasil ditambahkan</string>
+    <string name="toast_schedule_updated">Jadwal berhasil diupdate</string>
+    <string name="toast_schedule_deleted">Jadwal berhasil dihapus</string>
+    <string name="toast_schedule_save_failed">Gagal menyimpan jadwal</string>
+    <string name="toast_fields_required">Mohon lengkapi semua field yang wajib</string>
+    <string name="toast_select_image_first">Pilih gambar terlebih dahulu</string>
+    <string name="toast_image_load_failed">Gagal memuat gambar</string>
+    <string name="toast_ocr_process_failed">Gagal memproses gambar: %1$s</string>
+    <string name="toast_schedule_info_not_found">Tidak dapat mengidentifikasi informasi jadwal</string>
+    <string name="toast_camera_permission_required">Izin kamera diperlukan</string>
+    <string name="toast_storage_permission_required">Izin penyimpanan diperlukan</string>
+
+    <!-- Dialog Messages -->
+    <string name="dialog_delete_title">Hapus Jadwal</string>
+    <string name="dialog_delete_message">Apakah Anda yakin ingin menghapus jadwal ini?</string>
+    <string name="dialog_delete_confirm">Hapus</string>
+    <string name="dialog_cancel">Batal</string>
+
+    <!-- Permission Messages -->
+    <string name="permission_camera_title">Izin Kamera</string>
+    <string name="permission_camera_message">Aplikasi memerlukan izin kamera untuk mengambil foto jadwal</string>
+    <string name="permission_storage_title">Izin Penyimpanan</string>
+    <string name="permission_storage_message">Aplikasi memerlukan izin penyimpanan untuk mengakses galeri</string>
+    <string name="permission_grant">Berikan Izin</string>
+    <string name="permission_deny">Tolak</string>
+
+    <!-- Date and Time -->
+    <string name="date_format">dd/MM/yyyy</string>
+    <string name="time_format">HH:mm</string>
+    <string name="datetime_separator"> - </string>
+
+    <!-- Days of Week -->
+    <string name="monday">Senin</string>
+    <string name="tuesday">Selasa</string>
+    <string name="wednesday">Rabu</string>
+    <string name="thursday">Kamis</string>
+    <string name="friday">Jumat</string>
+    <string name="saturday">Sabtu</string>
+    <string name="sunday">Minggu</string>
+
+    <!-- Months -->
+    <string name="january">Januari</string>
+    <string name="february">Februari</string>
+    <string name="march">Maret</string>
+    <string name="april">April</string>
+    <string name="may">Mei</string>
+    <string name="june">Juni</string>
+    <string name="july">Juli</string>
+    <string name="august">Agustus</string>
+    <string name="september">September</string>
+    <string name="october">Oktober</string>
+    <string name="november">November</string>
+    <string name="december">Desember</string>
+
+    <!-- OCR Keywords for Classification -->
+    <string name="ocr_keyword_room">ruang</string>
+    <string name="ocr_keyword_class">kelas</string>
+    <string name="ocr_keyword_lab">lab</string>
+    <string name="ocr_keyword_hall">aula</string>
+    <string name="ocr_keyword_building">gedung</string>
+    <string name="ocr_keyword_floor">lantai</string>
+
+    <!-- Schedule Categories -->
+    <string name="category_lecture">Kuliah</string>
+    <string name="category_meeting">Rapat</string>
+    <string name="category_seminar">Seminar</string>
+    <string name="category_exam">Ujian</string>
+    <string name="category_consultation">Konsultasi</string>
+    <string name="category_research">Penelitian</string>
+    <string name="category_other">Lainnya</string>
+
+    <!-- Content Descriptions for Accessibility -->
+    <string name="cd_schedule_date">Tanggal jadwal</string>
+    <string name="cd_schedule_time">Waktu jadwal</string>
+    <string name="cd_schedule_location">Lokasi jadwal</string>
+    <string name="cd_edit_schedule">Edit jadwal</string>
+    <string name="cd_delete_schedule">Hapus jadwal</string>
+    <string name="cd_add_schedule">Tambah jadwal baru</string>
+    <string name="cd_camera_capture">Ambil foto dengan kamera</string>
+    <string name="cd_gallery_select">Pilih dari galeri</string>
+    <string name="cd_image_preview">Preview gambar yang dipilih</string>
+
+    <!-- Error Messages -->
+    <string name="error_database">Terjadi kesalahan pada database</string>
+    <string name="error_network">Tidak ada koneksi internet</string>
+    <string name="error_camera_not_available">Kamera tidak tersedia</string>
+    <string name="error_gallery_not_available">Galeri tidak tersedia</string>
+    <string name="error_ocr_failed">Gagal memproses teks dari gambar</string>
+    <string name="error_invalid_date">Format tanggal tidak valid</string>
+    <string name="error_invalid_time">Format waktu tidak valid</string>
+
+    <!-- Success Messages -->
+    <string name="success_ocr_processed">Teks berhasil diproses dari gambar</string>
+    <string name="success_schedule_extracted">Informasi jadwal berhasil diekstrak</string>
+    <string name="success_image_captured">Gambar berhasil diambil</string>
+    <string name="success_image_selected">Gambar berhasil dipilih</string>
+
+    <!-- Loading Messages -->
+    <string name="loading_processing_image">Memproses gambar...</string>
+    <string name="loading_extracting_text">Mengekstrak teks...</string>
+    <string name="loading_saving_schedule">Menyimpan jadwal...</string>
+    <string name="loading_loading_schedules">Memuat jadwal...</string>
+
+    <!-- Validation Messages -->
+    <string name="validation_title_required">Judul jadwal harus diisi</string>
+    <string name="validation_date_required">Tanggal harus diisi</string>
+    <string name="validation_time_required">Waktu harus diisi</string>
+    <string name="validation_location_required">Lokasi harus diisi</string>
+    <string name="validation_title_too_long">Judul terlalu panjang (maksimal 100 karakter)</string>
+    <string name="validation_description_too_long">Deskripsi terlalu panjang (maksimal 500 karakter)</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Pengaturan</string>
+    <string name="settings_notifications">Notifikasi</string>
+    <string name="settings_reminder">Pengingat</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_about">Tentang Aplikasi</string>
+
+    <!-- About -->
+    <string name="about_title">Tentang Aplikasi</string>
+    <string name="about_version">Versi 1.0</string>
+    <string name="about_description">Aplikasi manajemen waktu untuk dosen dengan fitur OCR untuk ekstraksi jadwal otomatis</string>
+    <string name="about_developer">Dikembangkan oleh Tim Developer</string>
+
+    <!-- Share -->
+    <string name="share_schedule_title">Bagikan Jadwal</string>
+    <string name="share_schedule_text">Jadwal: %1$s\nTanggal: %2$s\nWaktu: %3$s\nLokasi: %4$s</string>
+
+    <!-- Search -->
+    <string name="search_hint">Cari jadwal...</string>
+    <string name="search_no_results">Tidak ada hasil pencarian</string>
+
+    <!-- Filter -->
+    <string name="filter_all">Semua</string>
+    <string name="filter_today">Hari Ini</string>
+    <string name="filter_this_week">Minggu Ini</string>
+    <string name="filter_this_month">Bulan Ini</string>
+
+    <!-- Time Zones -->
+    <string name="timezone_wib">WIB</string>
+    <string name="timezone_wita">WITA</string>
+    <string name="timezone_wit">WIT</string>
+
+    <!-- Common Actions -->
+    <string name="action_ok">OK</string>
+    <string name="action_yes">Ya</string>
+    <string name="action_no">Tidak</string>
+    <string name="action_retry">Coba Lagi</string>
+    <string name="action_close">Tutup</string>
+    <string name="action_back">Kembali</string>
+    <string name="action_next">Selanjutnya</string>
+    <string name="action_previous">Sebelumnya</string>
+    <string name="action_done">Selesai</string>
+    <string name="export">Export</string>
+    <string name="duplikat">Duplikat</string>
+    <string name="bantuan">Bantuan</string>
+    <string name="ganti_kamera">Ganti Kamera</string>
+    <string name="flash">Flash</string>
+    <string name="deskripsi_jadwal">Deskripsi jadwal</string>
+    <string name="ex_room">Ruang A101</string>
+    <string name="ex_time">08:00</string>
+    <string name="ex_date">01/01/2024</string>
+    <string name="event_title">Judul Jadwal</string>
+    <string name="bersihkan">Bersihkan</string>
+    <string name="atur_pengingat">Atur Pengingat</string>
+    <string name="todays_agenda">Agenda hari ini</string>
+
+</resources>
