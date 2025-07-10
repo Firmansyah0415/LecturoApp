@@ -229,5 +229,9 @@
     <string name="bersihkan">Bersihkan</string>
     <string name="atur_pengingat">Atur Pengingat</string>
     <string name="todays_agenda">Agenda hari ini</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="filter">Filter</string>
+    <string name="cari">Cari</string>
 
 </resources>

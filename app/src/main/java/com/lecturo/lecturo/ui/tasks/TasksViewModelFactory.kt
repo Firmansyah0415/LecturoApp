@@ -3,12 +3,12 @@ package com.lecturo.lecturo.ui.tasks
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
-class TasksViewModelFactory(private val scheduleRepository: ScheduleRepository) : ViewModelProvider.NewInstanceFactory() {
-    @Suppress("UNCHECKED_CAST")
+class TasksViewModelFactory(private val repository: ScheduleRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TasksViewModel::class.java)) {
-            return TasksViewModel(scheduleRepository) as T
+            @Suppress("UNCHECKED_CAST")
+            return TasksViewModel(repository) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

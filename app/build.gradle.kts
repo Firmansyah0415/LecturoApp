@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -27,20 +29,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
-
     buildFeatures {
         viewBinding = true
     }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -55,12 +55,25 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.activity.ktx)
 
+    // ViewPager2 untuk tab layout
+    implementation(libs.androidx.viewpager2)
+    implementation(libs.androidx.fragment.ktx)
+
     // ML Kit Text Recognition
-    implementation (libs.text.recognition)
+    implementation(libs.text.recognition)
 
     // Camera and Image handling
-    implementation (libs.androidx.camera.core)
-    implementation (libs.androidx.camera.camera2)
-    implementation (libs.androidx.camera.lifecycle)
-    implementation (libs.androidx.camera.view)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
+    // Library inti Room
+    implementation(libs.androidx.room.runtime)
+
+    // Ekstensi Kotlin (wajib untuk Coroutines/suspend function)
+    implementation(libs.androidx.room.ktx)
+
+    // Compiler KSP untuk Room
+    ksp(libs.androidx.room.compiler)
 }

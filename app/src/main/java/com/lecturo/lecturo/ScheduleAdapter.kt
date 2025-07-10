@@ -1,60 +1,62 @@
 package com.lecturo.lecturo
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.lecturo.lecturo.databinding.ItemScheduleBinding
 
 class ScheduleAdapter(
-    private var schedules: MutableList<Schedule>,  // ubah jadi var dan mutable
-    private val onItemAction: (Schedule, String) -> Unit
-) : RecyclerView.Adapter<ScheduleAdapter.ScheduleViewHolder>() {
-
-    class ScheduleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val titleText: TextView = itemView.findViewById(R.id.textTitle)
-        val dateText: TextView = itemView.findViewById(R.id.textDate)
-        val timeText: TextView = itemView.findViewById(R.id.textTime)
-        val locationText: TextView = itemView.findViewById(R.id.textLocation)
-        val descriptionText: TextView = itemView.findViewById(R.id.textDescription)
-        val editButton: ImageButton = itemView.findViewById(R.id.buttonEdit)
-        val deleteButton: ImageButton = itemView.findViewById(R.id.buttonDelete)
-    }
+    private val onActionClick: (Schedule, String) -> Unit
+) : ListAdapter<Schedule, ScheduleAdapter.ScheduleViewHolder>(ScheduleDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ScheduleViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_schedule, parent, false)
-        return ScheduleViewHolder(view)
+        val binding = ItemScheduleBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ScheduleViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ScheduleViewHolder, position: Int) {
-        val schedule = schedules[position]
+        val schedule = getItem(position)
+        holder.bind(schedule)
+    }
 
-        holder.titleText.text = schedule.title
-        holder.dateText.text = schedule.date
-        holder.timeText.text = schedule.time
-        holder.locationText.text = schedule.location
-        holder.descriptionText.text = schedule.description
+    inner class ScheduleViewHolder(private val binding: ItemScheduleBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(schedule: Schedule) {
+            binding.textTitle.text = schedule.title
+            binding.textDate.text = schedule.date
+            binding.textTime.text = schedule.time
+            binding.textLocation.text = schedule.location
+            binding.textDescription.text = schedule.description
 
-        holder.descriptionText.visibility =
-            if (schedule.description.isEmpty()) View.GONE else View.VISIBLE
+            // Contoh: Menukar status checkbox berdasarkan data
+            binding.checkboxCompleted.isChecked = schedule.completed
 
-        holder.editButton.setOnClickListener {
-            onItemAction(schedule, "edit")
-        }
+            // Listener untuk checkbox
+            binding.checkboxCompleted.setOnClickListener {
+                val action = if (binding.checkboxCompleted.isChecked) "complete" else "uncomplete"
+                onActionClick(schedule, action)
+            }
 
-        holder.deleteButton.setOnClickListener {
-            onItemAction(schedule, "delete")
+            // Listener untuk keseluruhan item (untuk edit)
+            itemView.setOnClickListener {
+                onActionClick(schedule, "edit")
+            }
+
+            // Listener untuk ikon delete
+            binding.buttonDelete.setOnClickListener {
+                onActionClick(schedule, "delete")
+            }
         }
     }
 
-    override fun getItemCount() = schedules.size
+    class ScheduleDiffCallback : DiffUtil.ItemCallback<Schedule>() {
+        override fun areItemsTheSame(oldItem: Schedule, newItem: Schedule): Boolean {
+            return oldItem.id == newItem.id
+        }
 
-    // Tambahkan fungsi updateData
-    fun updateData(newSchedules: List<Schedule>) {
-        schedules.clear()
-        schedules.addAll(newSchedules)
-        notifyDataSetChanged()
+        override fun areContentsTheSame(oldItem: Schedule, newItem: Schedule): Boolean {
+            return oldItem == newItem
+        }
     }
 }

@@ -1,17 +1,28 @@
 package com.lecturo.lecturo.ui.tasks
 
-import android.content.Context
-import com.lecturo.lecturo.DatabaseHelper
+import androidx.lifecycle.LiveData
 import com.lecturo.lecturo.Schedule
+import com.lecturo.lecturo.db.ScheduleDao
 
-class ScheduleRepository(context: Context) {
-    private val dbHelper = DatabaseHelper(context)
+class ScheduleRepository(private val scheduleDao: ScheduleDao) {
 
-    fun getAllSchedules(): List<Schedule> {
-        return dbHelper.getAllSchedules()
+    fun getAllSchedules(): LiveData<List<Schedule>> {
+        return scheduleDao.getAllSchedules()
     }
 
-    fun deleteSchedule(id: Long) {
-        dbHelper.deleteSchedule(id)
+    fun getScheduleById(id: Long): LiveData<Schedule> {
+        return scheduleDao.getScheduleById(id)
+    }
+
+    suspend fun insertOrUpdate(schedule: Schedule) {
+        scheduleDao.insertOrUpdate(schedule)
+    }
+
+    suspend fun deleteSchedule(id: Long) {
+        scheduleDao.deleteById(id)
+    }
+
+    suspend fun updateScheduleCompletedStatus(id: Long, completed: Boolean) {
+        scheduleDao.updateCompletedStatus(id, completed)
     }
 }

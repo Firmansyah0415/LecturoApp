@@ -24,9 +24,6 @@
             android:name=".ui.tasks.TasksActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.main.HomeActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.welcome.WelcomeActivity"
             android:exported="false" />
         <activity
