@@ -11,10 +11,15 @@
 
     <item
         android:id="@+id/action_filter"
-        android:title="@string/filter"
         android:icon="@drawable/ic_filter"
+        android:title="@string/filter"
         app:showAsAction="ifRoom">
         <menu>
+            <item
+                android:id="@+id/header_filter"
+                android:title="@string/filter"
+                android:enabled="false"
+                android:checkable="false" />
             <item
                 android:id="@+id/filter_all"
                 android:title="@string/filter_all" />
@@ -29,6 +34,7 @@
                 android:title="@string/filter_this_month" />
         </menu>
     </item>
+
 
     <item
         android:id="@+id/action_export"

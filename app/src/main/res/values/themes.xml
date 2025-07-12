@@ -3,8 +3,19 @@
     <style name="Base.Theme.LecturoApp" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
          <item name="colorPrimary">@color/colorPrimary</item>
-         <item name="colorSecondary">@color/colorSecondary</item>
+         <item name="colorSecondary">@color/colorPrimaryDark</item>
 
+    </style>
+
+    <!-- TAMBAHKAN STYLE BARU INI -->
+    <style name="ShapeAppearance.App.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <!-- Atur sudut kiri bawah menjadi 16dp -->
+        <item name="cornerFamilyBottomLeft">rounded</item>
+        <item name="cornerSizeBottomLeft">16dp</item>
+
+        <!-- Atur sudut kanan bawah menjadi 16dp -->
+        <item name="cornerFamilyBottomRight">rounded</item>
+        <item name="cornerSizeBottomRight">16dp</item>
     </style>
 
     <style name="Theme.LecturoApp" parent="Base.Theme.LecturoApp" />

@@ -1,4 +1,4 @@
-package com.lecturo.lecturo.ui.tasks
+package com.lecturo.lecturo.ui.task
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,12 +8,13 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
-import com.lecturo.lecturo.AddScheduleActivity
-import com.lecturo.lecturo.CameraOCRActivity
+import com.lecturo.lecturo.ui.task.AddTasksActivity
+import com.lecturo.lecturo.ui.cameraocr.CameraOCRActivity
 import com.lecturo.lecturo.R
-import com.lecturo.lecturo.Schedule
+import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.databinding.ActivityTasksBinding
-import com.lecturo.lecturo.db.AppDatabase
+import com.lecturo.lecturo.data.db.AppDatabase
+import com.lecturo.lecturo.data.repository.TasksRepository
 
 class TasksActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTasksBinding
@@ -23,8 +24,8 @@ class TasksActivity : AppCompatActivity() {
     }
 
     fun getViewModelFactory(): TasksViewModelFactory {
-        val dao = AppDatabase.getDatabase(applicationContext).scheduleDao()
-        val repository = ScheduleRepository(dao)
+        val dao = AppDatabase.getDatabase(applicationContext).tasksDao()
+        val repository = TasksRepository(dao)
         return TasksViewModelFactory(repository)
     }
 
@@ -41,7 +42,7 @@ class TasksActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.title = "Jadwal Tugas"
+        supportActionBar?.title = "Tugas"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
@@ -56,7 +57,7 @@ class TasksActivity : AppCompatActivity() {
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
 
-        searchView.queryHint = "Cari jadwal..."
+        searchView.queryHint = "Cari tugas..."
 
         searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -107,24 +108,24 @@ class TasksActivity : AppCompatActivity() {
     }
 
     private fun setupViewPager() {
-        val pagerAdapter = SchedulePagerAdapter(this)
+        val pagerAdapter = TasksPagerAdapter(this)
         binding.viewPager.adapter = pagerAdapter
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, _ ->
             // Judul akan diupdate oleh observer
         }.attach()
     }
 
-    fun handleScheduleAction(schedule: Schedule, action: String) {
+    fun handleTasksAction(tasks: Tasks, action: String) {
         when (action) {
-            "delete" -> showDeleteConfirmation(schedule)
-            "complete" -> viewModel.updateScheduleCompletedStatus(schedule.id, true)
-            "uncomplete" -> viewModel.updateScheduleCompletedStatus(schedule.id, false)
+            "delete" -> showDeleteConfirmation(tasks)
+            "complete" -> viewModel.updateTasksCompletedStatus(tasks.id, true)
+            "uncomplete" -> viewModel.updateTasksCompletedStatus(tasks.id, false)
         }
     }
 
     private fun setupFabActions() {
-        binding.fabAddSchedule.setOnClickListener {
-            startActivity(Intent(this, AddScheduleActivity::class.java))
+        binding.fabAddTasks.setOnClickListener {
+            startActivity(Intent(this, AddTasksActivity::class.java))
         }
 
         binding.fabCamera.setOnClickListener {
@@ -133,20 +134,20 @@ class TasksActivity : AppCompatActivity() {
     }
 
     private fun observeTabTitles() {
-        viewModel.pendingSchedules.observe(this) { pending ->
-            binding.tabLayout.getTabAt(0)?.text = "Jadwal (${pending.size})"
+        viewModel.pendingTasks.observe(this) { pending ->
+            binding.tabLayout.getTabAt(0)?.text = "Tugas (${pending.size})"
         }
 
-        viewModel.completedSchedules.observe(this) { completed ->
+        viewModel.completedTasks.observe(this) { completed ->
             binding.tabLayout.getTabAt(1)?.text = "Selesai (${completed.size})"
         }
     }
 
-    private fun showDeleteConfirmation(schedule: Schedule) {
+    private fun showDeleteConfirmation(tasks: Tasks) {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Hapus Jadwal")
-            .setMessage("Yakin ingin menghapus jadwal \"${schedule.title}\"?")
-            .setPositiveButton("Ya") { _, _ -> viewModel.deleteSchedule(schedule.id) }
+            .setTitle("Hapus Tugas")
+            .setMessage("Yakin ingin menghapus tugas \"${tasks.title}\"?")
+            .setPositiveButton("Ya") { _, _ -> viewModel.deleteTasks(tasks.id) }
             .setNegativeButton("Batal", null)
             .show()
     }

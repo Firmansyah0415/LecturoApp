@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Gunakan <layer-list> untuk menumpuk beberapa drawable.
+    Lapisan bawah akan menjadi bayangan, dan lapisan atas adalah bentuk aslinya.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Lapisan 1: Bayangan (Shadow) -->
+    <item>
+        <shape android:shape="rectangle">
+            <!-- Warna bayangan, biasanya abu-abu semi-transparan -->
+            <solid android:color="#1A000000" /> <!-- 10% Opacity Black -->
+            <corners android:bottomLeftRadius="16dp" android:bottomRightRadius="16dp" />
+        </shape>
+    </item>
+
+    <!-- Lapisan 2: Bentuk Asli (Konten Putih) -->
+    <!-- Diberi margin bawah agar bayangan di lapisan bawah bisa terlihat -->
+    <item android:bottom="2dp">
+        <shape
+            android:shape="rectangle">
+            <solid android:color="@color/white" />
+            <corners android:bottomLeftRadius="16dp" android:bottomRightRadius="16dp" />
+        </shape>
+    </item>
+
+</layer-list>

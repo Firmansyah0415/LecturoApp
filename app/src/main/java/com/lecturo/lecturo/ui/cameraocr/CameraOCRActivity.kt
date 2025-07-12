@@ -1,7 +1,6 @@
-package com.lecturo.lecturo
+package com.lecturo.lecturo.ui.cameraocr
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -16,6 +15,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.lecturo.lecturo.databinding.ActivityCameraOcrBinding
+import com.lecturo.lecturo.ui.task.AddTasksActivity
 import java.util.regex.Pattern
 
 class CameraOCRActivity : AppCompatActivity() {
@@ -25,7 +25,7 @@ class CameraOCRActivity : AppCompatActivity() {
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == RESULT_OK) {
             val bitmap = result.data?.extras?.get("data") as? Bitmap
             if (bitmap != null) {
                 capturedBitmap = bitmap
@@ -38,7 +38,7 @@ class CameraOCRActivity : AppCompatActivity() {
     }
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == RESULT_OK) {
             val uri = result.data?.data
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
@@ -56,12 +56,22 @@ class CameraOCRActivity : AppCompatActivity() {
         binding = ActivityCameraOcrBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        supportActionBar?.title = "Scan Jadwal" // 🟡 bisa pindah ke strings.xml
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
+        setupToolbar()
         setupClickListeners()
         binding.buttonProcess.text = "Pilih Gambar Terlebih Dahulu" // 🟡
         binding.buttonProcess.isEnabled = false
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbarLogin)
+        supportActionBar?.apply {
+            title = "Kamera OCR"
+            setDisplayHomeAsUpEnabled(true)
+        }
+
+        binding.toolbarLogin.setNavigationOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     private fun setupClickListeners() {
@@ -125,7 +135,7 @@ class CameraOCRActivity : AppCompatActivity() {
         val scheduleInfo = classifyScheduleText(extractedText)
 
         if (scheduleInfo.isNotEmpty()) {
-            val intent = Intent(this, AddScheduleActivity::class.java).apply {
+            val intent = Intent(this, AddTasksActivity::class.java).apply {
                 putExtra("extracted_title", scheduleInfo["title"] ?: "")
                 putExtra("extracted_date", scheduleInfo["date"] ?: "")
                 putExtra("extracted_time", scheduleInfo["time"] ?: "")

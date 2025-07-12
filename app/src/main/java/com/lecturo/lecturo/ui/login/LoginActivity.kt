@@ -13,7 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.lecturo.lecturo.data.pref.UserModel
 import com.lecturo.lecturo.databinding.ActivityLoginBinding
-import com.lecturo.lecturo.ui.ViewModelFactory
+import com.lecturo.lecturo.di.ViewModelFactory
 import com.lecturo.lecturo.ui.main.MainActivity
 
 class LoginActivity : AppCompatActivity() {
@@ -27,22 +27,21 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupView()
+        setupToolbar()
         setupAction()
         playAnimation()
     }
 
-    private fun setupView() {
-        @Suppress("DEPRECATION")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.hide(WindowInsets.Type.statusBars())
-        } else {
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-            )
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbarLogin)
+        supportActionBar?.apply {
+            title = "Log in"
+            setDisplayHomeAsUpEnabled(true)
         }
-        supportActionBar?.hide()
+
+        binding.toolbarLogin.setNavigationOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     private fun setupAction() {

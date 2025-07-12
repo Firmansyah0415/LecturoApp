@@ -1,10 +1,9 @@
-package com.lecturo.lecturo.ui
+package com.lecturo.lecturo.di
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.lecturo.lecturo.data.UserRepository
-import com.lecturo.lecturo.di.Injection
 import com.lecturo.lecturo.ui.login.LoginViewModel
 import com.lecturo.lecturo.ui.main.MainViewModel
 

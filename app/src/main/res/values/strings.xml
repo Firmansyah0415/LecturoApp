@@ -8,16 +8,17 @@
     <string name="fab_add_schedule">Tambah Jadwal</string>
     <string name="fab_camera_ocr">Scan Jadwal</string>
 
-    <string name="signup">Daftar</string>
-    <string name="login">Masuk</string>
+    <string name="signup">Sign up</string>
+    <string name="to_login">Continue with Email</string>
+    <string name="login">Log in</string>
     <string name="message_welcome_page">Ingin mengatur jadwal kelas, tugas harian, atau bahkan jadwal konsultasi dengan mudah dan efisien? Di Lecturo aja!</string>
     <string name="title_welcome_page">Selamat datang di Lecturo!</string>
     <string name="title_signup_page">Lengkapi data diri di bawah ini ya!</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="message_login_page">Login dulu dan atur jadwal mengajar Anda di Lecturo.</string>
+    <string name="message_login_page">Login dulu dan atur jadwal produktif Anda di Lecturo.</string>
     <string name="title_login_page">Bersiap untuk hari yang lebih terorganisir?</string>
-    <string name="name">Nama</string>
+    <string name="name">Name</string>
     <string name="message_main_page">Selamat Belajar di Dicoding.</string>
     <string name="greeting">Halo %1$s,</string>
     <string name="logout">Keluar</string>
@@ -58,7 +59,7 @@
     <string name="button_camera">Kamera</string>
     <string name="button_gallery">Galeri</string>
     <string name="button_process_ocr">Proses OCR</string>
-    <string name="ocr_result_hint">Hasil OCR akan muncul di sini...</string>
+    <string name="ocr_result_hint">Hasil OCR akan muncul di sini…</string>
     <string name="image_placeholder_description">Pilih gambar untuk diproses</string>
 
     <!-- Toast Messages -->
@@ -233,5 +234,10 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="filter">Filter</string>
     <string name="cari">Cari</string>
+    <string name="google">Continue with Google</string>
+    <string name="facebook">Facebook</string>
+    <string name="or">OR</string>
+    <string name="sign_up_image">Sign up image</string>
+    <string name="welcome_image">welcome image</string>
 
 </resources>

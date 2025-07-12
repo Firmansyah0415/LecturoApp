@@ -1,9 +1,10 @@
-package com.lecturo.lecturo.ui.tasks
+package com.lecturo.lecturo.ui.task
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.lecturo.lecturo.data.repository.TasksRepository
 
-class TasksViewModelFactory(private val repository: ScheduleRepository) : ViewModelProvider.Factory {
+class TasksViewModelFactory(private val repository: TasksRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TasksViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

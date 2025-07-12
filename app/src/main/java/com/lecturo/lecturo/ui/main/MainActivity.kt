@@ -9,8 +9,8 @@ import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.lecturo.lecturo.databinding.ActivityMainBinding
-import com.lecturo.lecturo.ui.ViewModelFactory
-import com.lecturo.lecturo.ui.tasks.TasksActivity
+import com.lecturo.lecturo.di.ViewModelFactory
+import com.lecturo.lecturo.ui.task.TasksActivity
 import com.lecturo.lecturo.ui.welcome.WelcomeActivity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -19,6 +19,7 @@ import kotlin.getValue
 import kotlin.jvm.java
 import android.view.MenuItem
 import com.lecturo.lecturo.R
+import com.lecturo.lecturo.ui.event.EventActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -63,9 +64,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, TasksActivity::class.java))
         }
 
-//        binding.coursesCard.setOnClickListener {
-//            startActivity(Intent(this, CoursesActivity::class.java))
-//        }
+        binding.coursesCard.setOnClickListener {
+            startActivity(Intent(this, EventActivity::class.java))
+        }
 //
 //        binding.appointmentsCard.setOnClickListener {
 //            startActivity(Intent(this, AppointmentsActivity::class.java))

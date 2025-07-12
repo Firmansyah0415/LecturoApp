@@ -1,4 +1,4 @@
-package com.lecturo.lecturo
+package com.lecturo.lecturo.ui.task
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -6,31 +6,31 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.lecturo.lecturo.databinding.ActivityAddScheduleBinding
-import com.lecturo.lecturo.db.AppDatabase
-import com.lecturo.lecturo.ui.tasks.ScheduleRepository
-import com.lecturo.lecturo.ui.tasks.TasksViewModel
-import com.lecturo.lecturo.ui.tasks.TasksViewModelFactory
+import com.lecturo.lecturo.data.db.AppDatabase
+import com.lecturo.lecturo.data.model.Tasks
+import com.lecturo.lecturo.data.repository.TasksRepository
+import com.lecturo.lecturo.databinding.ActivityAddTasksBinding
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
-class AddScheduleActivity : AppCompatActivity() {
+class AddTasksActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityAddScheduleBinding
+    private lateinit var binding: ActivityAddTasksBinding
 
     private val viewModel: TasksViewModel by viewModels {
-        val dao = AppDatabase.getDatabase(applicationContext).scheduleDao()
-        val repository = ScheduleRepository(dao)
+        val dao = AppDatabase.Companion.getDatabase(applicationContext).tasksDao()
+        val repository = TasksRepository(dao)
         TasksViewModelFactory(repository)
     }
 
-    private var scheduleId: Long = -1L
+    private var tasksId: Long = -1L
     private var isEditMode = false
-    private var currentSchedule: Schedule? = null
+    private var currentTasks: Tasks? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAddScheduleBinding.inflate(layoutInflater)
+        binding = ActivityAddTasksBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupToolbar()
@@ -38,7 +38,7 @@ class AddScheduleActivity : AppCompatActivity() {
         checkEditMode()
 
         binding.buttonSave.setOnClickListener {
-            saveSchedule()
+            saveTasks()
         }
     }
 
@@ -48,33 +48,33 @@ class AddScheduleActivity : AppCompatActivity() {
     }
 
     private fun checkEditMode() {
-        scheduleId = intent.getLongExtra("schedule_id", -1L)
-        if (scheduleId != -1L) {
+        tasksId = intent.getLongExtra("tasks_id", -1L)
+        if (tasksId != -1L) {
             isEditMode = true
             supportActionBar?.title = "Edit Jadwal"
             binding.buttonSave.text = "Update"
-            loadScheduleData()
+            loadTasksData()
         } else {
             supportActionBar?.title = "Tambah Jadwal"
         }
     }
 
-    private fun loadScheduleData() {
-        viewModel.getScheduleById(scheduleId).observe(this) { schedule ->
-            schedule?.let {
-                currentSchedule = it
+    private fun loadTasksData() {
+        viewModel.getTasksById(tasksId).observe(this) { tasks ->
+            tasks?.let {
+                currentTasks = it
                 binding.editTitle.setText(it.title)
                 binding.editDate.setText(it.date)
                 binding.editTime.setText(it.time)
                 binding.editLocation.setText(it.location)
                 binding.editDescription.setText(it.description)
 
-                viewModel.getScheduleById(scheduleId).removeObservers(this)
+                viewModel.getTasksById(tasksId).removeObservers(this)
             }
         }
     }
 
-    private fun saveSchedule() {
+    private fun saveTasks() {
         val title = binding.editTitle.text.toString().trim()
         val date = binding.editDate.text.toString().trim()
         val time = binding.editTime.text.toString().trim()
@@ -82,20 +82,20 @@ class AddScheduleActivity : AppCompatActivity() {
         val description = binding.editDescription.text.toString().trim()
 
         if (title.isEmpty() || date.isEmpty() || time.isEmpty()) {
-            Toast.makeText(this, "Sila lengkapkan semua medan wajib", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Lengkapkan semua yang bertanda *", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val scheduleToSave = Schedule(
-            id = if (isEditMode) scheduleId else 0,
+        val tasksToSave = Tasks(
+            id = if (isEditMode) tasksId else 0,
             title = title, date = date, time = time,
             location = location, description = description,
-            completed = if(isEditMode) currentSchedule?.completed ?: false else false
+            completed = if (isEditMode) currentTasks?.completed ?: false else false
         )
 
-        viewModel.insertOrUpdate(scheduleToSave)
+        viewModel.insertOrUpdate(tasksToSave)
 
-        val message = if (isEditMode) "Jadwal berjaya dikemas kini" else "Jadwal berjaya ditambah"
+        val message = if (isEditMode) "Tugas berhasil di perbarui" else "Tugas berhasil ditambahkan"
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
         finish()

@@ -3,11 +3,8 @@ package com.lecturo.lecturo.ui.welcome
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.lecturo.lecturo.databinding.ActivityWelcomeBinding
 import com.lecturo.lecturo.ui.login.LoginActivity
@@ -21,30 +18,19 @@ class WelcomeActivity : AppCompatActivity() {
         binding = ActivityWelcomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupView()
         setupAction()
         playAnimation()
     }
 
-    private fun setupView() {
-        @Suppress("DEPRECATION")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.hide(WindowInsets.Type.statusBars())
-        } else {
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-            )
-        }
-        supportActionBar?.hide()
-    }
-
     private fun setupAction() {
+        binding.loginButton.isEnabled = true
+        binding.btSignup.isEnabled = true
+
         binding.loginButton.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
         }
 
-        binding.signupButton.setOnClickListener {
+        binding.btSignup.setOnClickListener {
             startActivity(Intent(this, SignupActivity::class.java))
         }
     }
@@ -56,17 +42,21 @@ class WelcomeActivity : AppCompatActivity() {
             repeatMode = ObjectAnimator.REVERSE
         }.start()
 
-        val login = ObjectAnimator.ofFloat(binding.loginButton, View.ALPHA, 1f).setDuration(100)
-        val signup = ObjectAnimator.ofFloat(binding.signupButton, View.ALPHA, 1f).setDuration(100)
-        val title = ObjectAnimator.ofFloat(binding.titleTextView, View.ALPHA, 1f).setDuration(100)
-        val desc = ObjectAnimator.ofFloat(binding.descTextView, View.ALPHA, 1f).setDuration(100)
+        val title = ObjectAnimator.ofFloat(binding.titleTextView, View.ALPHA, 1f).setDuration(200)
+        val desc = ObjectAnimator.ofFloat(binding.descTextView, View.ALPHA, 1f).setDuration(200)
+        val login = ObjectAnimator.ofFloat(binding.loginButton, View.ALPHA, 1f).setDuration(200)
+        val signup = ObjectAnimator.ofFloat(binding.btSignup, View.ALPHA, 1f).setDuration(200)
+        val orLine = ObjectAnimator.ofFloat(binding.orDivider, View.ALPHA, 1f).setDuration(200)
+        val loginGoogle = ObjectAnimator.ofFloat(binding.bLoginGoogle, View.ALPHA, 1f).setDuration(200)
 
+        // Gabungkan animasi tombol login dan signup untuk berjalan bersamaan
         val together = AnimatorSet().apply {
             playTogether(login, signup)
         }
 
+        // Atur urutan animasi secara keseluruhan
         AnimatorSet().apply {
-            playSequentially(title, desc, together)
+            playSequentially(title, desc, together, orLine, loginGoogle)
             start()
         }
     }

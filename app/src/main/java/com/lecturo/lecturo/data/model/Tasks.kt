@@ -1,11 +1,11 @@
-package com.lecturo.lecturo
+package com.lecturo.lecturo.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.io.Serializable
 
-@Entity(tableName = "schedules")
-data class Schedule(
+@Entity(tableName = "tasks")
+data class Tasks(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val title: String,

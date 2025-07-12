@@ -1,15 +1,19 @@
-package com.lecturo.lecturo.db
+package com.lecturo.lecturo.data.db
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.lecturo.lecturo.Schedule
+import com.lecturo.lecturo.data.db.dao.EventDao
+import com.lecturo.lecturo.data.db.dao.TasksDao
+import com.lecturo.lecturo.data.model.Event
+import com.lecturo.lecturo.data.model.Tasks
 
-@Database(entities = [Schedule::class], version = 1, exportSchema = false)
+@Database(entities = [Tasks::class, Event::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun scheduleDao(): ScheduleDao
+    abstract fun tasksDao(): TasksDao // Kunci untuk laci Tugas
+    abstract fun eventDao(): EventDao // Kunci untuk laci Event
 
     companion object {
         @Volatile
