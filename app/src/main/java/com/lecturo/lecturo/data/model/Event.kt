@@ -14,5 +14,8 @@ data class Event(
     val location: String,
     val description: String? = null,
     val isCompleted: Boolean = false,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+
+    // Menyimpan nilai menit untuk notifikasi (misal: 15, 30, 60)
+    val notificationMinutesBefore: Int = 15 // Default 15 menit
 )

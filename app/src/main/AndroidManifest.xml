@@ -2,13 +2,27 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- IZIN YANG DIBUTUHKAN UNTUK NOTIFIKASI -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+
+    <!-- Izin lain yang sudah ada -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Untuk Android versi lama, izin ini masih diperlukan -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"
+        tools:ignore="ScopedStorage" />
+
 
     <application
         android:allowBackup="true"
@@ -20,39 +34,40 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LecturoApp"
         tools:targetApi="31">
-        <activity
-            android:name=".ui.event.AddEventActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.event.EventActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.main.MainActivity"
+
+        <!-- PENDAFTARAN RECEIVER (SANGAT PENTING) -->
+        <receiver
+            android:name=".notifications.NotificationReceiver"
+            android:enabled="true" />
+
+        <receiver
+            android:name=".notifications.RebootReceiver"
+            android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
+        <!-- ... semua Activity Anda yang sudah terdaftar ... -->
+        <activity android:name=".ui.main.MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.cameraocr.CameraOCRActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.task.AddTasksActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.task.TasksActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.welcome.WelcomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.signup.SignupActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.login.LoginActivity"
-            android:exported="false" />
+        <activity android:name=".ui.welcome.WelcomeActivity" />
+        <activity android:name=".ui.login.LoginActivity" />
+        <activity android:name=".ui.signup.SignupActivity" />
+        <activity android:name=".ui.task.TasksActivity" />
+        <activity android:name=".ui.task.AddTasksActivity" />
+        <activity android:name=".ui.event.EventActivity" />
+        <activity android:name=".ui.event.AddEventActivity" />
+        <activity android:name=".ui.teaching.TeachingActivity" />
+        <activity android:name=".ui.teaching.AddTeachingActivity" />
+        <activity android:name=".ui.teaching.class_schedule.ClassScheduleActivity" />
+        <activity android:name=".ui.cameraocr.CameraOCRActivity" />
+        <activity android:name=".ui.settings.NotificationSettingsActivity" />
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

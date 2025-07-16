@@ -1,7 +1,7 @@
 package com.lecturo.lecturo.di
 
 import android.content.Context
-import com.lecturo.lecturo.data.UserRepository
+import com.lecturo.lecturo.data.repository.UserRepository
 import com.lecturo.lecturo.data.pref.UserPreference
 import com.lecturo.lecturo.data.pref.dataStore
 

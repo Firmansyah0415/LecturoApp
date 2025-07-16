@@ -4,16 +4,25 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.lecturo.lecturo.data.db.dao.CalendarEntryDao
 import com.lecturo.lecturo.data.db.dao.EventDao
 import com.lecturo.lecturo.data.db.dao.TasksDao
+import com.lecturo.lecturo.data.db.dao.TeachingRuleDao
+import com.lecturo.lecturo.data.model.CalendarEntry
 import com.lecturo.lecturo.data.model.Event
 import com.lecturo.lecturo.data.model.Tasks
+import com.lecturo.lecturo.data.model.TeachingRule
 
-@Database(entities = [Tasks::class, Event::class], version = 1, exportSchema = false)
+@Database(
+    entities = [Tasks::class, Event::class, TeachingRule::class, CalendarEntry::class],
+    version = 6,
+    exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun tasksDao(): TasksDao // Kunci untuk laci Tugas
-    abstract fun eventDao(): EventDao // Kunci untuk laci Event
+    abstract fun eventDao(): EventDao
+    abstract fun teachingRuleDao(): TeachingRuleDao
+    abstract fun calendarEntryDao(): CalendarEntryDao
 
     companion object {
         @Volatile
@@ -25,7 +34,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "lecturo_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

@@ -32,7 +32,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Title -->
+            <!-- Judul Event -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -44,12 +44,12 @@
                     android:id="@+id/editTextTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
+                    android:inputType="textCapWords"
                     android:maxLines="2" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Category -->
+            <!-- Kategori -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/textInputLayoutCategory"
                 android:layout_width="match_parent"
@@ -66,21 +66,21 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Date and Time Row -->
+            <!-- PERBAIKAN: Menambahkan kembali kolom Tanggal dan Waktu -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:orientation="horizontal">
 
-                <!-- Date -->
+                <!-- Tanggal -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:hint="Tanggal *"
-                    app:endIconDrawable="@drawable/ic_date"
+                    app:startIconDrawable="@drawable/ic_date"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -90,17 +90,16 @@
                         android:clickable="true"
                         android:focusable="false"
                         android:inputType="none" />
-
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Time -->
+                <!-- Waktu -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:hint="Waktu *"
-                    app:endIconDrawable="@drawable/ic_time"
+                    app:startIconDrawable="@drawable/ic_time"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -110,34 +109,30 @@
                         android:clickable="true"
                         android:focusable="false"
                         android:inputType="none" />
-
                 </com.google.android.material.textfield.TextInputLayout>
-
             </LinearLayout>
 
-            <!-- Location -->
+            <!-- PERBAIKAN: Menambahkan kembali kolom Lokasi -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Lokasi / Link Online *"
-                app:endIconDrawable="@drawable/ic_location"
+                android:hint="Lokasi / Tautan Online *"
+                app:startIconDrawable="@drawable/ic_location"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextLocation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:maxLines="2" />
-
+                    android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Description -->
+            <!-- PERBAIKAN: Menambahkan kembali kolom Deskripsi -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:hint="Deskripsi (Opsional)"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -146,12 +141,26 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textMultiLine"
-                    android:lines="4"
+                    android:minLines="3"
                     android:gravity="top" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Save Button -->
+            <!-- Dropdown untuk Notifikasi -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:hint="Pengingat Notifikasi"
+                app:startIconDrawable="@drawable/ic_notification"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/autoCompleteNotification"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSave"
                 android:layout_width="match_parent"

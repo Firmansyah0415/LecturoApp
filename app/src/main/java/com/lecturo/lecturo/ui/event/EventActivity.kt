@@ -1,9 +1,7 @@
 package com.lecturo.lecturo.ui.event
 
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import com.lecturo.lecturo.R
 import android.content.Intent
+import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Menu
@@ -11,11 +9,14 @@ import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.Event
+import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.EventRepository
 import com.lecturo.lecturo.databinding.ActivityEventBinding
 
@@ -24,17 +25,20 @@ class EventActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEventBinding
     private lateinit var eventAdapter: EventAdapter
 
+    // --- PERBAIKAN DI SINI ---
     private val viewModel: EventViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
-        val repository = EventRepository(database.eventDao())
-        EventViewModelFactory(repository)
+        val eventRepository = EventRepository(database.eventDao())
+        val calendarRepository = CalendarRepository(database.calendarEntryDao())
+        // Kirim semua parameter yang dibutuhkan ke Factory
+        EventViewModelFactory(eventRepository, calendarRepository, application)
     }
 
     private val addEventLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Event berhasil ditambah/diupdate, data akan otomatis refresh melalui LiveData
+            // Data akan refresh otomatis melalui LiveData
         }
     }
 
@@ -66,7 +70,6 @@ class EventActivity : AppCompatActivity() {
                 showDeleteConfirmation(event)
             },
             onItemClick = { event ->
-                // Navigate to AddEventActivity for editing
                 val intent = Intent(this, AddEventActivity::class.java)
                 intent.putExtra("event_id", event.id)
                 addEventLauncher.launch(intent)
@@ -116,14 +119,12 @@ class EventActivity : AppCompatActivity() {
     }
 
     private fun setupCategoryChips(categories: List<String>) {
-        // Clear existing category chips (keep "Semua" chip)
         val chipGroup = binding.chipGroupFilters
         val childCount = chipGroup.childCount
         for (i in childCount - 1 downTo 1) {
             chipGroup.removeViewAt(i)
         }
 
-        // Add category chips
         categories.forEach { category ->
             val chip = Chip(this)
             chip.text = category

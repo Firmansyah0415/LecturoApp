@@ -6,7 +6,6 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.lecturo.lecturo.ui.task.AddTasksActivity
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.FragmentTasksBinding
 

@@ -84,7 +84,7 @@
                 android:rowCount="2">
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/scheduleCard"
+                    android:id="@+id/teachingCard"
                     android:layout_width="0dp"
                     android:layout_height="120dp"
                     android:layout_rowWeight="1"
@@ -150,7 +150,7 @@
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/coursesCard"
+                    android:id="@+id/eventCard"
                     android:layout_width="0dp"
                     android:layout_height="120dp"
                     android:layout_rowWeight="1"
@@ -170,7 +170,7 @@
                         <ImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
-                            android:src="@drawable/ic_meeting"
+                            android:src="@drawable/ic_event"
                             android:contentDescription="@string/jadwal_rapat" />
 
                         <TextView

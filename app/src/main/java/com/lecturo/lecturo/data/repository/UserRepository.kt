@@ -1,4 +1,4 @@
-package com.lecturo.lecturo.data
+package com.lecturo.lecturo.data.repository
 
 import com.lecturo.lecturo.data.pref.UserModel
 import com.lecturo.lecturo.data.pref.UserPreference

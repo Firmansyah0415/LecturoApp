@@ -2,12 +2,43 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="colorSecondary">#4CAF50</color>
+    <color name="icon_placeholder">#BDBDBD</color>
+    <color name="colorError">#F44336</color>
+
+    <!-- Existing colors -->
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
     <color name="colorAccent">#FF9800</color>
-    <color name="colorSecondary">#4CAF50</color>
     <color name="background_light">#F5F5F5</color>
     <color name="border_color">#E0E0E0</color>
-    <color name="icon_placeholder">#BDBDBD</color>
-    <color name="colorError">#F44336</color>
+
+    <!-- Info colors for notification cards and info sections -->
+    <color name="info_background">#E3F2FD</color>
+    <color name="info_color">#1976D2</color>
+    <color name="info_text_color">#0D47A1</color>
+
+    <!-- Additional info variants -->
+    <color name="info_background_light">#F3F9FF</color>
+    <color name="info_background_dark">#BBDEFB</color>
+
+    <!-- Success colors -->
+    <color name="success_background">#E8F5E8</color>
+    <color name="success_color">#4CAF50</color>
+    <color name="success_text_color">#2E7D32</color>
+
+    <!-- Warning colors -->
+    <color name="warning_background">#FFF3E0</color>
+    <color name="warning_color">#FF9800</color>
+    <color name="warning_text_color">#E65100</color>
+
+    <!-- Error colors -->
+    <color name="error_background">#FFEBEE</color>
+    <color name="error_color">#F44336</color>
+    <color name="error_text_color">#C62828</color>
+
+    <!-- Neutral colors -->
+    <color name="neutral_background">#F5F5F5</color>
+    <color name="neutral_color">#9E9E9E</color>
+    <color name="neutral_text_color">#424242</color>
 </resources>

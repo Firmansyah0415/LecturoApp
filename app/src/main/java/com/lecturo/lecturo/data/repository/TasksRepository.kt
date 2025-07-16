@@ -14,8 +14,9 @@ class TasksRepository(private val tasksDao: TasksDao) {
         return tasksDao.getTasksById(id)
     }
 
-    suspend fun insertOrUpdate(tasks: Tasks) {
-        tasksDao.insertOrUpdate(tasks)
+    // PERBAIKAN: Fungsi ini sekarang mengembalikan Long
+    suspend fun insertOrUpdate(tasks: Tasks): Long {
+        return tasksDao.insertOrUpdate(tasks)
     }
 
     suspend fun deleteTasks(id: Long) {
@@ -24,5 +25,10 @@ class TasksRepository(private val tasksDao: TasksDao) {
 
     suspend fun updateTasksCompletedStatus(id: Long, completed: Boolean) {
         tasksDao.updateCompletedStatus(id, completed)
+    }
+
+    // Fungsi baru untuk dipanggil oleh ViewModel
+    suspend fun getLatestTask(): Tasks? {
+        return tasksDao.getLatestTask()
     }
 }
