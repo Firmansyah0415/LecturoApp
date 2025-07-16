@@ -1,17 +1,14 @@
 package com.lecturo.lecturo.data.repository
 
 import androidx.lifecycle.LiveData
-import com.lecturo.lecturo.data.db.dao.EventDao
 import com.lecturo.lecturo.data.db.dao.TeachingRuleDao
 import com.lecturo.lecturo.data.db.dao.CalendarEntryDao
-import com.lecturo.lecturo.data.model.Event
 import com.lecturo.lecturo.data.model.TeachingRule
 import com.lecturo.lecturo.data.model.CalendarEntry
 
 class TeachingRepository(
     private val teachingRuleDao: TeachingRuleDao,
-    private val eventDao: EventDao,
-    private val calendarEntryDao: CalendarEntryDao // Tambahkan ini
+    private val calendarEntryDao: CalendarEntryDao
 ) {
 
     fun getAllRules(): LiveData<List<TeachingRule>> {
@@ -34,14 +31,10 @@ class TeachingRepository(
         return teachingRuleDao.getRulesByDay(dayOfWeek)
     }
 
-    // Fungsi untuk menyimpan event ke tabel events
-    suspend fun insertEvent(event: Event): Long {
-        return eventDao.insertOrUpdate(event)
-    }
-
-    // Fungsi untuk menyimpan calendar entries
-    suspend fun insertCalendarEntry(entry: CalendarEntry) {
-        calendarEntryDao.insertEntry(entry)
+    // --- FUNGSI BARU YANG DIPERLUKAN ---
+    // Menambahkan fungsi ini untuk mengatasi error "Unresolved reference" di ViewModel
+    suspend fun insertCalendarEntry(entry: CalendarEntry): Long {
+        return calendarEntryDao.insertEntry(entry)
     }
 
     suspend fun insertCalendarEntries(entries: List<CalendarEntry>) {
@@ -50,5 +43,9 @@ class TeachingRepository(
 
     suspend fun deleteCalendarEntriesForSource(type: String, id: Long) {
         calendarEntryDao.deleteEntriesForSource(type, id)
+    }
+
+    suspend fun getCalendarEntriesForSource(type: String, id: Long): List<CalendarEntry> {
+        return calendarEntryDao.getEntriesForSource(type, id)
     }
 }

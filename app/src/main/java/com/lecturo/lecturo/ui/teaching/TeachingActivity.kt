@@ -2,6 +2,8 @@ package com.lecturo.lecturo.ui.teaching
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -9,13 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
+import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.TeachingRule
 import com.lecturo.lecturo.data.repository.TeachingRepository
 import com.lecturo.lecturo.databinding.ActivityTeachingBinding
-import android.view.Menu
-import android.view.MenuItem
-import com.lecturo.lecturo.R
 import com.lecturo.lecturo.ui.teaching.class_schedule.ClassScheduleActivity
 
 class TeachingActivity : AppCompatActivity() {
@@ -24,13 +24,15 @@ class TeachingActivity : AppCompatActivity() {
     private lateinit var teachingAdapter: TeachingRuleAdapter
     private var allTeachingRules: List<TeachingRule> = emptyList()
 
+    // --- PERBAIKAN DI SINI ---
     private val viewModel: TeachingViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
+        // Hapus eventDao dari sini agar cocok dengan konstruktor Repository
         val repository = TeachingRepository(
             database.teachingRuleDao(),
-            database.eventDao(),
-            database.calendarEntryDao() // Tambahkan ini
+            database.calendarEntryDao()
         )
+        // Tambahkan 'application' sebagai parameter kedua untuk Factory
         TeachingViewModelFactory(repository, application)
     }
 
@@ -38,7 +40,7 @@ class TeachingActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Teaching rule berhasil ditambah/diupdate, data akan otomatis refresh melalui LiveData
+            // Data akan refresh otomatis melalui LiveData
         }
     }
 
@@ -51,13 +53,12 @@ class TeachingActivity : AppCompatActivity() {
         setupRecyclerView()
         setupTabs()
         setupFab()
-        setupClassScheduleButton()
         observeViewModel()
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.teachingToolbar)
-        supportActionBar?.title = "Jadwal Mengajar"
+        supportActionBar?.title = "Aturan Jadwal Mengajar"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
@@ -67,7 +68,6 @@ class TeachingActivity : AppCompatActivity() {
                 showDeleteConfirmation(rule)
             },
             onItemClick = { rule ->
-                // Navigate to AddTeachingActivity for editing
                 val intent = Intent(this, AddTeachingActivity::class.java)
                 intent.putExtra("rule_id", rule.id)
                 addTeachingLauncher.launch(intent)
@@ -85,7 +85,6 @@ class TeachingActivity : AppCompatActivity() {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 filterByDay(tab?.text.toString())
             }
-
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
@@ -107,11 +106,6 @@ class TeachingActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupClassScheduleButton() {
-        // Jika menggunakan menu
-        // Atau jika menggunakan button di layout, tambahkan listener
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.teaching_menu, menu)
         return true
@@ -131,8 +125,8 @@ class TeachingActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.teachingRules.observe(this) { rules ->
             allTeachingRules = rules
-            teachingAdapter.submitList(rules)
-            updateEmptyState(rules.isEmpty())
+            val selectedTab = binding.tabLayoutDays.getTabAt(binding.tabLayoutDays.selectedTabPosition)
+            filterByDay(selectedTab?.text.toString())
         }
     }
 
@@ -143,8 +137,8 @@ class TeachingActivity : AppCompatActivity() {
 
     private fun showDeleteConfirmation(rule: TeachingRule) {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Hapus Jadwal Mengajar")
-            .setMessage("Apakah Anda yakin ingin menghapus jadwal mengajar \"${rule.courseName} - ${rule.className}\"?\n\nPerhatian: Ini akan menghapus aturan jadwal, tetapi event yang sudah dibuat di kalender tidak akan terhapus.")
+            .setTitle("Hapus Aturan Jadwal")
+            .setMessage("Yakin ingin menghapus aturan \"${rule.courseName} - ${rule.className}\"?\n\nPerhatian: Ini akan menghapus semua jadwal kelas terkait dari kalender.")
             .setPositiveButton("Hapus") { _, _ ->
                 viewModel.deleteTeachingRule(rule.id)
             }

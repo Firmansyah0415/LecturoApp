@@ -16,8 +16,10 @@ data class TeachingRule(
     val location: String,
     val studentCount: Int,
     val semesterStartDate: String,
-
-    // Pastikan kedua kolom ini ada di dalam data class Anda
     val repetitionType: String,
-    val repetitionValue: String
+    val repetitionValue: String,
+
+    // --- KOLOM BARU YANG PENTING ---
+    // Menyimpan nilai menit untuk notifikasi (misal: 15, 30, 60)
+    val notificationMinutesBefore: Int = 15 // Default 15 menit
 ): Serializable

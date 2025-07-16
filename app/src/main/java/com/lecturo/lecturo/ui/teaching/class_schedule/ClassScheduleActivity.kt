@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import com.lecturo.lecturo.data.db.AppDatabase
-import com.lecturo.lecturo.data.model.CalendarEntry
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.databinding.ActivityClassScheduleBinding
 import com.lecturo.lecturo.ui.teaching.AddTeachingActivity
@@ -19,7 +18,8 @@ class ClassScheduleActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityClassScheduleBinding
     private lateinit var classScheduleAdapter: ClassScheduleAdapter
-    private var allClassEntries: List<CalendarEntry> = emptyList()
+    // PERBAIKAN: Tipe data list sekarang adalah DisplayableClassSchedule
+    private var allClassEntries: List<DisplayableClassSchedule> = emptyList()
 
     private val viewModel: ClassScheduleViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
@@ -47,10 +47,11 @@ class ClassScheduleActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        classScheduleAdapter = ClassScheduleAdapter { entry ->
-            // Navigate ke detail teaching rule
+        // PERBAIKAN: onItemClick sekarang menerima DisplayableClassSchedule
+        classScheduleAdapter = ClassScheduleAdapter { item ->
+            // Ambil ID aturan asli dari dalam objek entry
             val intent = Intent(this, AddTeachingActivity::class.java)
-            intent.putExtra("rule_id", entry.sourceFeatureId)
+            intent.putExtra("rule_id", item.entry.sourceFeatureId)
             startActivity(intent)
         }
 
@@ -65,7 +66,6 @@ class ClassScheduleActivity : AppCompatActivity() {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 filterByDay(tab?.text.toString())
             }
-
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
@@ -79,26 +79,26 @@ class ClassScheduleActivity : AppCompatActivity() {
             "Semua" -> allClassEntries
             "Hari Ini" -> {
                 val today = dateFormat.format(calendar.time)
-                allClassEntries.filter { it.date == today }
+                allClassEntries.filter { it.entry.date == today }
             }
             "Besok" -> {
                 calendar.add(Calendar.DAY_OF_MONTH, 1)
                 val tomorrow = dateFormat.format(calendar.time)
-                allClassEntries.filter { it.date == tomorrow }
+                allClassEntries.filter { it.entry.date == tomorrow }
             }
             "Minggu Ini" -> {
-                // Get start of week (Monday)
+                // Set kalender ke hari Senin minggu ini
                 calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
                 val startOfWeek = calendar.time
-
-                // Get end of week (Sunday)
+                // Set kalender ke hari Minggu minggu ini
                 calendar.add(Calendar.DAY_OF_WEEK, 6)
                 val endOfWeek = calendar.time
 
-                allClassEntries.filter { entry ->
+                allClassEntries.filter { item ->
                     try {
-                        val entryDate = dateFormat.parse(entry.date)
-                        entryDate != null && entryDate >= startOfWeek && entryDate <= endOfWeek
+                        val entryDate = dateFormat.parse(item.entry.date)
+                        // Pastikan tanggal entri berada di antara awal dan akhir minggu
+                        entryDate != null && !entryDate.before(startOfWeek) && !entryDate.after(endOfWeek)
                     } catch (e: Exception) {
                         false
                     }
@@ -112,10 +112,13 @@ class ClassScheduleActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.teachingEntries.observe(this) { entries ->
-            allClassEntries = entries
-            classScheduleAdapter.submitList(entries)
-            updateEmptyState(entries.isEmpty())
+        // --- PERBAIKAN DI SINI ---
+        // Amati LiveData yang baru (displayableSchedules) dari ViewModel
+        viewModel.displayableSchedules.observe(this) { displayableItems ->
+            allClassEntries = displayableItems
+            // Perbarui filter saat data baru masuk agar tampilan tetap konsisten
+            val selectedTab = binding.tabLayoutDays.getTabAt(binding.tabLayoutDays.selectedTabPosition)
+            filterByDay(selectedTab?.text.toString())
         }
     }
 

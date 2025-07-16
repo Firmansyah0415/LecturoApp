@@ -15,7 +15,7 @@ import com.lecturo.lecturo.data.model.TeachingRule
 
 @Database(
     entities = [Tasks::class, Event::class, TeachingRule::class, CalendarEntry::class],
-    version = 6,
+    version = 7,
     exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 

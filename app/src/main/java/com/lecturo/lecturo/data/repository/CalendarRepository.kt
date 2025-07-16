@@ -36,7 +36,6 @@ class CalendarRepository(private val calendarEntryDao: CalendarEntryDao) {
         calendarEntryDao.deleteEntriesForSource(type, id)
     }
 
-    // Fungsi ini dibutuhkan oleh ViewModel untuk membatalkan notifikasi
     suspend fun getEntriesForSource(type: String, id: Long): List<CalendarEntry> {
         return calendarEntryDao.getEntriesForSource(type, id)
     }

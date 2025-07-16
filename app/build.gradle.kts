@@ -76,4 +76,6 @@ dependencies {
 
     // Compiler KSP untuk Room
     ksp(libs.androidx.room.compiler)
+
+    implementation(libs.androidx.preference.ktx)
 }

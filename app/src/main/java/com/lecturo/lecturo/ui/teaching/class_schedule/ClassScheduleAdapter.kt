@@ -5,14 +5,14 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.lecturo.lecturo.data.model.CalendarEntry
 import com.lecturo.lecturo.databinding.ItemClassScheduleBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
+// PERBAIKAN: Adapter sekarang bekerja dengan DisplayableClassSchedule
 class ClassScheduleAdapter(
-    private val onItemClick: (CalendarEntry) -> Unit
-) : ListAdapter<CalendarEntry, ClassScheduleAdapter.ClassScheduleViewHolder>(ClassScheduleDiffCallback()) {
+    private val onItemClick: (DisplayableClassSchedule) -> Unit
+) : ListAdapter<DisplayableClassSchedule, ClassScheduleAdapter.ClassScheduleViewHolder>(ClassScheduleDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClassScheduleViewHolder {
         val binding = ItemClassScheduleBinding.inflate(
@@ -31,15 +31,20 @@ class ClassScheduleAdapter(
         private val binding: ItemClassScheduleBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(entry: CalendarEntry) {
+        // PERBAIKAN: Fungsi bind sekarang menerima DisplayableClassSchedule
+        fun bind(item: DisplayableClassSchedule) {
+            val entry = item.entry
             binding.apply {
+                // Tampilkan nomor pertemuan yang sudah dihitung dari ViewModel
+                textMeetingNumber.text = "P${item.meetingNumber}"
+
                 textTitle.text = entry.title
                 textDate.text = formatDate(entry.date)
                 textTime.text = entry.time
                 textCategory.text = entry.category
 
                 root.setOnClickListener {
-                    onItemClick(entry)
+                    onItemClick(item)
                 }
             }
         }
@@ -56,12 +61,14 @@ class ClassScheduleAdapter(
         }
     }
 
-    class ClassScheduleDiffCallback : DiffUtil.ItemCallback<CalendarEntry>() {
-        override fun areItemsTheSame(oldItem: CalendarEntry, newItem: CalendarEntry): Boolean {
-            return oldItem.id == newItem.id
+    // PERBAIKAN: DiffUtil sekarang membandingkan DisplayableClassSchedule
+    class ClassScheduleDiffCallback : DiffUtil.ItemCallback<DisplayableClassSchedule>() {
+        override fun areItemsTheSame(oldItem: DisplayableClassSchedule, newItem: DisplayableClassSchedule): Boolean {
+            // Kita bandingkan berdasarkan ID entri kalender yang unik
+            return oldItem.entry.id == newItem.entry.id
         }
 
-        override fun areContentsTheSame(oldItem: CalendarEntry, newItem: CalendarEntry): Boolean {
+        override fun areContentsTheSame(oldItem: DisplayableClassSchedule, newItem: DisplayableClassSchedule): Boolean {
             return oldItem == newItem
         }
     }

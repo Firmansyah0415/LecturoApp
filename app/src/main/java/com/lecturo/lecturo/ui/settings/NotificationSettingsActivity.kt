@@ -2,10 +2,10 @@ package com.lecturo.lecturo.ui.settings
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import com.lecturo.lecturo.databinding.ActivityNotificationSettingsBinding
 
 class NotificationSettingsActivity : AppCompatActivity() {

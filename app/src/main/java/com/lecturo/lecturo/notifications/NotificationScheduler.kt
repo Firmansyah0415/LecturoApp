@@ -15,10 +15,28 @@ class NotificationScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     fun scheduleNotification(entry: CalendarEntry) {
-        if (entry.notificationMinutesBefore < 0) return // Notifikasi dinonaktifkan
+        if (entry.notificationMinutesBefore < 0) {
+            Log.d("NotificationScheduler", "Notifikasi untuk ID ${entry.notificationId} dinonaktifkan.")
+            return
+        }
 
         val notificationTime = calculateNotificationTime(entry.date, entry.time, entry.notificationMinutesBefore)
-        if (notificationTime <= System.currentTimeMillis()) return // Waktu sudah lewat
+        val currentTime = System.currentTimeMillis()
+
+        // --- LOG BARU UNTUK INVESTIGASI ---
+        val readableNotifTime = SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS", Locale.getDefault()).format(Date(notificationTime))
+        val readableCurrentTime = SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS", Locale.getDefault()).format(Date(currentTime))
+        Log.d("NotificationScheduler", "-----------------------------------------")
+        Log.d("NotificationScheduler", "Mencoba Menjadwalkan untuk ID: ${entry.notificationId}")
+        Log.d("NotificationScheduler", "Waktu Alarm Dihitung   : $readableNotifTime")
+        Log.d("NotificationScheduler", "Waktu Sistem Saat Ini  : $readableCurrentTime")
+        // ------------------------------------
+
+        if (notificationTime <= currentTime) {
+            // --- LOG PENTING JIKA GAGAL ---
+            Log.w("NotificationScheduler", "PENJADWALAN DIBATALKAN: Waktu alarm sudah lewat.")
+            return // Waktu sudah lewat, jangan jadwalkan
+        }
 
         val intent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra("entry_id", entry.id)
@@ -30,10 +48,6 @@ class NotificationScheduler(private val context: Context) {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        // --- TAMBAHKAN LOG DI SINI ---
-        val readableTime = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(notificationTime))
-        Log.d("NotificationScheduler", "Menjadwalkan notifikasi untuk ID: ${entry.notificationId} pada: $readableTime")
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -49,9 +63,10 @@ class NotificationScheduler(private val context: Context) {
                     pendingIntent
                 )
             }
+            // --- LOG PENTING JIKA SUKSES ---
+            Log.d("NotificationScheduler", "SUKSES: Alarm untuk ID ${entry.notificationId} berhasil disetel.")
         } catch (e: SecurityException) {
-            // Handle permission denied for exact alarms
-            e.printStackTrace()
+            Log.e("NotificationScheduler", "Gagal menjadwalkan: Izin ditolak", e)
         }
     }
 
@@ -63,8 +78,8 @@ class NotificationScheduler(private val context: Context) {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
         alarmManager.cancel(pendingIntent)
+        Log.d("NotificationScheduler", "Notifikasi dengan ID $notificationId dibatalkan.")
     }
 
     private fun calculateNotificationTime(date: String, time: String, minutesBefore: Int): Long {
