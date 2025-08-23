@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Path ini mengizinkan FileProvider untuk berbagi file dari direktori cache eksternal aplikasi -->
+    <external-cache-path name="my_images" path="." />
+</paths>

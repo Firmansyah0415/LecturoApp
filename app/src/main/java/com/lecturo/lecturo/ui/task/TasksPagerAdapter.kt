@@ -9,7 +9,6 @@ class TasksPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activ
     override fun getItemCount(): Int = 2
 
     override fun createFragment(position: Int): Fragment {
-        // Hantar hanya status 'isCompleted', bukan senarai data
         return when (position) {
             0 -> TasksFragment.newInstance(isCompleted = false)
             1 -> TasksFragment.newInstance(isCompleted = true)

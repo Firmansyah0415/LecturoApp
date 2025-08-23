@@ -18,8 +18,5 @@ data class TeachingRule(
     val semesterStartDate: String,
     val repetitionType: String,
     val repetitionValue: String,
-
-    // --- KOLOM BARU YANG PENTING ---
-    // Menyimpan nilai menit untuk notifikasi (misal: 15, 30, 60)
     val notificationMinutesBefore: Int = 15 // Default 15 menit
 ): Serializable

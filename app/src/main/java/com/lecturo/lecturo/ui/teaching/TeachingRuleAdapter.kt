@@ -30,17 +30,15 @@ class TeachingRuleAdapter(
         private val binding: ItemTeachingRuleBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        // --- FUNGSI BIND YANG DIPERBAIKI ---
         fun bind(rule: TeachingRule) {
             binding.apply {
                 textCourseName.text = rule.courseName
-                textClassName.text = rule.className
-                textDayOfWeek.text = rule.dayOfWeek
-                textTimeRange.text = "${rule.startTime} - ${rule.endTime}"
+                textClassName.text = "Kelas ${rule.className}"
+                val dayAndTimeText = "${rule.dayOfWeek}, ${rule.startTime} - ${rule.endTime}"
+                binding.textDayAndTime.text = dayAndTimeText // Gunakan ID baru
                 textLocation.text = rule.location
                 textStudentCount.text = "${rule.studentCount} Mahasiswa"
 
-                // PERBAIKAN: Logika untuk menampilkan periode semester
                 val semesterPeriodText = if (rule.repetitionType == "DATE") {
                     "Semester: ${rule.semesterStartDate} - ${rule.repetitionValue}"
                 } else {

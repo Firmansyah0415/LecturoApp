@@ -16,25 +16,20 @@ class TeachingViewModel(private val repository: TeachingRepository, application:
 
     val teachingRules: LiveData<List<TeachingRule>> = repository.getAllRules()
 
-    // PERBAIKAN: Fungsi ini sekarang hanya menerima satu parameter: objek TeachingRule yang sudah lengkap
     fun saveNewTeachingRule(rule: TeachingRule) = viewModelScope.launch {
         try {
-            // 1. Batalkan semua alarm lama yang terkait dengan aturan ini (penting untuk mode edit)
             if (rule.id != 0L) {
                 val scheduler = NotificationScheduler(getApplication())
                 val oldEntries = repository.getCalendarEntriesForSource("TEACHING_RULE", rule.id)
                 oldEntries.forEach { oldEntry ->
                     scheduler.cancelNotification(oldEntry.notificationId)
                 }
-                // Hapus entri kalender lama dari database
                 repository.deleteCalendarEntriesForSource("TEACHING_RULE", rule.id)
             }
 
-            // 2. Simpan aturan ke tabel teaching_rules dan dapatkan ID-nya
             val ruleId = repository.insertOrUpdateRule(rule)
             val updatedRule = rule.copy(id = ruleId)
 
-            // 3. Generate dan jadwalkan entri kalender baru satu per satu
             generateAndScheduleEntries(updatedRule)
 
         } catch (e: Exception) {

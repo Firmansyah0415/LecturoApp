@@ -5,7 +5,8 @@
     <item
         android:id="@+id/action_view_class_schedule"
         android:title="Lihat Jadwal Kelas"
-        android:icon="@drawable/ic_schedule"
+        android:icon="@drawable/ic_teaching"
+        android:iconTint="@color/white"
         app:showAsAction="ifRoom" />
 
 </menu>

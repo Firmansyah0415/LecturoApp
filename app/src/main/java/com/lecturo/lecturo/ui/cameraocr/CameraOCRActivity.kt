@@ -4,51 +4,60 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.lecturo.lecturo.R
+import com.lecturo.lecturo.ai.EventGeminiExtractor
+import com.lecturo.lecturo.data.model.Event
 import com.lecturo.lecturo.databinding.ActivityCameraOcrBinding
-import com.lecturo.lecturo.ui.task.AddTasksActivity
-import java.util.regex.Pattern
+import com.lecturo.lecturo.ui.event.AddEventActivity
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
+import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.text.PDFTextStripper
+import kotlinx.coroutines.launch
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 class CameraOCRActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCameraOcrBinding
-    private var capturedBitmap: Bitmap? = null
-    private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private val textRecognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
 
-    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val bitmap = result.data?.extras?.get("data") as? Bitmap
-            if (bitmap != null) {
-                capturedBitmap = bitmap
-                binding.imageView.setImageBitmap(bitmap)
-                extractTextFromImage(bitmap)
-            } else {
-                showToast("Gagal mengambil gambar dari kamera")
+    // Variabel untuk menyimpan URI dari file gambar sementara
+    private var tempImageUri: Uri? = null
+
+    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) openCamera() else showToast("Izin kamera ditolak")
+    }
+
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            tempImageUri?.let { uri ->
+                processImage(uri)
             }
+        } else {
+            showToast("Gagal mengambil gambar")
         }
     }
 
-    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val uri = result.data?.data
-            try {
-                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                capturedBitmap = bitmap
-                binding.imageView.setImageBitmap(bitmap)
-                extractTextFromImage(bitmap)
-            } catch (e: Exception) {
-                showToast("Gagal memuat gambar")
-            }
-        }
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { processImage(it) }
+    }
+
+    private val pdfLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { processPdf(it) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,167 +65,148 @@ class CameraOCRActivity : AppCompatActivity() {
         binding = ActivityCameraOcrBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        PDFBoxResourceLoader.init(applicationContext)
         setupToolbar()
         setupClickListeners()
-        binding.buttonProcess.text = "Pilih Gambar Terlebih Dahulu" // 🟡
-        binding.buttonProcess.isEnabled = false
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbarLogin)
-        supportActionBar?.apply {
-            title = "Kamera OCR"
-            setDisplayHomeAsUpEnabled(true)
-        }
-
-        binding.toolbarLogin.setNavigationOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
-        }
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     private fun setupClickListeners() {
-        binding.buttonCamera.setOnClickListener {
-            if (hasCameraPermission()) {
-                openCamera()
-            } else {
-                requestCameraPermission()
-            }
-        }
+        binding.buttonCamera.setOnClickListener { checkCameraPermission() }
+        binding.buttonGallery.setOnClickListener { galleryLauncher.launch("image/*") }
+        binding.buttonPdf.setOnClickListener { pdfLauncher.launch("application/pdf") }
+        binding.buttonProcess.setOnClickListener { processTextWithAI() }
+    }
 
-        binding.buttonGallery.setOnClickListener {
-            openGallery()
-        }
-
-        binding.buttonProcess.setOnClickListener {
-            confirmAndProceed()
+    private fun checkCameraPermission() {
+        when {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED -> openCamera()
+            else -> requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
+    // --- DIUBAH: Logika diperbaiki untuk mengatasi error type mismatch ---
     private fun openCamera() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        cameraLauncher.launch(intent)
+        try {
+            // Buat URI yang dijamin tidak null
+            val uri = createImageUri()
+            // Simpan ke variabel class untuk digunakan nanti
+            tempImageUri = uri
+            // Luncurkan kamera dengan URI yang valid
+            cameraLauncher.launch(uri)
+        } catch (e: Exception) {
+            showToast("Gagal mempersiapkan kamera: ${e.message}")
+        }
     }
 
-    private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        galleryLauncher.launch(intent)
+    private fun createImageUri(): Uri {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val imageFile = File.createTempFile("JPEG_${timeStamp}_", ".jpg", externalCacheDir)
+        return FileProvider.getUriForFile(
+            this,
+            "${applicationContext.packageName}.fileprovider", // Pastikan authority ini cocok dengan di Manifest
+            imageFile
+        )
     }
 
-    private fun extractTextFromImage(bitmap: Bitmap) {
+    // --- LOGIKA PEMROSESAN DATA ---
+
+    private fun processImage(bitmap: Bitmap) {
+        binding.imageView.setImageBitmap(bitmap)
+        setLoadingState(true, "Membaca teks dari gambar...")
         val image = InputImage.fromBitmap(bitmap, 0)
-
-        binding.textResult.text = "Memproses gambar..." // 🟡
-        binding.buttonProcess.text = "Memproses..."
-        binding.buttonProcess.isEnabled = false
-
         textRecognizer.process(image)
             .addOnSuccessListener { visionText ->
-                val extractedText = visionText.text
-                binding.textResult.text = extractedText
-                binding.buttonProcess.text = "Konfirmasi & Lanjutkan"
-                binding.buttonProcess.isEnabled = true
+                binding.textResult.setText(visionText.text)
+                setLoadingState(false, "Proses dengan AI")
             }
             .addOnFailureListener { e ->
-                binding.textResult.text = "Gagal memproses gambar: ${e.message}"
-                binding.buttonProcess.text = "Proses OCR"
-                binding.buttonProcess.isEnabled = false
-                showToast("Gagal memproses gambar: ${e.message}")
+                showToast("Gagal membaca teks: ${e.message}")
+                setLoadingState(false, "Pilih Sumber Lain", isError = true)
             }
     }
 
-    private fun confirmAndProceed() {
-        val extractedText = binding.textResult.text.toString()
+    private fun processImage(uri: Uri) {
+        try {
+            // Muat bitmap dari URI untuk ditampilkan di preview
+            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
+            processImage(bitmap)
+        } catch (e: Exception) {
+            showToast("Gagal memuat gambar")
+        }
+    }
 
-        if (extractedText.isBlank() || extractedText.contains("Hasil OCR")) {
-            showToast("Tidak ada teks yang diekstrak")
+    private fun processPdf(uri: Uri) {
+        binding.imageView.setImageResource(R.drawable.ic_pdf)
+        setLoadingState(true, "Membaca teks dari PDF...")
+        lifecycleScope.launch {
+            try {
+                contentResolver.openInputStream(uri)?.use { stream ->
+                    val document = PDDocument.load(stream)
+                    val stripper = PDFTextStripper()
+                    binding.textResult.setText(stripper.getText(document))
+                    document.close()
+                    setLoadingState(false, "Proses dengan AI")
+                }
+            } catch (e: Exception) {
+                showToast("Gagal memproses PDF: ${e.message}")
+                setLoadingState(false, "Pilih Sumber Lain", isError = true)
+            }
+        }
+    }
+
+    private fun processTextWithAI() {
+        val rawText = binding.textResult.text.toString().trim()
+        if (rawText.isBlank()) {
+            showToast("Tidak ada teks untuk diproses")
             return
         }
-
-        val scheduleInfo = classifyScheduleText(extractedText)
-
-        if (scheduleInfo.isNotEmpty()) {
-            val intent = Intent(this, AddTasksActivity::class.java).apply {
-                putExtra("extracted_title", scheduleInfo["title"] ?: "")
-                putExtra("extracted_date", scheduleInfo["date"] ?: "")
-                putExtra("extracted_time", scheduleInfo["time"] ?: "")
-                putExtra("extracted_location", scheduleInfo["location"] ?: "")
-                putExtra("from_ocr", true)
+        setLoadingState(true, "Memproses dengan AI...")
+        lifecycleScope.launch {
+            val result = EventGeminiExtractor.extractEventInfo(rawText)
+            result.onSuccess { event ->
+                navigateToForm(event)
+            }.onFailure { error ->
+                showToast("Gagal memproses AI: ${error.message}")
+                setLoadingState(false, "Coba Lagi", isError = true)
             }
-            startActivity(intent)
-            finish()
-        } else {
-            showToast("Tidak dapat mengidentifikasi informasi jadwal dari teks ini")
         }
     }
 
-    private fun hasCameraPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+    private fun navigateToForm(event: Event) {
+        val intent = Intent(this, AddEventActivity::class.java).apply {
+            putExtra("EXTRA_EVENT_AI", event)
+        }
+        startActivity(intent)
+        finish()
     }
 
-    private fun requestCameraPermission() {
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 102)
-    }
+    // --- FUNGSI BANTUAN ---
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 102 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            openCamera()
-        } else {
-            showToast("Izin kamera diperlukan")
-        }
-    }
-
-    private fun classifyScheduleText(text: String): Map<String, String> {
-        val result = mutableMapOf<String, String>()
-        val lines = text.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
-
-        val datePattern = Pattern.compile(
-            "\\b(\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}|\\d{1,2}\\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\\s+\\d{2,4})\\b",
-            Pattern.CASE_INSENSITIVE
-        )
-
-        val timePattern = Pattern.compile("\\b\\d{1,2}[:.\\-]\\d{2}(\\s*(AM|PM|WIB|WITA|WIT))?\\b", Pattern.CASE_INSENSITIVE)
-
-        val locationKeywords = listOf("ruang", "kelas", "lab", "aula", "gedung", "lantai", "room", "hall")
-
-        for (line in lines) {
-            val dateMatcher = datePattern.matcher(line)
-            if (dateMatcher.find() && !result.containsKey("date")) {
-                result["date"] = dateMatcher.group()
-            }
-
-            val timeMatcher = timePattern.matcher(line)
-            if (timeMatcher.find() && !result.containsKey("time")) {
-                result["time"] = timeMatcher.group()
-            }
-
-            val lowerLine = line.lowercase()
-            for (keyword in locationKeywords) {
-                if (lowerLine.contains(keyword) && !result.containsKey("location")) {
-                    result["location"] = line
-                    break
-                }
-            }
-        }
-
-        if (lines.isNotEmpty() && !result.containsKey("title")) {
-            result["title"] = lines[0]
-        }
-
-        return result
+    private fun setLoadingState(isLoading: Boolean, buttonText: String, isError: Boolean = false) {
+        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        binding.buttonProcess.text = buttonText
+        binding.buttonProcess.isEnabled = !isLoading || isError
+        binding.buttonCamera.isEnabled = !isLoading
+        binding.buttonGallery.isEnabled = !isLoading
+        binding.buttonPdf.isEnabled = !isLoading
     }
 
     private fun showToast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
-    override fun onDestroy() {
-        textRecognizer.close()
-        super.onDestroy()
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
+    override fun onDestroy() {
+        super.onDestroy()
+        textRecognizer.close()
     }
 }

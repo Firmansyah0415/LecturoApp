@@ -18,7 +18,6 @@ class ClassScheduleActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityClassScheduleBinding
     private lateinit var classScheduleAdapter: ClassScheduleAdapter
-    // PERBAIKAN: Tipe data list sekarang adalah DisplayableClassSchedule
     private var allClassEntries: List<DisplayableClassSchedule> = emptyList()
 
     private val viewModel: ClassScheduleViewModel by viewModels {
@@ -47,9 +46,7 @@ class ClassScheduleActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        // PERBAIKAN: onItemClick sekarang menerima DisplayableClassSchedule
         classScheduleAdapter = ClassScheduleAdapter { item ->
-            // Ambil ID aturan asli dari dalam objek entry
             val intent = Intent(this, AddTeachingActivity::class.java)
             intent.putExtra("rule_id", item.entry.sourceFeatureId)
             startActivity(intent)
@@ -112,11 +109,8 @@ class ClassScheduleActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        // --- PERBAIKAN DI SINI ---
-        // Amati LiveData yang baru (displayableSchedules) dari ViewModel
         viewModel.displayableSchedules.observe(this) { displayableItems ->
             allClassEntries = displayableItems
-            // Perbarui filter saat data baru masuk agar tampilan tetap konsisten
             val selectedTab = binding.tabLayoutDays.getTabAt(binding.tabLayoutDays.selectedTabPosition)
             filterByDay(selectedTab?.text.toString())
         }

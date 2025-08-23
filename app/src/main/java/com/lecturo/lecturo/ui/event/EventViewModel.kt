@@ -21,8 +21,8 @@ class EventViewModel(
 ) : AndroidViewModel(application) {
 
     private val allEvents = eventRepository.getAllEvents()
-    private val _categoryFilter = MutableLiveData<String>("") // Default ke string kosong
-    private val _searchQuery = MutableLiveData<String>("")   // Default ke string kosong
+    private val _categoryFilter = MutableLiveData<String>("")
+    private val _searchQuery = MutableLiveData<String>("")
 
     val categoryFilter: LiveData<String> = _categoryFilter
     val searchQuery: LiveData<String> = _searchQuery
@@ -52,10 +52,7 @@ class EventViewModel(
         return filtered
     }
 
-    // --- FUNGSI YANG DIPERBARUI ---
-    // Sekarang hanya menerima satu parameter: objek Event yang sudah lengkap
     fun insertOrUpdate(event: Event) = viewModelScope.launch {
-        // 1. Batalkan alarm lama jika ada (untuk mode edit)
         if (event.id != 0L) {
             val scheduler = NotificationScheduler(getApplication())
             val oldEntries = calendarRepository.getEntriesForSource("EVENT", event.id)
@@ -65,11 +62,9 @@ class EventViewModel(
             calendarRepository.deleteEntriesForSource("EVENT", event.id)
         }
 
-        // 2. Simpan event asli dan dapatkan ID-nya
         val eventId = eventRepository.insertOrUpdate(event)
         val finalEvent = event.copy(id = eventId)
 
-        // 3. Buat entri kalender
         val calendarEntry = CalendarEntry(
             title = finalEvent.title,
             date = finalEvent.date,
@@ -77,13 +72,11 @@ class EventViewModel(
             category = finalEvent.category,
             sourceFeatureType = "EVENT",
             sourceFeatureId = finalEvent.id,
-            // Ambil nilai notifikasi langsung dari objek Event
             notificationMinutesBefore = finalEvent.notificationMinutesBefore
         )
         val calendarEntryId = calendarRepository.insertEntry(calendarEntry)
         val finalCalendarEntry = calendarEntry.copy(id = calendarEntryId)
 
-        // 4. Jadwalkan notifikasi baru
         if (finalEvent.notificationMinutesBefore >= 0) {
             val scheduler = NotificationScheduler(getApplication())
             scheduler.scheduleNotification(finalCalendarEntry)
@@ -114,7 +107,6 @@ class EventViewModel(
     fun setCategoryFilter(category: String) { _categoryFilter.value = category }
     fun setSearchQuery(query: String) { _searchQuery.value = query }
 
-    // PERBAIKAN: Menggunakan string kosong agar tidak nullable
     fun clearFilters() {
         _categoryFilter.value = ""
         _searchQuery.value = ""

@@ -19,7 +19,7 @@ import com.lecturo.lecturo.data.model.TeachingRule
     exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun tasksDao(): TasksDao // Kunci untuk laci Tugas
+    abstract fun tasksDao(): TasksDao
     abstract fun eventDao(): EventDao
     abstract fun teachingRuleDao(): TeachingRuleDao
     abstract fun calendarEntryDao(): CalendarEntryDao

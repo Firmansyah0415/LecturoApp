@@ -6,15 +6,16 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView // Import yang benar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
-import com.lecturo.lecturo.ui.cameraocr.CameraOCRActivity
 import com.lecturo.lecturo.R
-import com.lecturo.lecturo.data.model.Tasks
-import com.lecturo.lecturo.databinding.ActivityTasksBinding
 import com.lecturo.lecturo.data.db.AppDatabase
+import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
+import com.lecturo.lecturo.databinding.ActivityTasksBinding
+import com.lecturo.lecturo.ui.cameraocr.CameraOCRActivity
 
 class TasksActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTasksBinding
@@ -35,15 +36,15 @@ class TasksActivity : AppCompatActivity() {
         binding = ActivityTasksBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Mengganti toolbar lama dengan yang baru dari binding
+        setSupportActionBar(binding.taskToolbar)
         setupToolbar()
         setupViewPager()
         setupFabActions()
         observeTabTitles()
     }
 
-    // ... (sisa kode Anda dari sini ke bawah sudah benar dan tidak perlu diubah)
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
         supportActionBar?.title = "Tugas"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
@@ -53,14 +54,47 @@ class TasksActivity : AppCompatActivity() {
         return true
     }
 
+    // --- PERBAIKAN UTAMA DI SINI ---
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.tasks_menu, menu)
-        // ... (logika search view Anda)
+
+        // 1. Dapatkan item menu search
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView
+
+        // 2. Tambahkan listener untuk mendeteksi input teks
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            // Dipanggil saat pengguna menekan tombol search di keyboard (tidak kita gunakan di sini)
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return true
+            }
+
+            // Dipanggil setiap kali teks di search bar berubah
+            override fun onQueryTextChange(newText: String?): Boolean {
+                // 3. Kirim query ke ViewModel untuk memfilter daftar secara real-time
+                viewModel.setSearchQuery(newText ?: "")
+                return true
+            }
+        })
+
+        // (Opsional tapi direkomendasikan) Hapus filter saat search ditutup
+        searchItem?.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                return true // Harus return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                viewModel.setSearchQuery("") // Hapus query saat search ditutup
+                return true // Harus return true
+            }
+        })
+
         return true
     }
 
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // ... (logika item menu Anda)
+        // ... (logika item menu Anda yang lain bisa ditambahkan di sini)
         return super.onOptionsItemSelected(item)
     }
 
@@ -83,9 +117,6 @@ class TasksActivity : AppCompatActivity() {
     private fun setupFabActions() {
         binding.fabAddTasks.setOnClickListener {
             startActivity(Intent(this, AddTasksActivity::class.java))
-        }
-        binding.fabCamera.setOnClickListener {
-            startActivity(Intent(this, CameraOCRActivity::class.java))
         }
     }
 

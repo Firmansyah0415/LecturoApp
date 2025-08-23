@@ -60,7 +60,6 @@ class AddTasksActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, notificationOptions)
         binding.autoCompleteNotification.setAdapter(adapter)
 
-        // Set nilai default hanya jika BUKAN mode edit
         if (!isEditMode) {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
             val defaultValue = sharedPreferences.getInt("default_notification_task", 15)
@@ -95,8 +94,6 @@ class AddTasksActivity : AppCompatActivity() {
             return
         }
 
-        // --- PERBAIKAN DI SINI ---
-        // Buat objek Tasks yang sudah lengkap, termasuk pengaturan notifikasi
         val tasksToSave = Tasks(
             id = if (isEditMode) tasksId else 0,
             title = title, date = date, time = time,

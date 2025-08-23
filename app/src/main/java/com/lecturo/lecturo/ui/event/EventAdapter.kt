@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.lecturo.lecturo.data.model.Event
 import com.lecturo.lecturo.databinding.ItemEventBinding
+import com.lecturo.lecturo.utils.toReadableDate
 
 class EventAdapter(
     private val onCompletedChanged: (Event, Boolean) -> Unit,
@@ -37,16 +38,20 @@ class EventAdapter(
                 // Set data
                 textTitle.text = event.title
                 chipCategory.text = event.category
-                textDate.text = event.date
+                textDate.text = event.date.toReadableDate()
                 textTime.text = event.time
                 textLocation.text = event.location
-                textDescription.text = event.description ?: ""
 
-                // Hide description if empty
-                textDescription.visibility = if (event.description.isNullOrEmpty()) {
-                    android.view.View.GONE
+                // PERUBAHAN UTAMA: Logika untuk menampilkan atau menyembunyikan deskripsi dan pemisahnya
+                if (event.description.isNullOrBlank()) {
+                    // Jika deskripsi kosong, sembunyikan kedua view
+                    divider.visibility = android.view.View.GONE
+                    textDescription.visibility = android.view.View.GONE
                 } else {
-                    android.view.View.VISIBLE
+                    // Jika ada deskripsi, tampilkan kedua view dan set teksnya
+                    divider.visibility = android.view.View.VISIBLE
+                    textDescription.visibility = android.view.View.VISIBLE
+                    textDescription.text = event.description
                 }
 
                 // Set checkbox

@@ -10,11 +10,8 @@ import java.util.*
 
 class ClassScheduleViewModel(private val repository: CalendarRepository) : ViewModel() {
 
-    // Ambil data mentah dari repository yang kategorinya "Mengajar"
     private val rawTeachingEntries: LiveData<List<CalendarEntry>> = repository.getEntriesByCategory("Mengajar")
 
-    // --- PERBAIKAN DI SINI ---
-    // LiveData ini sekarang akan mengeluarkan daftar DisplayableClassSchedule yang sudah siap tampil
     val displayableSchedules: LiveData<List<DisplayableClassSchedule>> = rawTeachingEntries.map { entries ->
         // 1. Kelompokkan semua entri berdasarkan ID aturan mengajarnya (sourceFeatureId)
         val groupedByRule = entries.groupBy { it.sourceFeatureId }

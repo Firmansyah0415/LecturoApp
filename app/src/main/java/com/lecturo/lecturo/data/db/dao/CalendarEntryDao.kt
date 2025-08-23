@@ -7,8 +7,6 @@ import com.lecturo.lecturo.data.model.CalendarEntry
 @Dao
 interface CalendarEntryDao {
 
-    // --- PERBAIKAN DI SINI ---
-    // Fungsi ini sekarang akan mengembalikan ID dari entri yang baru disimpan.
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEntry(entry: CalendarEntry): Long
 

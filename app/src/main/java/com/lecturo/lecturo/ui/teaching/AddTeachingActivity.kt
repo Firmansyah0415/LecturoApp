@@ -24,10 +24,8 @@ class AddTeachingActivity : AppCompatActivity() {
     private var ruleId: Long = -1
     private var isEditMode = false
 
-    // --- PERBAIKAN DI SINI ---
     private val viewModel: TeachingViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
-        // Sekarang kita hanya memberikan DAO yang relevan untuk TeachingRepository
         val repository = TeachingRepository(
             database.teachingRuleDao(),
             database.calendarEntryDao()

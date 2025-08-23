@@ -37,10 +37,12 @@ class NotificationSettingsActivity : AppCompatActivity() {
         setupDropdowns()
         loadCurrentSettings()
         setupSaveButton()
+
+        setupSwitchListeners()
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(binding.toolbarSetting)
         supportActionBar?.apply {
             title = "Pengaturan Notifikasi"
             setDisplayHomeAsUpEnabled(true)
@@ -56,6 +58,19 @@ class NotificationSettingsActivity : AppCompatActivity() {
         binding.autoCompleteConsultation.setAdapter(adapter)
     }
 
+    // --- FUNGSI BARU UNTUK MENGATUR INTERAKSI ANTAR SAKLAR ---
+    private fun setupSwitchListeners() {
+        binding.switchGlobalNotification.setOnCheckedChangeListener { _, isChecked ->
+            // Saat saklar global diubah, aktifkan/nonaktifkan saklar lainnya
+            updateSubSwitchStates(isChecked)
+        }
+    }
+
+    private fun updateSubSwitchStates(isGlobalEnabled: Boolean) {
+        binding.switchSound.isEnabled = isGlobalEnabled
+        binding.switchVibration.isEnabled = isGlobalEnabled
+    }
+
     private fun loadCurrentSettings() {
         val teachingDefault = sharedPreferences.getInt("default_notification_teaching", 15)
         val eventDefault = sharedPreferences.getInt("default_notification_event", 15)
@@ -67,7 +82,13 @@ class NotificationSettingsActivity : AppCompatActivity() {
         binding.autoCompleteTask.setText(getOptionText(taskDefault), false)
         binding.autoCompleteConsultation.setText(getOptionText(consultationDefault), false)
 
-        binding.switchGlobalNotification.isChecked = sharedPreferences.getBoolean("global_notification_enabled", true)
+        val isGlobalEnabled = sharedPreferences.getBoolean("global_notification_enabled", true)
+        binding.switchGlobalNotification.isChecked = isGlobalEnabled
+        binding.switchSound.isChecked = sharedPreferences.getBoolean("notification_sound_enabled", false) // Default 'false'
+        binding.switchVibration.isChecked = sharedPreferences.getBoolean("notification_vibration_enabled", true)
+
+        // DIUBAH: Atur status awal dari saklar anak
+        updateSubSwitchStates(isGlobalEnabled)
     }
 
     private fun getOptionText(value: Int): String {
@@ -97,7 +118,10 @@ class NotificationSettingsActivity : AppCompatActivity() {
             putInt("default_notification_event", eventValue)
             putInt("default_notification_task", taskValue)
             putInt("default_notification_consultation", consultationValue)
+            // Simpan status semua saklar
             putBoolean("global_notification_enabled", binding.switchGlobalNotification.isChecked)
+            putBoolean("notification_sound_enabled", binding.switchSound.isChecked)
+            putBoolean("notification_vibration_enabled", binding.switchVibration.isChecked)
             apply()
         }
 

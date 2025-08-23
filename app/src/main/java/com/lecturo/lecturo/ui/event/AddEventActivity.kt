@@ -2,6 +2,7 @@ package com.lecturo.lecturo.ui.event
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.os.Build
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -9,11 +10,9 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.Event
-import com.lecturo.lecturo.data.repository.CalendarRepository
-import com.lecturo.lecturo.data.repository.EventRepository
 import com.lecturo.lecturo.databinding.ActivityAddEventBinding
+import com.lecturo.lecturo.di.ViewModelFactory // Pastikan import ini benar
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -24,29 +23,19 @@ class AddEventActivity : AppCompatActivity() {
     private var eventId: Long = -1
     private var isEditMode = false
 
+    // Menggunakan Factory tunggal yang sudah kita perbaiki
     private val viewModel: EventViewModel by viewModels {
-        val database = AppDatabase.getDatabase(this)
-        val eventRepository = EventRepository(database.eventDao())
-        val calendarRepository = CalendarRepository(database.calendarEntryDao())
-        EventViewModelFactory(eventRepository, calendarRepository, application)
+        ViewModelFactory.getInstance(this)
     }
 
     private val categories = arrayOf(
-        "Rapat",
-        "Seminar / Webinar",
-        "Lokakarya / Workshop",
-        "Penelitian",
-        "Pengabdian Masyarakat",
-        "Lainnya"
+        "Rapat", "Seminar", "Webinar", "Workshop",
+        "Lokakarya", "Penelitian", "Pengabdian Masyarakat", "Lainnya"
     )
 
     private val notificationOptions = arrayOf(
-        "Tidak ada notifikasi",
-        "Tepat waktu",
-        "5 menit sebelumnya",
-        "15 menit sebelumnya",
-        "30 menit sebelumnya",
-        "1 jam sebelumnya"
+        "Tidak ada notifikasi", "Tepat waktu", "5 menit sebelumnya",
+        "15 menit sebelumnya", "30 menit sebelumnya", "1 jam sebelumnya"
     )
     private val notificationValues = arrayOf(-1, 0, 5, 15, 30, 60)
 
@@ -64,10 +53,37 @@ class AddEventActivity : AppCompatActivity() {
 
         if (isEditMode) {
             loadEventData()
+        } else {
+            // DIUBAH: Panggil fungsi baru untuk mengisi data dari AI
+            populateFormFromAi()
         }
     }
 
-    // --- FUNGSI loadEventData YANG DIPERBARUI ---
+    // --- FUNGSI INI ADALAH PERUBAHAN UTAMA ---
+    /**
+     * Memeriksa apakah ada data Event yang dikirim dari Activity sebelumnya (hasil AI)
+     * dan mengisi form jika ada.
+     */
+    private fun populateFormFromAi() {
+        val eventFromAi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("EXTRA_EVENT_AI", Event::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("EXTRA_EVENT_AI") as? Event
+        }
+
+        // Jika ada data dari AI, isi semua field yang relevan
+        eventFromAi?.let {
+            binding.editTextTitle.setText(it.title)
+            binding.autoCompleteTextViewCategory.setText(it.category, false)
+            binding.editTextDate.setText(it.date)
+            binding.editTextTime.setText(it.time)
+            binding.editTextLocation.setText(it.location)
+            binding.editTextDescription.setText(it.description)
+            Toast.makeText(this, "Data berhasil diisi oleh AI!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun loadEventData() {
         lifecycleScope.launch {
             val event = viewModel.getEventById(eventId)
@@ -79,8 +95,6 @@ class AddEventActivity : AppCompatActivity() {
                     editTextTime.setText(it.time)
                     editTextLocation.setText(it.location)
                     editTextDescription.setText(it.description)
-
-                    // PERBAIKAN: Muat pengaturan notifikasi yang sudah ada
                     val notificationText = getNotificationOptionText(it.notificationMinutesBefore)
                     autoCompleteNotification.setText(notificationText, false)
                 }
@@ -88,7 +102,6 @@ class AddEventActivity : AppCompatActivity() {
         }
     }
 
-    // --- FUNGSI saveEvent YANG DIPERBARUI ---
     private fun saveEvent() {
         val title = binding.editTextTitle.text.toString().trim()
         val category = binding.autoCompleteTextViewCategory.text.toString().trim()
@@ -96,8 +109,6 @@ class AddEventActivity : AppCompatActivity() {
         val time = binding.editTextTime.text.toString().trim()
         val location = binding.editTextLocation.text.toString().trim()
         val description = binding.editTextDescription.text.toString().trim()
-
-        // Ambil nilai notifikasi yang dipilih dari dropdown
         val notificationMinutes = getSelectedNotificationValue()
 
         if (title.isEmpty() || category.isEmpty() || date.isEmpty() || time.isEmpty() || location.isEmpty()) {
@@ -109,25 +120,22 @@ class AddEventActivity : AppCompatActivity() {
             id = if (isEditMode) eventId else 0,
             title = title, category = category, date = date, time = time,
             location = location, description = description.ifEmpty { null },
-            // Simpan nilai notifikasi ke dalam objek Event
             notificationMinutesBefore = notificationMinutes
         )
 
-        // Panggil viewModel hanya dengan satu argumen
         viewModel.insertOrUpdate(event)
-
         val message = if (isEditMode) "Event berhasil diupdate" else "Event berhasil ditambahkan"
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-
         setResult(RESULT_OK)
         finish()
     }
+
+    // --- Sisa fungsi di bawah ini tidak ada perubahan ---
 
     private fun setupNotificationDropdown() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, notificationOptions)
         binding.autoCompleteNotification.setAdapter(adapter)
 
-        // Set nilai default hanya jika BUKAN mode edit
         if (!isEditMode) {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
             val defaultValue = sharedPreferences.getInt("default_notification_event", 15)
@@ -138,13 +146,13 @@ class AddEventActivity : AppCompatActivity() {
 
     private fun getNotificationOptionText(value: Int): String {
         val index = notificationValues.indexOf(value)
-        return if (index != -1) notificationOptions[index] else notificationOptions[2] // Default ke 15 menit
+        return if (index != -1) notificationOptions[index] else notificationOptions[3]
     }
 
     private fun getSelectedNotificationValue(): Int {
         val selectedText = binding.autoCompleteNotification.text.toString()
         val index = notificationOptions.indexOf(selectedText)
-        return if (index != -1) notificationValues[index] else 15 // Default 15 menit
+        return if (index != -1) notificationValues[index] else 15
     }
 
     private fun checkEditMode() {
@@ -172,35 +180,23 @@ class AddEventActivity : AppCompatActivity() {
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            this,
-            { _, year, month, dayOfMonth ->
-                val selectedDate = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
-                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                binding.editTextDate.setText(dateFormat.format(selectedDate.time))
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
+        DatePickerDialog(this, { _, year, month, dayOfMonth ->
+            val selectedDate = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            binding.editTextDate.setText(dateFormat.format(selectedDate.time))
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
     }
 
     private fun showTimePicker() {
         val calendar = Calendar.getInstance()
-        TimePickerDialog(
-            this,
-            { _, hourOfDay, minute ->
-                val selectedTime = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, hourOfDay)
-                    set(Calendar.MINUTE, minute)
-                }
-                val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-                binding.editTextTime.setText(timeFormat.format(selectedTime.time))
-            },
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE),
-            true
-        ).show()
+        TimePickerDialog(this, { _, hourOfDay, minute ->
+            val selectedTime = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, hourOfDay)
+                set(Calendar.MINUTE, minute)
+            }
+            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            binding.editTextTime.setText(timeFormat.format(selectedTime.time))
+        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
     }
 
     private fun setupSaveButton() {

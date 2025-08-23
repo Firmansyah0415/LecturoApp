@@ -91,6 +91,7 @@
                     android:id="@+id/editLocation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:drawableEnd="@drawable/ic_location"
                     android:inputType="textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -130,11 +131,12 @@
                 android:id="@+id/buttonSave"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:paddingVertical="12dp"
+                android:layout_gravity="bottom"
                 android:text="@string/button_save"
                 android:textSize="16sp"
-                app:cornerRadius="8dp" />
+                app:icon="@drawable/ic_save"
+                app:iconGravity="textStart"/>
 
         </LinearLayout>
 

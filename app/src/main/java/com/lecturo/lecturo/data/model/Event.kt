@@ -1,8 +1,11 @@
 package com.lecturo.lecturo.data.model
 
+import android.os.Parcelable // <-- IMPORT BARU
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize // <-- IMPORT BARU
 
+@Parcelize // <-- TAMBAHKAN ANOTASI INI
 @Entity(tableName = "events")
 data class Event(
     @PrimaryKey(autoGenerate = true)
@@ -15,7 +18,5 @@ data class Event(
     val description: String? = null,
     val isCompleted: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-
-    // Menyimpan nilai menit untuk notifikasi (misal: 15, 30, 60)
-    val notificationMinutesBefore: Int = 15 // Default 15 menit
-)
+    val notificationMinutesBefore: Int = 15
+) : Parcelable // <-- TAMBAHKAN IMPLEMENTASI INI

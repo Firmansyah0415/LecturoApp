@@ -24,15 +24,12 @@ class TeachingActivity : AppCompatActivity() {
     private lateinit var teachingAdapter: TeachingRuleAdapter
     private var allTeachingRules: List<TeachingRule> = emptyList()
 
-    // --- PERBAIKAN DI SINI ---
     private val viewModel: TeachingViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
-        // Hapus eventDao dari sini agar cocok dengan konstruktor Repository
         val repository = TeachingRepository(
             database.teachingRuleDao(),
             database.calendarEntryDao()
         )
-        // Tambahkan 'application' sebagai parameter kedua untuk Factory
         TeachingViewModelFactory(repository, application)
     }
 

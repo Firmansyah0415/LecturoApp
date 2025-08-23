@@ -14,24 +14,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lecturo.lecturo.R
-import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.Event
-import com.lecturo.lecturo.data.repository.CalendarRepository
-import com.lecturo.lecturo.data.repository.EventRepository
 import com.lecturo.lecturo.databinding.ActivityEventBinding
+import com.lecturo.lecturo.di.ViewModelFactory
+import com.lecturo.lecturo.ui.cameraocr.CameraOCRActivity
 
 class EventActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEventBinding
     private lateinit var eventAdapter: EventAdapter
 
-    // --- PERBAIKAN DI SINI ---
     private val viewModel: EventViewModel by viewModels {
-        val database = AppDatabase.getDatabase(this)
-        val eventRepository = EventRepository(database.eventDao())
-        val calendarRepository = CalendarRepository(database.calendarEntryDao())
-        // Kirim semua parameter yang dibutuhkan ke Factory
-        EventViewModelFactory(eventRepository, calendarRepository, application)
+        ViewModelFactory.getInstance(this)
     }
 
     private val addEventLauncher = registerForActivityResult(
@@ -54,6 +48,42 @@ class EventActivity : AppCompatActivity() {
         observeViewModel()
         setupFilterChips()
     }
+
+    // --- PERUBAHAN UTAMA DI SINI ---
+    private fun setupFab() {
+        binding.fabAddEvent.setOnClickListener {
+            startActivity(Intent(this, AddEventActivity::class.java))
+        }
+        binding.fabAi.setOnClickListener {
+            startActivity(Intent(this, CameraOCRActivity::class.java))
+        }
+    }
+
+//    // --- FUNGSI BARU UNTUK MENAMPILKAN DIALOG ---
+//    private fun showAddEventOptionsDialog() {
+//        val options = arrayOf("Input Manual", "Pindai dengan AI")
+//
+//        MaterialAlertDialogBuilder(this)
+//            .setTitle("Tambah Event Baru")
+//            .setItems(options) { dialog, which ->
+//                when (which) {
+//                    0 -> {
+//                        // Opsi: Input Manual
+//                        val intent = Intent(this, AddEventActivity::class.java)
+//                        addEventLauncher.launch(intent)
+//                    }
+//                    1 -> {
+//                        // Opsi: Pindai dengan Kamera (OCR)
+//                        val intent = Intent(this, CameraOCRActivity::class.java)
+//                        startActivity(intent)
+//                    }
+//                }
+//            }
+//            .show()
+//    }
+
+
+    // --- TIDAK ADA PERUBAHAN PADA KODE LAIN DI BAWAH INI ---
 
     private fun setupToolbar() {
         setSupportActionBar(binding.eventToolbar)
@@ -90,13 +120,6 @@ class EventActivity : AppCompatActivity() {
                 viewModel.setSearchQuery(s?.toString() ?: "")
             }
         })
-    }
-
-    private fun setupFab() {
-        binding.fabAddEvent.setOnClickListener {
-            val intent = Intent(this, AddEventActivity::class.java)
-            addEventLauncher.launch(intent)
-        }
     }
 
     private fun observeViewModel() {

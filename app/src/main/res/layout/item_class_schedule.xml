@@ -4,10 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp">
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginTop="8dp"
+    app:cardCornerRadius="16dp"
+    app:strokeWidth="2dp"
+    app:cardElevation="0dp">
 
     <!-- Gunakan ConstraintLayout untuk fleksibilitas posisi -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -25,6 +26,7 @@
             android:textColor="@color/white"
             android:textSize="12sp"
             android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="P1" />
@@ -34,12 +36,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:textColor="@android:color/black"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/textMeetingNumber"
-            app:layout_constraintTop_toTopOf="@+id/textMeetingNumber"
+            app:layout_constraintTop_toTopOf="parent"
             tools:text="Kalkulus I - Kelas A" />
 
         <TextView
@@ -49,7 +51,7 @@
             android:background="@drawable/bg_category_chip"
             android:paddingHorizontal="8dp"
             android:paddingVertical="2dp"
-            android:textColor="@color/colorPrimary"
+            android:textColor="?attr/colorPrimary"
             android:textSize="14sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -61,14 +63,15 @@
             android:id="@+id/textDate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:drawablePadding="8dp"
             android:gravity="center_vertical"
-            android:textColor="@color/colorAccent"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:drawableTint="?attr/colorOnSurfaceVariant"
             android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_date"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textMeetingNumber"
+            app:drawableStartCompat="@drawable/ic_date_small"
+            app:layout_constraintStart_toStartOf="@+id/textTitle"
+            app:layout_constraintTop_toBottomOf="@+id/textTitle"
             tools:text="Senin, 15 Juli 2025" />
 
         <TextView
@@ -78,10 +81,11 @@
             android:layout_marginTop="8dp"
             android:drawablePadding="8dp"
             android:gravity="center_vertical"
-            android:textColor="@color/colorAccent"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_time"
-            app:layout_constraintStart_toStartOf="parent"
+            app:drawableStartCompat="@drawable/ic_time_small"
+            app:drawableTint="?attr/colorOnSurfaceVariant"
+            app:layout_constraintStart_toStartOf="@+id/textDate"
             app:layout_constraintTop_toBottomOf="@+id/textDate"
             tools:text="08:00 - 10:30" />
 

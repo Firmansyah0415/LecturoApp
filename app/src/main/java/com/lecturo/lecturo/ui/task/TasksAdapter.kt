@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.databinding.ItemTasksBinding
+import com.lecturo.lecturo.utils.toReadableDate
 
 class TasksAdapter(
     private val onActionClick: (Tasks, String) -> Unit
@@ -25,26 +26,22 @@ class TasksAdapter(
     inner class TasksViewHolder(private val binding: ItemTasksBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(tasks: Tasks) {
             binding.textTitle.text = tasks.title
-            binding.textDate.text = tasks.date
+            binding.textDate.text = tasks.date.toReadableDate()
             binding.textTime.text = tasks.time
             binding.textLocation.text = tasks.location
             binding.textDescription.text = tasks.description
 
-            // Contoh: Menukar status checkbox berdasarkan data
             binding.checkboxCompleted.isChecked = tasks.completed
 
-            // Listener untuk checkbox
             binding.checkboxCompleted.setOnClickListener {
                 val action = if (binding.checkboxCompleted.isChecked) "complete" else "uncomplete"
                 onActionClick(tasks, action)
             }
 
-            // Listener untuk keseluruhan item (untuk edit)
             itemView.setOnClickListener {
                 onActionClick(tasks, "edit")
             }
 
-            // Listener untuk ikon delete
             binding.buttonDelete.setOnClickListener {
                 onActionClick(tasks, "delete")
             }

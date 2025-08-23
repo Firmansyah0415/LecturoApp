@@ -48,10 +48,8 @@ class TasksViewModel(
         searchQuery.value = query
     }
 
-    // --- FUNGSI YANG DIPERBARUI ---
-    // Sekarang hanya menerima satu parameter: objek Tasks yang sudah lengkap
     fun insertOrUpdate(tasks: Tasks) = viewModelScope.launch {
-        // 1. Batalkan alarm lama jika ada (untuk mode edit)
+
         if (tasks.id != 0L) {
             val scheduler = NotificationScheduler(getApplication())
             val oldEntries = calendarRepository.getEntriesForSource("TASK", tasks.id)
@@ -61,11 +59,10 @@ class TasksViewModel(
             calendarRepository.deleteEntriesForSource("TASK", tasks.id)
         }
 
-        // 2. Simpan tugas dan dapatkan ID-nya
         val taskId = tasksRepository.insertOrUpdate(tasks)
         val finalTask = tasks.copy(id = taskId)
 
-        // 3. Buat entri kalender
+        // Buat entri kalender
         val calendarEntry = CalendarEntry(
             title = finalTask.title,
             date = finalTask.date,
@@ -78,7 +75,6 @@ class TasksViewModel(
         val calendarEntryId = calendarRepository.insertEntry(calendarEntry)
         val finalCalendarEntry = calendarEntry.copy(id = calendarEntryId)
 
-        // 4. Jadwalkan notifikasi baru
         if (finalTask.notificationMinutesBefore >= 0) {
             val scheduler = NotificationScheduler(getApplication())
             scheduler.scheduleNotification(finalCalendarEntry)

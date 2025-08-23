@@ -34,7 +34,8 @@
             android:layout_height="wrap_content"
             android:background="@color/background_light"
             app:tabMode="scrollable"
-            app:tabTextColor="@color/colorPrimary"
+            android:layout_marginBottom="10dp"
+            app:tabTextColor="?attr/colorPrimary"
             app:tabSelectedTextColor="@color/colorPrimary"
             app:tabIndicatorColor="@color/colorPrimary">
 
@@ -72,6 +73,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sabtu" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Minggu" />
 
         </com.google.android.material.tabs.TabLayout>
 
@@ -128,7 +134,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_marginVertical="50dp"
+        android:layout_marginHorizontal="20dp"
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/colorPrimary"
         android:contentDescription="Tambah jadwal mengajar" />

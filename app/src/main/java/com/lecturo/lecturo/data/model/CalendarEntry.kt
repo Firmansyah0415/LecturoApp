@@ -18,8 +18,5 @@ data class CalendarEntry(
     val isRepeating: Boolean = false,
     val repeatInterval: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
-
-    // PERBAIKAN: Buat ID unik untuk notifikasi.
-    // Ini akan menghasilkan nomor acak yang berbeda setiap kali objek dibuat.
     val notificationId: Int = (System.currentTimeMillis().toInt() / 1000) + Random.nextInt()
 )

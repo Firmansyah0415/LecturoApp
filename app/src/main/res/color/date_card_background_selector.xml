@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Warna saat kartu DIPILIH (checked) -->
+    <item android:color="?attr/colorPrimaryContainer" android:state_checked="true" />
+    <!-- Warna default (tidak dipilih) -->
+    <item android:color="?attr/colorSurfaceContainer" />
+</selector>

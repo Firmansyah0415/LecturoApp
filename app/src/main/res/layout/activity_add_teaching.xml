@@ -45,7 +45,7 @@
                     android:id="@+id/editTextCourseName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text" />
+                    android:inputType="textCapWords" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -62,14 +62,14 @@
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:hint="Nama/Kode Kelas *"
-                    app:startIconDrawable="@drawable/ic_class"
+                    app:startIconDrawable="@drawable/ic_task"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextClassName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="text" />
+                        android:inputType="textCapWords" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -78,7 +78,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:hint="Jumlah Mahasiswa *"
-                    app:startIconDrawable="@drawable/ic_people"
+                    app:startIconDrawable="@drawable/ic_student"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -96,7 +96,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Hari *"
-                app:startIconDrawable="@drawable/ic_date"
+                app:startIconDrawable="@drawable/ic_calendar"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
@@ -164,7 +164,7 @@
                     android:id="@+id/editTextLocation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text" />
+                    android:inputType="textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Repetition Logic -->
@@ -255,8 +255,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginTop="8dp"
                 android:hint="Pengingat Notifikasi"
                 app:startIconDrawable="@drawable/ic_notification"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
@@ -274,6 +273,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:paddingVertical="12dp"
                 android:text="Simpan Jadwal Mengajar"
                 android:textSize="16sp"
                 app:icon="@drawable/ic_save"

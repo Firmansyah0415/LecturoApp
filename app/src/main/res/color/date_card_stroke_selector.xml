@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Warna garis tepi saat kartu DIPILIH (checked) -->
+    <item android:color="?attr/colorPrimary" android:state_checked="true" />
+    <!-- Warna garis tepi default (tidak dipilih) -->
+    <item android:color="?attr/colorOutline" />
+</selector>

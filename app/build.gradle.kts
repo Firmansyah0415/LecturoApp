@@ -1,3 +1,4 @@
+import java.util.Properties // DIUBAH: Baris ini ditambahkan untuk mengatasi error
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,8 +16,16 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Kode untuk membaca API Key (ini sudah benar)
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        buildConfigField(
+            "String",
+            "GEMINI_API_KEY",
+            "\"${properties.getProperty("GEMINI_API_KEY")}\""
+        )
     }
 
     buildTypes {
@@ -28,15 +37,19 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -46,6 +59,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.legacy.support.v4)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -55,27 +71,29 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.activity.ktx)
 
-    // ViewPager2 untuk tab layout
     implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.fragment.ktx)
 
-    // ML Kit Text Recognition
-    implementation(libs.text.recognition)
-
-    // Camera and Image handling
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
 
-    // Library inti Room
     implementation(libs.androidx.room.runtime)
-
-    // Ekstensi Kotlin (wajib untuk Coroutines/suspend function)
     implementation(libs.androidx.room.ktx)
-
-    // Compiler KSP untuk Room
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.preference.ktx)
+    implementation(libs.androidx.swiperefreshlayout)
+
+    // AI - Gemini & ML Kit OCR
+    implementation(libs.generativeai)
+    implementation(libs.play.services.mlkit.text.recognition)
+    implementation(libs.text.recognition)
+
+    // PDF Text Extraction
+    implementation(libs.pdfbox.android)
+
+    // JSON parsing
+
 }

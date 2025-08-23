@@ -26,7 +26,7 @@
     <string name="selamat_datang_dosen">Selamat Datang,</string>
     <string name="nama_user">Dosen!</string>
     <string name="Waktu_hari_ini">Senin, 7 Juli 2025</string>
-    <string name="menu_utama">Menu Utama</string>
+    <string name="menu_utama">Menu utama</string>
     <string name="jadwal_kelas">Kelas</string>
     <string name="tugas">Tugas</string>
     <string name="jadwal_rapat">Rapat</string>
@@ -174,14 +174,6 @@
     <string name="validation_title_too_long">Judul terlalu panjang (maksimal 100 karakter)</string>
     <string name="validation_description_too_long">Deskripsi terlalu panjang (maksimal 500 karakter)</string>
 
-    <!-- Settings -->
-    <string name="settings_title">Pengaturan</string>
-    <string name="settings_notifications">Notifikasi</string>
-    <string name="settings_reminder">Pengingat</string>
-    <string name="settings_theme">Tema</string>
-    <string name="settings_language">Bahasa</string>
-    <string name="settings_about">Tentang Aplikasi</string>
-
     <!-- About -->
     <string name="about_title">Tentang Aplikasi</string>
     <string name="about_version">Versi 1.0</string>
@@ -239,5 +231,53 @@
     <string name="or">OR</string>
     <string name="sign_up_image">Sign up image</string>
     <string name="welcome_image">welcome image</string>
+
+    <!-- Settings -->
+    <string name="notification_settings_title">Notification Settings</string>
+    <string name="notification_settings_description">Configure notifications for schedules and reminders</string>
+    <string name="language_settings_title">Language</string>
+    <string name="language_settings_description">Choose app language</string>
+    <string name="theme_settings_title">Dark Mode</string>
+    <string name="theme_settings_description">Enable dark mode for comfortable viewing</string>
+    <string name="select_language">Select Language</string>
+    <string name="settings_info_message">Some changes will be applied after app restart</string>
+
+    <!-- Settings Notification-->
+    <string name="settings_title">Pengaturan</string>
+    <string name="settings_notifications">Notifikasi</string>
+    <string name="settings_reminder">Pengingat</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_about">Tentang Aplikasi</string>
+    <string name="pengaturan_umum">Pengaturan Umum</string>
+    <string name="pengaturan_default_per_kategori">Pengaturan Default per Kategori</string>
+    <string name="notifikasi_mengajar">Notifikasi Mengajar</string>
+    <string name="notifikasi_tugas">Notifikasi Tugas</string>
+    <string name="notifikasi_event_rapat">Notifikasi Event/Rapat</string>
+    <string name="notifikasi_konsultasi">Notifikasi Konsultasi</string>
+    <string name="pengaturan_ini_akan_menjadi_default_untuk_jadwal_baru_anda_tetap_bisa_mengatur_notifikasi_individual_untuk_setiap_jadwal">Pengaturan ini akan menjadi default untuk jadwal baru. Anda tetap bisa mengatur notifikasi individual untuk setiap jadwal.</string>
+    <string name="simpan_pengaturan">Simpan Pengaturan</string>
+    <string name="settings">Settings</string>
+    <string name="jadwal_hari_ini">Jadwal hari ini</string>
+    <string name="kalender_mingguan">Kalender mingguan</string>
+    <string name="info_notification_settings">These settings will be the default for your new schedules. You can still set individual notifications for each schedule.</string>
+    <string name="consultation_notification_setting">Consultation Notification</string>
+    <string name="event_meeting_notification_setting">Event / Meeting Notification</string>
+    <string name="task_notification_setting">Task Notification</string>
+    <string name="teaching_notification_setting">Teaching Notification</string>
+
+    <string name="enable_sound">Enable Sound</string>
+    <string name="enable_sound_description">Play a sound with the notification</string>
+    <string name="enable_vibration">Enable Vibration</string>
+    <string name="enable_vibration_description">Vibrate the device for notifications</string>
+
+<!-- Fragmen Home -->
+    <string name="weekly_calendar_title">Weekly Calendar</string>
+    <string name="main_menu_title">Main Menu</string>
+    <string name="today_s_schedule_title">Today\'s Schedule</string>
+    <string name="class_title_home">Class</string>
+    <string name="task_title_home">Task</string>
+    <string name="event_title_home">Event</string>
+    <string name="consultation_title_home">Consultation</string>
 
 </resources>

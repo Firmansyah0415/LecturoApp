@@ -9,7 +9,6 @@ import com.lecturo.lecturo.databinding.ItemClassScheduleBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-// PERBAIKAN: Adapter sekarang bekerja dengan DisplayableClassSchedule
 class ClassScheduleAdapter(
     private val onItemClick: (DisplayableClassSchedule) -> Unit
 ) : ListAdapter<DisplayableClassSchedule, ClassScheduleAdapter.ClassScheduleViewHolder>(ClassScheduleDiffCallback()) {
@@ -31,11 +30,10 @@ class ClassScheduleAdapter(
         private val binding: ItemClassScheduleBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        // PERBAIKAN: Fungsi bind sekarang menerima DisplayableClassSchedule
         fun bind(item: DisplayableClassSchedule) {
             val entry = item.entry
             binding.apply {
-                // Tampilkan nomor pertemuan yang sudah dihitung dari ViewModel
+
                 textMeetingNumber.text = "P${item.meetingNumber}"
 
                 textTitle.text = entry.title
@@ -61,10 +59,8 @@ class ClassScheduleAdapter(
         }
     }
 
-    // PERBAIKAN: DiffUtil sekarang membandingkan DisplayableClassSchedule
     class ClassScheduleDiffCallback : DiffUtil.ItemCallback<DisplayableClassSchedule>() {
         override fun areItemsTheSame(oldItem: DisplayableClassSchedule, newItem: DisplayableClassSchedule): Boolean {
-            // Kita bandingkan berdasarkan ID entri kalender yang unik
             return oldItem.entry.id == newItem.entry.id
         }
 

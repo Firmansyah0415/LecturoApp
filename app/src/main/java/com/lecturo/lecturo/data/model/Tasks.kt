@@ -14,8 +14,5 @@ data class Tasks(
     val location: String,
     val description: String?,
     var completed: Boolean = false,
-
-    // --- KOLOM BARU YANG PENTING ---
-    // Menyimpan nilai menit untuk notifikasi (misal: 15, 30, 60)
     val notificationMinutesBefore: Int = 15 // Default 15 menit
 ) : Serializable

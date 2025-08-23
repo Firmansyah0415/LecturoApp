@@ -31,8 +31,6 @@ class TeachingRepository(
         return teachingRuleDao.getRulesByDay(dayOfWeek)
     }
 
-    // --- FUNGSI BARU YANG DIPERLUKAN ---
-    // Menambahkan fungsi ini untuk mengatasi error "Unresolved reference" di ViewModel
     suspend fun insertCalendarEntry(entry: CalendarEntry): Long {
         return calendarEntryDao.insertEntry(entry)
     }

@@ -18,8 +18,6 @@ class CalendarRepository(private val calendarEntryDao: CalendarEntryDao) {
         return calendarEntryDao.getEntriesByCategory(category)
     }
 
-    // --- PERBAIKAN DI SINI ---
-    // Fungsi ini sekarang akan mengembalikan ID dari entri yang baru disimpan.
     suspend fun insertEntry(entry: CalendarEntry): Long {
         return calendarEntryDao.insertEntry(entry)
     }

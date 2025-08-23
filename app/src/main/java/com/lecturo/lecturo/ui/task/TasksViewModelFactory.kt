@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
 
-// PERBAIKAN: Tambahkan CalendarRepository dan Application sebagai parameter
 class TasksViewModelFactory(
     private val tasksRepository: TasksRepository,
     private val calendarRepository: CalendarRepository,

@@ -1,24 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_view_details"
+        android:title="Lihat Detail"
+        android:icon="@drawable/ic_visibility" />
 
     <item
         android:id="@+id/action_edit"
-        android:title="@string/schedule_edit"
+        android:title="Edit"
         android:icon="@drawable/ic_edit" />
 
     <item
-        android:id="@+id/action_duplicate"
-        android:title="@string/duplikat"
-        android:icon="@drawable/ic_copy" />
-
-    <item
-        android:id="@+id/action_share"
-        android:title="@string/schedule_share"
-        android:icon="@drawable/ic_share" />
-
-    <item
         android:id="@+id/action_delete"
-        android:title="@string/schedule_delete"
+        android:title="Hapus"
         android:icon="@drawable/ic_delete" />
-
 </menu>

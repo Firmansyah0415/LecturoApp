@@ -28,7 +28,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -125,7 +125,7 @@
                     android:id="@+id/editTextLocation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text" />
+                    android:inputType="textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- PERBAIKAN: Menambahkan kembali kolom Deskripsi -->
@@ -165,7 +165,8 @@
                 android:id="@+id/buttonSave"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_gravity="bottom"
+                android:paddingVertical="12dp"
                 android:text="Simpan Event"
                 android:textSize="16sp"
                 app:icon="@drawable/ic_save"

@@ -1,124 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/border_color">
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="2dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header dengan checkbox dan delete button -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+        <!-- CheckBox dipindahkan ke kiri judul untuk interaksi yang lebih alami -->
+        <CheckBox
+            android:id="@+id/checkboxCompleted"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <CheckBox
-                android:id="@+id/checkboxCompleted"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipCategory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="Kategori"
-                android:textSize="12sp"
-                app:chipBackgroundColor="@color/colorPrimary"
-                app:chipStrokeWidth="0dp"
-                android:textColor="@android:color/white" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <ImageButton
-                android:id="@+id/buttonDelete"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_delete"
-                android:contentDescription="Hapus event" />
-
-        </LinearLayout>
-
-        <!-- Title -->
+        <!-- Judul Event -->
         <TextView
             android:id="@+id/textTitle"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Judul Event"
-            android:textColor="@android:color/black"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/checkboxCompleted"
+            app:layout_constraintEnd_toStartOf="@+id/buttonDelete"
+            app:layout_constraintStart_toEndOf="@+id/checkboxCompleted"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Rapat Koordinasi Persiapan Seminar Nasional" />
 
-        <!-- Date and Time -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Tombol Hapus dipindahkan ke pojok kanan atas, posisi yang lebih umum -->
+        <ImageButton
+            android:id="@+id/buttonDelete"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Hapus event"
+            android:src="@drawable/ic_delete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?android:attr/textColorSecondary" />
+
+        <!-- PERUBAHAN: Chip Kategori telah dipindahkan dari sini ke bawah -->
+
+        <!-- Barrier sekarang hanya bergantung pada judul -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrierHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="textTitle" />
+
+        <!-- Menambahkan garis pemisah di sini -->
+        <View
+            android:id="@+id/header_divider"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/colorOutlineVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/barrierHeader" />
+
+        <!-- PERUBAHAN: Chip Kategori sekarang berada di sini, di sisi kanan -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipCategory"
+            style="@style/Widget.MaterialComponents.Chip.Action"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:text="Kategori"
+            android:textColor="?attr/colorPrimary"
+            app:chipBackgroundColor="@color/chip_background_color"
+            app:chipStrokeWidth="1dp"
+            app:chipStrokeColor="?attr/colorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/header_divider" />
+
+        <!-- Info Detail (Tanggal, Waktu, Lokasi) -->
+        <!-- PERUBAHAN: Mengubah constraint agar berada di bawah pemisah dan di kiri Chip -->
+        <TextView
+            android:id="@+id/textDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="14sp"
+            app:drawableStartCompat="@drawable/ic_date_small"
+            app:drawableTint="?attr/colorPrimary"
+            app:layout_constraintEnd_toStartOf="@+id/chipCategory"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/header_divider"
+            tools:text="18 Juli 2025" />
+
+        <TextView
+            android:id="@+id/textTime"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:orientation="horizontal">
+            android:layout_marginEnd="16dp"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="14sp"
+            app:drawableStartCompat="@drawable/ic_time_small"
+            app:drawableTint="?attr/colorPrimary"
+            app:layout_constraintEnd_toStartOf="@+id/chipCategory"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textDate"
+            tools:text="08:00 - 10:00" />
 
-            <TextView
-                android:id="@+id/textDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawablePadding="4dp"
-                android:text="01/01/2024"
-                android:textColor="@color/colorPrimary"
-                android:textSize="14sp"
-                app:drawableStartCompat="@drawable/ic_date" />
-
-            <TextView
-                android:id="@+id/textTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:drawablePadding="4dp"
-                android:text="08:00"
-                android:textColor="@color/colorPrimary"
-                android:textSize="14sp"
-                app:drawableStartCompat="@drawable/ic_time" />
-
-        </LinearLayout>
-
-        <!-- Location -->
         <TextView
             android:id="@+id/textLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:drawablePadding="4dp"
-            android:text="Lokasi Event"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_location" />
-
-        <!-- Description -->
-        <TextView
-            android:id="@+id/textDescription"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Deskripsi event"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="12sp"
-            android:maxLines="2"
-            android:ellipsize="end" />
+            android:layout_marginEnd="16dp"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="14sp"
+            app:drawableStartCompat="@drawable/ic_location_small"
+            app:drawableTint="?attr/colorPrimary"
+            app:layout_constraintEnd_toStartOf="@+id/chipCategory"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textTime"
+            tools:text="Gedung Rektorat, Ruang Rapat Utama" />
 
-    </LinearLayout>
+        <!-- Garis pemisah untuk kejelasan visual -->
+        <View
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/colorOutlineVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textLocation" />
+
+        <!-- Deskripsi -->
+        <TextView
+            android:id="@+id/textDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:ellipsize="end"
+            android:lineSpacingExtra="4dp"
+            android:maxLines="3"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/divider"
+            tools:text="Deskripsi singkat mengenai agenda rapat untuk membahas persiapan seminar nasional yang akan diadakan bulan depan. Semua panitia wajib hadir." />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>
