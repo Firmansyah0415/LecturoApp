@@ -8,15 +8,22 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.TeachingRule
+import com.lecturo.lecturo.data.remote.RetrofitClient
 import com.lecturo.lecturo.data.repository.TeachingRepository
 import com.lecturo.lecturo.databinding.ActivityTeachingBinding
 import com.lecturo.lecturo.ui.teaching.class_schedule.ClassScheduleActivity
+import com.lecturo.lecturo.viewmodel.teaching.TeachingViewModel
+import com.lecturo.lecturo.viewmodel.teaching.TeachingViewModelFactory
 
 class TeachingActivity : AppCompatActivity() {
 
@@ -26,9 +33,14 @@ class TeachingActivity : AppCompatActivity() {
 
     private val viewModel: TeachingViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
+
+        // PANGGIL DI SINI
+        val apiService = RetrofitClient.instance
+
         val repository = TeachingRepository(
             database.teachingRuleDao(),
-            database.calendarEntryDao()
+            database.calendarEntryDao(),
+            apiService // <--- Masukkan ke sini
         )
         TeachingViewModelFactory(repository, application)
     }
@@ -45,6 +57,28 @@ class TeachingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityTeachingBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // bikin status bar transparan sekali untuk semua activity
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // atur warna status bar
+        window.statusBarColor = getColor(R.color.colorPrimary)
+
+        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = true
+
+        // otomatis kasih padding top di root view sesuai status bar
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(
+                view.paddingLeft,
+                statusBarInsets.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            insets
+        }
 
         setupToolbar()
         setupRecyclerView()
@@ -66,7 +100,7 @@ class TeachingActivity : AppCompatActivity() {
             },
             onItemClick = { rule ->
                 val intent = Intent(this, AddTeachingActivity::class.java)
-                intent.putExtra("rule_id", rule.id)
+                intent.putExtra("rule_id", rule.localId)
                 addTeachingLauncher.launch(intent)
             }
         )
@@ -135,9 +169,9 @@ class TeachingActivity : AppCompatActivity() {
     private fun showDeleteConfirmation(rule: TeachingRule) {
         MaterialAlertDialogBuilder(this)
             .setTitle("Hapus Aturan Jadwal")
-            .setMessage("Yakin ingin menghapus aturan \"${rule.courseName} - ${rule.className}\"?\n\nPerhatian: Ini akan menghapus semua jadwal kelas terkait dari kalender.")
+            .setMessage("Yakin ingin menghapus aturan \"${rule.courseName} - ${rule.classCode}\"?\n\nPerhatian: Ini akan menghapus semua jadwal kelas terkait dari kalender.")
             .setPositiveButton("Hapus") { _, _ ->
-                viewModel.deleteTeachingRule(rule.id)
+                viewModel.deleteTeachingRule(rule.localId)
             }
             .setNegativeButton("Batal", null)
             .show()

@@ -31,7 +31,7 @@ class TasksAdapter(
             binding.textLocation.text = tasks.location
             binding.textDescription.text = tasks.description
 
-            binding.checkboxCompleted.isChecked = tasks.completed
+            binding.checkboxCompleted.isChecked = tasks.isCompleted
 
             binding.checkboxCompleted.setOnClickListener {
                 val action = if (binding.checkboxCompleted.isChecked) "complete" else "uncomplete"

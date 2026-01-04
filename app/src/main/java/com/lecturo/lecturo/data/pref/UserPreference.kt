@@ -32,6 +32,23 @@ class UserPreference private constructor(private val dataStore: DataStore<Prefer
         }
     }
 
+    // Tambahkan Key Baru
+    private val IS_FIRST_TIME_KEY = booleanPreferencesKey("is_first_time")
+
+    // Fungsi Cek (Default true artinya "Ya, ini pertama kali")
+    fun isFirstTime(): Flow<Boolean> {
+        return dataStore.data.map { preferences ->
+            preferences[IS_FIRST_TIME_KEY] ?: true
+        }
+    }
+
+    // Fungsi Ubah Status (Dipanggil saat user klik "Mulai" di WelcomeActivity)
+    suspend fun setNotFirstTime() {
+        dataStore.edit { preferences ->
+            preferences[IS_FIRST_TIME_KEY] = false
+        }
+    }
+
     suspend fun logout() {
         dataStore.edit { preferences ->
             preferences.clear()

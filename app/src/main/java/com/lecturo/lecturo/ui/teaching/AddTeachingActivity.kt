@@ -8,12 +8,20 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.TeachingRule
+import com.lecturo.lecturo.data.remote.RetrofitClient
 import com.lecturo.lecturo.data.repository.TeachingRepository
 import com.lecturo.lecturo.databinding.ActivityAddTeachingBinding
+import com.lecturo.lecturo.viewmodel.teaching.TeachingViewModel
+import com.lecturo.lecturo.viewmodel.teaching.TeachingViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -24,11 +32,17 @@ class AddTeachingActivity : AppCompatActivity() {
     private var ruleId: Long = -1
     private var isEditMode = false
 
+    // Variabel baru untuk menyimpan data saat ini (agar firestoreId tidak hilang saat edit)
+    private var currentRule: TeachingRule? = null
+
     private val viewModel: TeachingViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
+        val apiService = RetrofitClient.instance // Panggil Retrofit
+
         val repository = TeachingRepository(
             database.teachingRuleDao(),
-            database.calendarEntryDao()
+            database.calendarEntryDao(),
+            apiService
         )
         TeachingViewModelFactory(repository, application)
     }
@@ -52,6 +66,16 @@ class AddTeachingActivity : AppCompatActivity() {
         binding = ActivityAddTeachingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Setup UI System Bars
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = getColor(R.color.colorPrimary)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
+            insets
+        }
+
         checkEditMode()
         setupToolbar()
         setupDayOfWeekDropdown()
@@ -68,13 +92,13 @@ class AddTeachingActivity : AppCompatActivity() {
 
     private fun saveTeachingRule() {
         val courseName = binding.editTextCourseName.text.toString().trim()
-        val className = binding.editTextClassName.text.toString().trim()
+        val classCode = binding.editTextClassName.text.toString().trim()
         val dayOfWeek = binding.autoCompleteTextViewDayOfWeek.text.toString().trim()
         val startTime = binding.editTextStartTime.text.toString().trim()
         val endTime = binding.editTextEndTime.text.toString().trim()
-        val location = binding.editTextLocation.text.toString().trim()
+        val classroom = binding.editTextLocation.text.toString().trim()
         val studentCountText = binding.editTextStudentCount.text.toString().trim()
-        val semesterStartDate = binding.editTextSemesterStartDate.text.toString().trim()
+        val startDate = binding.editTextSemesterStartDate.text.toString().trim()
 
         val notificationMinutes = getSelectedNotificationValue()
 
@@ -91,7 +115,7 @@ class AddTeachingActivity : AppCompatActivity() {
             if (repetitionValue.isEmpty() || repetitionValue.toIntOrNull() == null || repetitionValue.toInt() <= 0) { binding.editTextMeetingCount.error = "Jumlah tidak valid"; return }
         }
 
-        if (courseName.isEmpty() || className.isEmpty() || dayOfWeek.isEmpty() || startTime.isEmpty() || endTime.isEmpty() || location.isEmpty() || studentCountText.isEmpty() || semesterStartDate.isEmpty()) {
+        if (courseName.isEmpty() || classCode.isEmpty() || dayOfWeek.isEmpty() || startTime.isEmpty() || endTime.isEmpty() || classroom.isEmpty() || studentCountText.isEmpty() || startDate.isEmpty()) {
             Toast.makeText(this, "Semua field wajib harus diisi", Toast.LENGTH_SHORT).show()
             return
         }
@@ -99,19 +123,28 @@ class AddTeachingActivity : AppCompatActivity() {
         val studentCount = studentCountText.toIntOrNull()
         if (studentCount == null) { binding.editTextStudentCount.error = "Harus berupa angka"; return }
 
+        // --- PERBAIKAN PENTING DI SINI ---
         val teachingRule = TeachingRule(
-            id = if (isEditMode) ruleId else 0,
+            // 1. localId: Gunakan ID dari Intent jika edit, 0 jika baru
+            localId = if (isEditMode) ruleId else 0,
+
+            // 2. firestoreId: Ambil dari currentRule agar ID Cloud tidak hilang saat update
+            firestoreId = currentRule?.firestoreId,
+
+            // 3. userId: Ambil dari currentRule atau string kosong (Repository akan menimpa ini dengan User yang Login)
+            userId = currentRule?.userId ?: "",
+
             courseName = courseName,
-            className = className,
+            classCode = classCode,
             dayOfWeek = dayOfWeek,
             startTime = startTime,
             endTime = endTime,
-            location = location,
+            classroom = classroom,
             studentCount = studentCount,
-            semesterStartDate = semesterStartDate,
+            startDate = startDate,
             repetitionType = repetitionType,
             repetitionValue = repetitionValue,
-            notificationMinutesBefore = notificationMinutes
+            notificationMinutes = notificationMinutes
         )
 
         viewModel.saveNewTeachingRule(teachingRule)
@@ -181,27 +214,19 @@ class AddTeachingActivity : AppCompatActivity() {
 
     private fun setupTimePickers() {
         binding.editTextStartTime.setOnClickListener {
-            showTimePicker { time ->
-                binding.editTextStartTime.setText(time)
-            }
+            showTimePicker { time -> binding.editTextStartTime.setText(time) }
         }
         binding.editTextEndTime.setOnClickListener {
-            showTimePicker { time ->
-                binding.editTextEndTime.setText(time)
-            }
+            showTimePicker { time -> binding.editTextEndTime.setText(time) }
         }
     }
 
     private fun setupDatePickers() {
         binding.editTextSemesterStartDate.setOnClickListener {
-            showDatePicker { date ->
-                binding.editTextSemesterStartDate.setText(date)
-            }
+            showDatePicker { date -> binding.editTextSemesterStartDate.setText(date) }
         }
         binding.editTextSemesterEndDate.setOnClickListener {
-            showDatePicker { date ->
-                binding.editTextSemesterEndDate.setText(date)
-            }
+            showDatePicker { date -> binding.editTextSemesterEndDate.setText(date) }
         }
     }
 
@@ -236,15 +261,18 @@ class AddTeachingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val rule = viewModel.getTeachingRuleById(ruleId)
             rule?.let {
+                // --- SIMPAN DATA ASLI KE VARIABEL ---
+                currentRule = it
+
                 binding.apply {
                     editTextCourseName.setText(it.courseName)
-                    editTextClassName.setText(it.className)
+                    editTextClassName.setText(it.classCode)
                     autoCompleteTextViewDayOfWeek.setText(it.dayOfWeek, false)
                     editTextStartTime.setText(it.startTime)
                     editTextEndTime.setText(it.endTime)
-                    editTextLocation.setText(it.location)
+                    editTextLocation.setText(it.classroom) // Pastikan variabel model sesuai
                     editTextStudentCount.setText(it.studentCount.toString())
-                    editTextSemesterStartDate.setText(it.semesterStartDate)
+                    editTextSemesterStartDate.setText(it.startDate)
 
                     if (it.repetitionType == "COUNT") {
                         radioButtonCount.isChecked = true
@@ -253,7 +281,7 @@ class AddTeachingActivity : AppCompatActivity() {
                         radioButtonDate.isChecked = true
                         editTextSemesterEndDate.setText(it.repetitionValue)
                     }
-                    val notificationText = getNotificationOptionText(it.notificationMinutesBefore)
+                    val notificationText = getNotificationOptionText(it.notificationMinutes)
                     autoCompleteNotification.setText(notificationText, false)
                 }
             }

@@ -5,12 +5,19 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
+import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.databinding.ActivityClassScheduleBinding
 import com.lecturo.lecturo.ui.teaching.AddTeachingActivity
+import com.lecturo.lecturo.viewmodel.teaching.ClassScheduleViewModel
+import com.lecturo.lecturo.viewmodel.teaching.ClassScheduleViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,6 +37,28 @@ class ClassScheduleActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityClassScheduleBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // bikin status bar transparan sekali untuk semua activity
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // atur warna status bar
+        window.statusBarColor = getColor(R.color.colorPrimary)
+
+        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = true
+
+        // otomatis kasih padding top di root view sesuai status bar
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(
+                view.paddingLeft,
+                statusBarInsets.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            insets
+        }
 
         setupToolbar()
         setupRecyclerView()

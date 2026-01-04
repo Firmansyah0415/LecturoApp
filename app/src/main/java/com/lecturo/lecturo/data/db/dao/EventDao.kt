@@ -16,6 +16,10 @@ interface EventDao {
     @Query("DELETE FROM events WHERE id = :eventId")
     suspend fun deleteById(eventId: Long)
 
+    // TAMBAHKAN INI:
+    @Query("DELETE FROM events")
+    suspend fun deleteAllEvents()
+
     @Query("UPDATE events SET isCompleted = :isCompleted WHERE id = :eventId")
     suspend fun updateCompletedStatus(eventId: Long, isCompleted: Boolean)
 

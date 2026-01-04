@@ -23,7 +23,10 @@
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings" />
 
-    <!-- Tambahkan fragment lain di sini jika ada, misal: nav_settings, nav_profile -->
-    <!-- Pastikan ID di sini sama dengan ID di menu bottom_nav_menu.xml -->
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.lecturo.lecturo.ui.profile.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
 
 </navigation>

@@ -29,7 +29,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
-            android:elevation="0dp"
+            app:labelVisibilityMode="unlabeled"
+            app:compatShadowEnabled="true"
+            android:elevation="4dp"
+            app:itemIconTint="@color/bottom_nav_color"
+            app:itemTextColor="@color/bottom_nav_color"
             app:menu="@menu/bottom_nav_menu" />
 
     </com.google.android.material.bottomappbar.BottomAppBar>
@@ -43,6 +47,8 @@
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/colorPrimary"
         app:layout_anchor="@id/bottomAppBar"
+        app:fabCustomSize="45dp"
+        android:layout_gravity="bottom|center"
         app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

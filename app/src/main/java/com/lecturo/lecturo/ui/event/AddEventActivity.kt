@@ -8,11 +8,23 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import com.lecturo.lecturo.R
+import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.Event
+import com.lecturo.lecturo.data.remote.RetrofitClient
+import com.lecturo.lecturo.data.repository.EventRepository
+import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.databinding.ActivityAddEventBinding
-import com.lecturo.lecturo.di.ViewModelFactory // Pastikan import ini benar
+import com.lecturo.lecturo.viewmodel.event.EventViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.lecturo.lecturo.viewmodel.event.EventViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -23,10 +35,19 @@ class AddEventActivity : AppCompatActivity() {
     private var eventId: Long = -1
     private var isEditMode = false
 
-    // Menggunakan Factory tunggal yang sudah kita perbaiki
+    // 1. Variabel untuk menyimpan data asli (agar firestoreId tidak hilang)
+    private var currentEvent: Event? = null
+
+    // 2. Inisialisasi ViewModel
     private val viewModel: EventViewModel by viewModels {
-        ViewModelFactory.getInstance(this)
-    }
+        val database = AppDatabase.getDatabase(this)
+        val apiService = RetrofitClient.instance
+
+        val eventRepository = EventRepository(database.eventDao(), apiService)
+        val calendarRepository = CalendarRepository(database.calendarEntryDao())
+
+        EventViewModelFactory(eventRepository, calendarRepository, application)
+    } // <--- KURUNG TUTUP INI YANG TADI HILANG
 
     private val categories = arrayOf(
         "Rapat", "Seminar", "Webinar", "Workshop",
@@ -39,14 +60,27 @@ class AddEventActivity : AppCompatActivity() {
     )
     private val notificationValues = arrayOf(-1, 0, 5, 15, 30, 60)
 
+    private val priorityOptions = arrayOf("Tinggi", "Sedang", "Rendah")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddEventBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // UI System Bars
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = getColor(R.color.colorPrimary)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
+            insets
+        }
+
         checkEditMode()
         setupToolbar()
         setupCategoryDropdown()
+        setupPriorityDropdown()
         setupDateTimePickers()
         setupNotificationDropdown()
         setupSaveButton()
@@ -54,16 +88,10 @@ class AddEventActivity : AppCompatActivity() {
         if (isEditMode) {
             loadEventData()
         } else {
-            // DIUBAH: Panggil fungsi baru untuk mengisi data dari AI
             populateFormFromAi()
         }
     }
 
-    // --- FUNGSI INI ADALAH PERUBAHAN UTAMA ---
-    /**
-     * Memeriksa apakah ada data Event yang dikirim dari Activity sebelumnya (hasil AI)
-     * dan mengisi form jika ada.
-     */
     private fun populateFormFromAi() {
         val eventFromAi = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("EXTRA_EVENT_AI", Event::class.java)
@@ -72,10 +100,14 @@ class AddEventActivity : AppCompatActivity() {
             intent.getParcelableExtra("EXTRA_EVENT_AI") as? Event
         }
 
-        // Jika ada data dari AI, isi semua field yang relevan
         eventFromAi?.let {
             binding.editTextTitle.setText(it.title)
             binding.autoCompleteTextViewCategory.setText(it.category, false)
+
+            // Logic Priority dari AI
+            val priority = it.priority ?: "Sedang"
+            binding.autoCompleteTextViewPriority.setText(priority, false)
+
             binding.editTextDate.setText(it.date)
             binding.editTextTime.setText(it.time)
             binding.editTextLocation.setText(it.location)
@@ -88,9 +120,13 @@ class AddEventActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val event = viewModel.getEventById(eventId)
             event?.let {
+                // Simpan ke variabel global agar ID Cloud tidak hilang
+                currentEvent = it
+
                 binding.apply {
                     editTextTitle.setText(it.title)
                     autoCompleteTextViewCategory.setText(it.category, false)
+                    autoCompleteTextViewPriority.setText(it.priority, false)
                     editTextDate.setText(it.date)
                     editTextTime.setText(it.time)
                     editTextLocation.setText(it.location)
@@ -105,6 +141,7 @@ class AddEventActivity : AppCompatActivity() {
     private fun saveEvent() {
         val title = binding.editTextTitle.text.toString().trim()
         val category = binding.autoCompleteTextViewCategory.text.toString().trim()
+        val priority = binding.autoCompleteTextViewPriority.text.toString().trim()
         val date = binding.editTextDate.text.toString().trim()
         val time = binding.editTextTime.text.toString().trim()
         val location = binding.editTextLocation.text.toString().trim()
@@ -116,21 +153,35 @@ class AddEventActivity : AppCompatActivity() {
             return
         }
 
+        // Gunakan ID dari currentEvent
         val event = Event(
             id = if (isEditMode) eventId else 0,
-            title = title, category = category, date = date, time = time,
-            location = location, description = description.ifEmpty { null },
-            notificationMinutesBefore = notificationMinutes
+
+            // Ambil ID Cloud dari data lama (jika edit), agar update berhasil sync ke backend
+            firestoreId = currentEvent?.firestoreId,
+
+            title = title,
+            category = category,
+            priority = priority,
+            date = date,
+            time = time,
+            location = location,
+            description = description.ifEmpty { null },
+            notificationMinutesBefore = notificationMinutes,
+
+            // Pertahankan input source (misal dari AI) jika edit, atau default MANUAL
+            inputSource = currentEvent?.inputSource ?: "MANUAL"
         )
 
         viewModel.insertOrUpdate(event)
+
         val message = if (isEditMode) "Event berhasil diupdate" else "Event berhasil ditambahkan"
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         setResult(RESULT_OK)
         finish()
     }
 
-    // --- Sisa fungsi di bawah ini tidak ada perubahan ---
+    // --- Sisa fungsi UI ---
 
     private fun setupNotificationDropdown() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, notificationOptions)
@@ -165,6 +216,14 @@ class AddEventActivity : AppCompatActivity() {
         supportActionBar?.apply {
             title = if (isEditMode) "Edit Event" else "Tambah Event"
             setDisplayHomeAsUpEnabled(true)
+        }
+    }
+
+    private fun setupPriorityDropdown() {
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, priorityOptions)
+        binding.autoCompleteTextViewPriority.setAdapter(adapter)
+        if (!isEditMode && binding.autoCompleteTextViewPriority.text.isEmpty()) {
+            binding.autoCompleteTextViewPriority.setText("Sedang", false)
         }
     }
 

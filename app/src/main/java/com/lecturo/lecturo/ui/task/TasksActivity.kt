@@ -7,15 +7,21 @@ import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView // Import yang benar
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.Tasks
+import com.lecturo.lecturo.data.remote.RetrofitClient
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
 import com.lecturo.lecturo.databinding.ActivityTasksBinding
-import com.lecturo.lecturo.ui.cameraocr.CameraOCRActivity
+import com.lecturo.lecturo.viewmodel.task.TasksViewModel
+import com.lecturo.lecturo.viewmodel.task.TasksViewModelFactory
 
 class TasksActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTasksBinding
@@ -26,7 +32,8 @@ class TasksActivity : AppCompatActivity() {
 
     fun getViewModelFactory(): TasksViewModelFactory {
         val database = AppDatabase.getDatabase(applicationContext)
-        val tasksRepository = TasksRepository(database.tasksDao())
+        val apiService = RetrofitClient.instance
+        val tasksRepository = TasksRepository(database.tasksDao(), apiService)
         val calendarRepository = CalendarRepository(database.calendarEntryDao())
         return TasksViewModelFactory(tasksRepository, calendarRepository, application)
     }
@@ -35,6 +42,28 @@ class TasksActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityTasksBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // bikin status bar transparan sekali untuk semua activity
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // atur warna status bar
+        window.statusBarColor = getColor(R.color.colorPrimary)
+
+        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = true
+
+        // otomatis kasih padding top di root view sesuai status bar
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(
+                view.paddingLeft,
+                statusBarInsets.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            insets
+        }
 
         // Mengganti toolbar lama dengan yang baru dari binding
         setSupportActionBar(binding.taskToolbar)

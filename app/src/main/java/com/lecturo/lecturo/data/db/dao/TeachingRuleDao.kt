@@ -13,10 +13,17 @@ interface TeachingRuleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateRule(rule: TeachingRule): Long
 
-    @Query("DELETE FROM teaching_rules WHERE id = :ruleId")
+    // Perbaiki 'id' menjadi 'localId'
+    @Query("DELETE FROM teaching_rules WHERE localId = :ruleId")
     suspend fun deleteRuleById(ruleId: Long)
 
-    @Query("SELECT * FROM teaching_rules WHERE id = :ruleId")
+    // TAMBAHKAN INI:
+    // Pastikan nama tabelnya sesuai (misal: teaching_rules)
+    @Query("DELETE FROM teaching_rules")
+    suspend fun deleteAll()
+
+    // Perbaiki 'id' menjadi 'localId'
+    @Query("SELECT * FROM teaching_rules WHERE localId = :ruleId")
     suspend fun getRuleById(ruleId: Long): TeachingRule?
 
     @Query("SELECT * FROM teaching_rules WHERE dayOfWeek = :dayOfWeek ORDER BY startTime ASC")

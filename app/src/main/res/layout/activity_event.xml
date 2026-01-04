@@ -34,13 +34,13 @@
             android:layout_margin="16dp"
             app:startIconDrawable="@drawable/ic_search"
             app:endIconMode="clear_text"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            android:hint="Search event..."
+            style="?attr/textInputFilledStyle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextSearch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Cari event..."
                 android:inputType="text" />
 
         </com.google.android.material.textfield.TextInputLayout>

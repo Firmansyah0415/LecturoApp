@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1033789644932",
+    "project_id": "lecturoapp",
+    "storage_bucket": "lecturoapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033789644932:android:2c6865c7e8868eb4bae2d1",
+        "android_client_info": {
+          "package_name": "com.lecturo.lecturo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB02zMmldof0YyFhImaVkn12gQ56tBsTGI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

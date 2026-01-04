@@ -5,7 +5,12 @@ import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.preference.PreferenceManager
+import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.ActivityNotificationSettingsBinding
 
 class NotificationSettingsActivity : AppCompatActivity() {
@@ -33,6 +38,28 @@ class NotificationSettingsActivity : AppCompatActivity() {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
 
+        // bikin status bar transparan sekali untuk semua activity
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // atur warna status bar
+        window.statusBarColor = getColor(R.color.colorPrimary)
+
+        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = true
+
+        // otomatis kasih padding top di root view sesuai status bar
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(
+                view.paddingLeft,
+                statusBarInsets.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            insets
+        }
+
         setupToolbar()
         setupDropdowns()
         loadCurrentSettings()
@@ -44,7 +71,7 @@ class NotificationSettingsActivity : AppCompatActivity() {
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbarSetting)
         supportActionBar?.apply {
-            title = "Pengaturan Notifikasi"
+            title = "Notification Settings"
             setDisplayHomeAsUpEnabled(true)
         }
     }

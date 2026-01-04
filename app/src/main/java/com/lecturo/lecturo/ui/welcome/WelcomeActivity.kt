@@ -7,8 +7,8 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.lecturo.lecturo.databinding.ActivityWelcomeBinding
-import com.lecturo.lecturo.ui.login.LoginActivity
-import com.lecturo.lecturo.ui.signup.SignupActivity
+import com.lecturo.lecturo.ui.auth.LoginActivity
+import com.lecturo.lecturo.ui.auth.CompleteProfileActivity
 
 class WelcomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityWelcomeBinding
@@ -31,7 +31,7 @@ class WelcomeActivity : AppCompatActivity() {
         }
 
         binding.btSignup.setOnClickListener {
-            startActivity(Intent(this, SignupActivity::class.java))
+            startActivity(Intent(this, CompleteProfileActivity::class.java))
         }
     }
 

@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
+import com.lecturo.lecturo.data.remote.RetrofitClient
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.EventRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
@@ -24,10 +25,17 @@ class CalendarFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: CalendarViewModel by viewModels {
+        val context = requireContext()
+        val database = AppDatabase.getDatabase(context)
+
+        // 2. Panggil Retrofit Client
+        val apiService = RetrofitClient.instance
+
+        // 3. Masukkan apiService ke Repository yang membutuhkannya
         CalendarViewModelFactory(
-            CalendarRepository(AppDatabase.getDatabase(requireContext()).calendarEntryDao()),
-            EventRepository(AppDatabase.getDatabase(requireContext()).eventDao()),
-            TasksRepository(AppDatabase.getDatabase(requireContext()).tasksDao())
+            CalendarRepository(database.calendarEntryDao()), // CalendarRepo biasanya lokal saja
+            EventRepository(database.eventDao(), apiService), // Butuh apiService
+            TasksRepository(database.tasksDao(), apiService)  // Butuh apiService
         )
     }
 

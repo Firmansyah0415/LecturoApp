@@ -33,16 +33,16 @@ class TeachingRuleAdapter(
         fun bind(rule: TeachingRule) {
             binding.apply {
                 textCourseName.text = rule.courseName
-                textClassName.text = "Kelas ${rule.className}"
+                textClassName.text = "Kelas ${rule.classCode}"
                 val dayAndTimeText = "${rule.dayOfWeek}, ${rule.startTime} - ${rule.endTime}"
                 binding.textDayAndTime.text = dayAndTimeText // Gunakan ID baru
-                textLocation.text = rule.location
+                textLocation.text = rule.classroom
                 textStudentCount.text = "${rule.studentCount} Mahasiswa"
 
                 val semesterPeriodText = if (rule.repetitionType == "DATE") {
-                    "Semester: ${rule.semesterStartDate} - ${rule.repetitionValue}"
+                    "Semester: ${rule.startDate} - ${rule.repetitionValue}"
                 } else {
-                    "Semester: Mulai ${rule.semesterStartDate} (${rule.repetitionValue} pertemuan)"
+                    "Semester: Mulai ${rule.startDate} (${rule.repetitionValue} pertemuan)"
                 }
                 textSemesterPeriod.text = semesterPeriodText
 
@@ -59,7 +59,7 @@ class TeachingRuleAdapter(
 
     class TeachingRuleDiffCallback : DiffUtil.ItemCallback<TeachingRule>() {
         override fun areItemsTheSame(oldItem: TeachingRule, newItem: TeachingRule): Boolean {
-            return oldItem.id == newItem.id
+            return oldItem.localId == newItem.localId
         }
 
         override fun areContentsTheSame(oldItem: TeachingRule, newItem: TeachingRule): Boolean {

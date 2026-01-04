@@ -8,6 +8,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.FragmentTasksBinding
+import com.lecturo.lecturo.viewmodel.task.TasksViewModel
 
 class TasksFragment : Fragment(R.layout.fragment_tasks) {
 

@@ -18,10 +18,10 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.lecturo.lecturo.R
-import com.lecturo.lecturo.ai.EventGeminiExtractor
 import com.lecturo.lecturo.data.model.Event
 import com.lecturo.lecturo.databinding.ActivityCameraOcrBinding
 import com.lecturo.lecturo.ui.event.AddEventActivity
+import com.lecturo.lecturo.data.repository.AiRepository // <-- IMPORT BARU
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
@@ -34,6 +34,9 @@ class CameraOCRActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCameraOcrBinding
     private val textRecognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+
+    // --- TAMBAHAN BARU: Inisialisasi Repository ---
+    private val aiRepository = AiRepository()
 
     // Variabel untuk menyimpan URI dari file gambar sementara
     private var tempImageUri: Uri? = null
@@ -89,14 +92,10 @@ class CameraOCRActivity : AppCompatActivity() {
         }
     }
 
-    // --- DIUBAH: Logika diperbaiki untuk mengatasi error type mismatch ---
     private fun openCamera() {
         try {
-            // Buat URI yang dijamin tidak null
             val uri = createImageUri()
-            // Simpan ke variabel class untuk digunakan nanti
             tempImageUri = uri
-            // Luncurkan kamera dengan URI yang valid
             cameraLauncher.launch(uri)
         } catch (e: Exception) {
             showToast("Gagal mempersiapkan kamera: ${e.message}")
@@ -108,7 +107,7 @@ class CameraOCRActivity : AppCompatActivity() {
         val imageFile = File.createTempFile("JPEG_${timeStamp}_", ".jpg", externalCacheDir)
         return FileProvider.getUriForFile(
             this,
-            "${applicationContext.packageName}.fileprovider", // Pastikan authority ini cocok dengan di Manifest
+            "${applicationContext.packageName}.fileprovider",
             imageFile
         )
     }
@@ -132,7 +131,6 @@ class CameraOCRActivity : AppCompatActivity() {
 
     private fun processImage(uri: Uri) {
         try {
-            // Muat bitmap dari URI untuk ditampilkan di preview
             val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
             processImage(bitmap)
         } catch (e: Exception) {
@@ -159,6 +157,7 @@ class CameraOCRActivity : AppCompatActivity() {
         }
     }
 
+    // --- PERBAIKAN UTAMA DI SINI ---
     private fun processTextWithAI() {
         val rawText = binding.textResult.text.toString().trim()
         if (rawText.isBlank()) {
@@ -166,8 +165,11 @@ class CameraOCRActivity : AppCompatActivity() {
             return
         }
         setLoadingState(true, "Memproses dengan AI...")
+
         lifecycleScope.launch {
-            val result = EventGeminiExtractor.extractEventInfo(rawText)
+            // MENGGUNAKAN REPOSITORY, BUKAN EVENTGEMINIEXTRACTOR LAGI
+            val result = aiRepository.extractEventInfo(rawText)
+
             result.onSuccess { event ->
                 navigateToForm(event)
             }.onFailure { error ->

@@ -85,8 +85,15 @@
     <color name="checked_track">#2196F3</color>
     <color name="unchecked_track">#cdcdcd</color>
 
-
     <!-- Warna gelap untuk teks/ikon di atas background chip yang terang -->
     <color name="chip_foreground_on_light_bg">#DE000000</color> <!-- 87% Black -->
+
+    <!-- Bottom Navigation Color State -->
+    <color name="bottom_nav_selected">#2196F3</color>
+    <color name="bottom_nav_unselected">#757575</color>
+
+    <!-- Background Colors -->
+    <color name="background">#FAFAFA</color>
+    <color name="card_background">#FFFFFF</color>
 
 </resources>

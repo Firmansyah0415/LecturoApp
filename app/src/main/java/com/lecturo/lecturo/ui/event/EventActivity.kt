@@ -1,15 +1,28 @@
 package com.lecturo.lecturo.ui.event
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -17,15 +30,56 @@ import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.model.Event
 import com.lecturo.lecturo.databinding.ActivityEventBinding
 import com.lecturo.lecturo.di.ViewModelFactory
-import com.lecturo.lecturo.ui.cameraocr.CameraOCRActivity
+import com.lecturo.lecturo.utils.AiExtractionHelper
+import com.lecturo.lecturo.viewmodel.event.EventViewModel
+import kotlinx.coroutines.launch
+import java.io.File
 
 class EventActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEventBinding
     private lateinit var eventAdapter: EventAdapter
+    private lateinit var aiHelper: AiExtractionHelper // Helper AI
+    private lateinit var loadingDialog: AlertDialog // Dialog Loading
+
+    private var tempImageUri: Uri? = null // Uri untuk Kamera
 
     private val viewModel: EventViewModel by viewModels {
         ViewModelFactory.getInstance(this)
+    }
+
+    // --- LAUNCHERS (PERBAIKAN TYPE MISMATCH DI SINI) ---
+
+    // 1. Launcher Kamera
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            // Kita harus memastikan tempImageUri tidak null sebelum memproses
+            tempImageUri?.let { uri ->
+                processSelection(uri, isPdf = false)
+            } ?: run {
+                Toast.makeText(this, "Gagal mengambil gambar (Uri Kosong)", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // 2. Launcher Galeri
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        // uri di sini bisa null (Uri?), jadi wajib pakai ?.let
+        uri?.let { safeUri ->
+            processSelection(safeUri, isPdf = false)
+        }
+    }
+
+    // 3. Launcher PDF
+    private val pdfLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        // uri di sini bisa null (Uri?), jadi wajib pakai ?.let
+        uri?.let { safeUri ->
+            processSelection(safeUri, isPdf = true)
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) openCamera() else Toast.makeText(this, "Izin kamera ditolak", Toast.LENGTH_SHORT).show()
     }
 
     private val addEventLauncher = registerForActivityResult(
@@ -41,6 +95,11 @@ class EventActivity : AppCompatActivity() {
         binding = ActivityEventBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Setup AI Helper & Loading Dialog
+        aiHelper = AiExtractionHelper(this)
+        setupLoadingDialog()
+
+        setupStatusBar()
         setupToolbar()
         setupRecyclerView()
         setupSearchView()
@@ -49,42 +108,95 @@ class EventActivity : AppCompatActivity() {
         setupFilterChips()
     }
 
-    // --- PERUBAHAN UTAMA DI SINI ---
+    private fun setupStatusBar() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = getColor(R.color.colorPrimary)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
+            insets
+        }
+    }
+
     private fun setupFab() {
         binding.fabAddEvent.setOnClickListener {
             startActivity(Intent(this, AddEventActivity::class.java))
         }
+        // FAB AI Click -> Buka Dialog Sumber
         binding.fabAi.setOnClickListener {
-            startActivity(Intent(this, CameraOCRActivity::class.java))
+            showSourceSelectionDialog()
         }
     }
 
-//    // --- FUNGSI BARU UNTUK MENAMPILKAN DIALOG ---
-//    private fun showAddEventOptionsDialog() {
-//        val options = arrayOf("Input Manual", "Pindai dengan AI")
-//
-//        MaterialAlertDialogBuilder(this)
-//            .setTitle("Tambah Event Baru")
-//            .setItems(options) { dialog, which ->
-//                when (which) {
-//                    0 -> {
-//                        // Opsi: Input Manual
-//                        val intent = Intent(this, AddEventActivity::class.java)
-//                        addEventLauncher.launch(intent)
-//                    }
-//                    1 -> {
-//                        // Opsi: Pindai dengan Kamera (OCR)
-//                        val intent = Intent(this, CameraOCRActivity::class.java)
-//                        startActivity(intent)
-//                    }
-//                }
-//            }
-//            .show()
-//    }
+    private fun showSourceSelectionDialog() {
+        val options = arrayOf("Dokumen PDF", "Galeri Gambar", "Kamera")
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Pilih Sumber Jadwal")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> pdfLauncher.launch("application/pdf")
+                    1 -> galleryLauncher.launch("image/*")
+                    2 -> checkCameraPermission()
+                }
+            }
+            .show()
+    }
 
+    private fun checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            openCamera()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
 
-    // --- TIDAK ADA PERUBAHAN PADA KODE LAIN DI BAWAH INI ---
+    private fun openCamera() {
+        try {
+            val tmpFile = File.createTempFile("JPEG_${System.currentTimeMillis()}_", ".jpg", externalCacheDir)
+            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", tmpFile)
+            tempImageUri = uri
+            cameraLauncher.launch(uri)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error kamera: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
 
+    // --- LOGIKA PROSES AI ---
+    // Fungsi ini mewajibkan 'uri' yang TIDAK NULL (Uri, bukan Uri?)
+    private fun processSelection(uri: Uri, isPdf: Boolean) {
+        showLoading(true)
+
+        lifecycleScope.launch {
+            // Panggil Helper
+            val result = aiHelper.extractEventFromUri(uri, isPdf)
+
+            showLoading(false)
+
+            result.onSuccess { event ->
+                val intent = Intent(this@EventActivity, AddEventActivity::class.java).apply {
+                    putExtra("EXTRA_EVENT_AI", event)
+                }
+                startActivity(intent)
+            }.onFailure { error ->
+                Toast.makeText(this@EventActivity, "Gagal memproses: ${error.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun setupLoadingDialog() {
+        val builder = MaterialAlertDialogBuilder(this)
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_loading_ai, null)
+        builder.setView(view)
+        builder.setCancelable(false)
+        loadingDialog = builder.create()
+    }
+
+    private fun showLoading(show: Boolean) {
+        if (show) loadingDialog.show() else loadingDialog.dismiss()
+    }
+
+    // --- SETUP UI STANDAR ---
     private fun setupToolbar() {
         setSupportActionBar(binding.eventToolbar)
         supportActionBar?.title = "Event Management"

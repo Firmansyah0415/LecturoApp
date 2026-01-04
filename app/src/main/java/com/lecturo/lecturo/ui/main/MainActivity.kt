@@ -15,13 +15,17 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.ActivityMainBinding
 import com.lecturo.lecturo.di.ViewModelFactory
-import com.lecturo.lecturo.ui.settings.NotificationSettingsActivity
+import com.lecturo.lecturo.viewmodel.main.MainViewModel
 
 class MainActivity : AppCompatActivity() {
 
@@ -43,6 +47,28 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // bikin status bar transparan sekali untuk semua activity
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // atur warna status bar
+        window.statusBarColor = getColor(R.color.colorPrimary)
+
+        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = true
+
+        // otomatis kasih padding top di root view sesuai status bar
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
+            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(
+                view.paddingLeft,
+                statusBarInsets.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            insets
+        }
 
         askNotificationPermission()
         checkExactAlarmPermission()
@@ -83,8 +109,8 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_profile -> {
-                    Toast.makeText(this, "Fitur Info app akan segera hadir", Toast.LENGTH_SHORT).show()
-                    false
+                    navController.navigate(R.id.nav_profile)
+                    true
                 }
                 else -> false
             }

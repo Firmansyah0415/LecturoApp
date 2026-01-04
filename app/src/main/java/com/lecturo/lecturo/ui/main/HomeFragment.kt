@@ -4,21 +4,25 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels // Tambahkan ini
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide // Wajib untuk gambar
+import com.bumptech.glide.load.engine.DiskCacheStrategy // Wajib untuk cache
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.FragmentHomeBinding
 import com.lecturo.lecturo.di.ViewModelFactory
+import com.lecturo.lecturo.ui.auth.LoginActivity // Arahkan ke Login jika sesi habis
 import com.lecturo.lecturo.ui.event.AddEventActivity
 import com.lecturo.lecturo.ui.event.EventActivity
 import com.lecturo.lecturo.ui.task.AddTasksActivity
 import com.lecturo.lecturo.ui.task.TasksActivity
 import com.lecturo.lecturo.ui.teaching.AddTeachingActivity
 import com.lecturo.lecturo.ui.teaching.TeachingActivity
-import com.lecturo.lecturo.ui.welcome.WelcomeActivity
+import com.lecturo.lecturo.viewmodel.main.MainViewModel
+import com.lecturo.lecturo.viewmodel.profile.ProfileViewModel // Tambahkan ini
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,9 +31,14 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    // Gunakan activityViewModels agar ViewModel sama dengan yang di Activity
-    private val viewModel by activityViewModels<MainViewModel> {
+    // 1. MainViewModel untuk Data Dashboard (Jadwal, Statistik)
+    private val mainViewModel by activityViewModels<MainViewModel> {
         ViewModelFactory.getInstance(requireActivity())
+    }
+
+    // 2. ProfileViewModel untuk Data Header (Nama, Foto Terbaru)
+    private val profileViewModel by viewModels<ProfileViewModel> {
+        ViewModelFactory.getInstance(requireContext())
     }
 
     private lateinit var dateAdapter: DateAdapter
@@ -46,31 +55,121 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Pindahkan semua setup dari MainActivity ke sini
-        //setupToolbar()
         setupRecyclerViews()
         setupClickListeners()
-        observeViewModel()
         setupSwipeToRefresh()
+
+        // Setup Observer
+        observeMainViewModel()
+        observeProfileViewModel()
+
         updateDateDisplay()
     }
 
-//    private fun setupToolbar() {
-//        // Fragment perlu memberi tahu Activity bahwa ia memiliki menu sendiri
-//        setHasOptionsMenu(true)
-//        (activity as? AppCompatActivity)?.setSupportActionBar(binding.topAppBar)
-//        (activity as? AppCompatActivity)?.supportActionBar?.title = "Dashboard"
-//    }
+    // PENTING: Panggil loadUserProfile setiap kali halaman tampil (pulang dari edit profile)
+    override fun onResume() {
+        super.onResume()
+        profileViewModel.loadUserProfile()
+        mainViewModel.refreshData() // Refresh jadwal juga
+    }
 
     private fun setupSwipeToRefresh() {
         binding.swipeRefreshLayout.setOnRefreshListener {
-            viewModel.refreshData()
+            mainViewModel.refreshData()
+            profileViewModel.loadUserProfile() // Refresh profil juga saat swipe
+        }
+    }
+
+    private fun observeMainViewModel() {
+        // Cek Sesi Login
+        mainViewModel.getSession().observe(viewLifecycleOwner) { user ->
+            if (!user.isLogin) {
+                // PERBAIKAN: Jika tidak login, ke LoginActivity, BUKAN WelcomeActivity
+                startActivity(Intent(requireContext(), LoginActivity::class.java))
+                activity?.finish()
+            }
+        }
+
+        mainViewModel.greetingText.observe(viewLifecycleOwner) { greeting ->
+            binding.greetingTextView.text = greeting
+        }
+
+        // Statistik
+        mainViewModel.taskCount.observe(viewLifecycleOwner) { count ->
+            binding.tasksCountTextView.text = count.toString()
+        }
+        mainViewModel.eventCount.observe(viewLifecycleOwner) { count ->
+            binding.eventCountTextView.text = count.toString()
+        }
+        mainViewModel.teachingRuleCount.observe(viewLifecycleOwner) { count ->
+            binding.teachingCountTextView.text = count.toString()
+        }
+        mainViewModel.consultationCount.observe(viewLifecycleOwner) { count ->
+            binding.consultationCountTextView.text = count.toString()
+        }
+
+        // Loading State SwipeRefresh
+        mainViewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing ->
+            // Pastikan swipe berhenti jika profile juga sudah selesai (bisa ditambah logika complex, tapi ini cukup)
+            if (!isRefreshing) {
+                binding.swipeRefreshLayout.isRefreshing = false
+            }
+        }
+
+        // Agenda
+        mainViewModel.todaysAgenda.observe(viewLifecycleOwner) { agenda ->
+            if (agenda.isEmpty()) {
+                binding.agendaRecyclerView.visibility = View.GONE
+                binding.emptyAgendaTextView.visibility = View.VISIBLE
+            } else {
+                binding.agendaRecyclerView.visibility = View.VISIBLE
+                binding.emptyAgendaTextView.visibility = View.GONE
+                agendaAdapter.submitList(agenda)
+            }
+        }
+
+        mainViewModel.selectedDate.observe(viewLifecycleOwner) { selectedDate ->
+            updateDateSelection(selectedDate)
+        }
+
+        // FAB Click
+        mainViewModel.fabClickEvent.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let {
+                showAddScheduleDialog()
+            }
+        }
+    }
+
+    private fun observeProfileViewModel() {
+        // PERBAIKAN LOGIKA HEADER (NAMA & FOTO)
+        profileViewModel.currentUser.observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                // 1. LOGIKA NAMA vs NO HP
+                // Jika nama ada isinya, pakai nama. Jika kosong, pakai nomor HP.
+                val displayName = if (user.fullName.isNotEmpty()) {
+                    user.fullName
+                } else {
+                    user.phoneNumber
+                }
+                binding.nameTextView.text = displayName
+
+                // 2. LOGIKA FOTO PROFIL (GLIDE)
+                if (!isDetached && context != null) {
+                    Glide.with(requireContext())
+                        .load(user.photoUrl)
+                        .placeholder(R.drawable.profile_logo)
+                        .error(R.drawable.profile_logo)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE) // Agar foto langsung update
+                        .skipMemoryCache(true)
+                        .into(binding.profileImageView)
+                }
+            }
         }
     }
 
     private fun setupRecyclerViews() {
         dateAdapter = DateAdapter { selectedDate ->
-            viewModel.loadAgendaForDate(selectedDate)
+            mainViewModel.loadAgendaForDate(selectedDate)
         }
         binding.datesRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -104,57 +203,6 @@ class HomeFragment : Fragment() {
         }
         binding.consultationCard.setOnClickListener {
             Toast.makeText(requireContext(), "Fitur Konsultasi akan segera hadir", Toast.LENGTH_SHORT).show()
-        }
-        // Click listener untuk FAB akan ditangani di MainActivity baru
-    }
-
-    private fun observeViewModel() {
-        viewModel.getSession().observe(viewLifecycleOwner) { user ->
-            if (!user.isLogin) {
-                startActivity(Intent(requireContext(), WelcomeActivity::class.java))
-                activity?.finish()
-            }
-        }
-        viewModel.userName.observe(viewLifecycleOwner) { name ->
-            binding.nameTextView.text = name
-        }
-        viewModel.greetingText.observe(viewLifecycleOwner) { greeting ->
-            binding.greetingTextView.text = greeting
-        }
-        viewModel.taskCount.observe(viewLifecycleOwner) { count ->
-            binding.tasksCountTextView.text = count.toString()
-        }
-        viewModel.eventCount.observe(viewLifecycleOwner) { count ->
-            binding.eventCountTextView.text = count.toString()
-        }
-        viewModel.teachingRuleCount.observe(viewLifecycleOwner) { count ->
-            binding.teachingCountTextView.text = count.toString()
-        }
-        viewModel.consultationCount.observe(viewLifecycleOwner) { count ->
-            binding.consultationCountTextView.text = count.toString()
-        }
-        viewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing ->
-            binding.swipeRefreshLayout.isRefreshing = isRefreshing
-        }
-        viewModel.todaysAgenda.observe(viewLifecycleOwner) { agenda ->
-            if (agenda.isEmpty()) {
-                binding.agendaRecyclerView.visibility = View.GONE
-                binding.emptyAgendaTextView.visibility = View.VISIBLE
-            } else {
-                binding.agendaRecyclerView.visibility = View.VISIBLE
-                binding.emptyAgendaTextView.visibility = View.GONE
-                agendaAdapter.submitList(agenda)
-            }
-        }
-        viewModel.selectedDate.observe(viewLifecycleOwner) { selectedDate ->
-            updateDateSelection(selectedDate)
-        }
-
-        // Mengamati event klik FAB dari ViewModel
-        viewModel.fabClickEvent.observe(viewLifecycleOwner) { event ->
-            event.getContentIfNotHandled()?.let {
-                showAddScheduleDialog()
-            }
         }
     }
 
@@ -206,21 +254,6 @@ class HomeFragment : Fragment() {
                 }
             }
             .show()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.main_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_logout -> {
-                viewModel.logout()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     override fun onDestroyView() {
