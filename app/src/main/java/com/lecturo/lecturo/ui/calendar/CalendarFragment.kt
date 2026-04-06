@@ -34,8 +34,8 @@ class CalendarFragment : Fragment() {
         // 3. Masukkan apiService ke Repository yang membutuhkannya
         CalendarViewModelFactory(
             CalendarRepository(database.calendarEntryDao()), // CalendarRepo biasanya lokal saja
-            EventRepository(database.eventDao(), apiService), // Butuh apiService
-            TasksRepository(database.tasksDao(), apiService)  // Butuh apiService
+            EventRepository(database.eventDao(), context.applicationContext),
+            TasksRepository(database.tasksDao(), database.focusSessionDao(), context.applicationContext)  // Butuh apiService
         )
     }
 

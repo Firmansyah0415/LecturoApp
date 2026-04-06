@@ -3,18 +3,17 @@ package com.lecturo.lecturo.ui.main
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels // Tambahkan ini
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide // Wajib untuk gambar
-import com.bumptech.glide.load.engine.DiskCacheStrategy // Wajib untuk cache
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.FragmentHomeBinding
 import com.lecturo.lecturo.di.ViewModelFactory
-import com.lecturo.lecturo.ui.auth.LoginActivity // Arahkan ke Login jika sesi habis
+import com.lecturo.lecturo.ui.auth.LoginActivity
 import com.lecturo.lecturo.ui.event.AddEventActivity
 import com.lecturo.lecturo.ui.event.EventActivity
 import com.lecturo.lecturo.ui.task.AddTasksActivity
@@ -22,7 +21,10 @@ import com.lecturo.lecturo.ui.task.TasksActivity
 import com.lecturo.lecturo.ui.teaching.AddTeachingActivity
 import com.lecturo.lecturo.ui.teaching.TeachingActivity
 import com.lecturo.lecturo.viewmodel.main.MainViewModel
-import com.lecturo.lecturo.viewmodel.profile.ProfileViewModel // Tambahkan ini
+import com.lecturo.lecturo.viewmodel.profile.ProfileViewModel
+import com.lecturo.lecturo.ui.consultation.ConsultationActivity
+import com.lecturo.lecturo.ui.consultation.DetailConsultationActivity
+
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,12 +33,10 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    // 1. MainViewModel untuk Data Dashboard (Jadwal, Statistik)
     private val mainViewModel by activityViewModels<MainViewModel> {
         ViewModelFactory.getInstance(requireActivity())
     }
 
-    // 2. ProfileViewModel untuk Data Header (Nama, Foto Terbaru)
     private val profileViewModel by viewModels<ProfileViewModel> {
         ViewModelFactory.getInstance(requireContext())
     }
@@ -59,32 +59,48 @@ class HomeFragment : Fragment() {
         setupClickListeners()
         setupSwipeToRefresh()
 
-        // Setup Observer
         observeMainViewModel()
         observeProfileViewModel()
 
         updateDateDisplay()
+
+        // 1. Ambil referensi BottomAppBar dan FAB dari MainActivity
+        val bottomAppBar = requireActivity().findViewById<com.google.android.material.bottomappbar.BottomAppBar>(R.id.bottomAppBar)
+        val fab = requireActivity().findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fab)
+
+        // 2. Pasang pendeteksi scroll di NESTED SCROLL VIEW (Bukan RecyclerView)
+        binding.nestedScrollView.setOnScrollChangeListener(androidx.core.widget.NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+            val dy = scrollY - oldScrollY
+
+            // dy > 10 berarti user scroll ke bawah (untuk baca data ke bawah)
+            if (dy > 10 && fab.isOrWillBeShown) {
+                fab.hide() // FAB akan mengecil & hilang
+                bottomAppBar.performHide() // Navigasi meluncur ke bawah
+            }
+            // dy < -10 berarti user scroll ke atas (kembali ke puncak)
+            else if (dy < -10 && fab.isOrWillBeHidden) {
+                fab.show() // FAB akan membesar & muncul
+                bottomAppBar.performShow() // Navigasi meluncur ke atas
+            }
+        })
     }
 
-    // PENTING: Panggil loadUserProfile setiap kali halaman tampil (pulang dari edit profile)
     override fun onResume() {
         super.onResume()
         profileViewModel.loadUserProfile()
-        mainViewModel.refreshData() // Refresh jadwal juga
+        mainViewModel.refreshData()
     }
 
     private fun setupSwipeToRefresh() {
         binding.swipeRefreshLayout.setOnRefreshListener {
             mainViewModel.refreshData()
-            profileViewModel.loadUserProfile() // Refresh profil juga saat swipe
+            profileViewModel.loadUserProfile()
         }
     }
 
     private fun observeMainViewModel() {
-        // Cek Sesi Login
         mainViewModel.getSession().observe(viewLifecycleOwner) { user ->
             if (!user.isLogin) {
-                // PERBAIKAN: Jika tidak login, ke LoginActivity, BUKAN WelcomeActivity
                 startActivity(Intent(requireContext(), LoginActivity::class.java))
                 activity?.finish()
             }
@@ -94,7 +110,6 @@ class HomeFragment : Fragment() {
             binding.greetingTextView.text = greeting
         }
 
-        // Statistik
         mainViewModel.taskCount.observe(viewLifecycleOwner) { count ->
             binding.tasksCountTextView.text = count.toString()
         }
@@ -108,15 +123,12 @@ class HomeFragment : Fragment() {
             binding.consultationCountTextView.text = count.toString()
         }
 
-        // Loading State SwipeRefresh
         mainViewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing ->
-            // Pastikan swipe berhenti jika profile juga sudah selesai (bisa ditambah logika complex, tapi ini cukup)
             if (!isRefreshing) {
                 binding.swipeRefreshLayout.isRefreshing = false
             }
         }
 
-        // Agenda
         mainViewModel.todaysAgenda.observe(viewLifecycleOwner) { agenda ->
             if (agenda.isEmpty()) {
                 binding.agendaRecyclerView.visibility = View.GONE
@@ -132,7 +144,6 @@ class HomeFragment : Fragment() {
             updateDateSelection(selectedDate)
         }
 
-        // FAB Click
         mainViewModel.fabClickEvent.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let {
                 showAddScheduleDialog()
@@ -141,11 +152,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeProfileViewModel() {
-        // PERBAIKAN LOGIKA HEADER (NAMA & FOTO)
         profileViewModel.currentUser.observe(viewLifecycleOwner) { user ->
             if (user != null) {
-                // 1. LOGIKA NAMA vs NO HP
-                // Jika nama ada isinya, pakai nama. Jika kosong, pakai nomor HP.
                 val displayName = if (user.fullName.isNotEmpty()) {
                     user.fullName
                 } else {
@@ -153,13 +161,12 @@ class HomeFragment : Fragment() {
                 }
                 binding.nameTextView.text = displayName
 
-                // 2. LOGIKA FOTO PROFIL (GLIDE)
                 if (!isDetached && context != null) {
                     Glide.with(requireContext())
                         .load(user.photoUrl)
                         .placeholder(R.drawable.profile_logo)
                         .error(R.drawable.profile_logo)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE) // Agar foto langsung update
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
                         .skipMemoryCache(true)
                         .into(binding.profileImageView)
                 }
@@ -181,6 +188,7 @@ class HomeFragment : Fragment() {
                 "TEACHING_RULE" -> startActivity(Intent(requireContext(), TeachingActivity::class.java))
                 "EVENT" -> startActivity(Intent(requireContext(), EventActivity::class.java))
                 "TASK" -> startActivity(Intent(requireContext(), TasksActivity::class.java))
+                "CONSULTATION", "Konsultasi" -> startActivity(Intent(requireContext(), ConsultationActivity::class.java))
             }
         }
         binding.agendaRecyclerView.apply {
@@ -202,7 +210,7 @@ class HomeFragment : Fragment() {
             startActivity(Intent(requireContext(), EventActivity::class.java))
         }
         binding.consultationCard.setOnClickListener {
-            Toast.makeText(requireContext(), "Fitur Konsultasi akan segera hadir", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), ConsultationActivity::class.java))
         }
     }
 
@@ -250,7 +258,7 @@ class HomeFragment : Fragment() {
                     0 -> startActivity(Intent(requireContext(), AddTasksActivity::class.java))
                     1 -> startActivity(Intent(requireContext(), AddEventActivity::class.java))
                     2 -> startActivity(Intent(requireContext(), AddTeachingActivity::class.java))
-                    3 -> Toast.makeText(requireContext(), "Fitur Konsultasi akan segera hadir", Toast.LENGTH_SHORT).show()
+                    3 -> startActivity(Intent(requireContext(), DetailConsultationActivity::class.java))
                 }
             }
             .show()

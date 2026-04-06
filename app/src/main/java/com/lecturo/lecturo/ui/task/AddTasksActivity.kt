@@ -12,10 +12,10 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.preference.PreferenceManager
+import com.google.firebase.auth.FirebaseAuth
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.Tasks
-import com.lecturo.lecturo.data.remote.RetrofitClient
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
 import com.lecturo.lecturo.databinding.ActivityAddTasksBinding
@@ -30,14 +30,11 @@ class AddTasksActivity : AppCompatActivity() {
 
     private val viewModel: TasksViewModel by viewModels {
         val database = AppDatabase.getDatabase(applicationContext)
-        // Panggil RetrofitClient.instance untuk mendapatkan apiService
-        val apiService = RetrofitClient.instance
-        val tasksRepository = TasksRepository(database.tasksDao(), apiService)
+        val tasksRepository = TasksRepository(database.tasksDao(), database.focusSessionDao(), applicationContext)
         val calendarRepository = CalendarRepository(database.calendarEntryDao())
         TasksViewModelFactory(tasksRepository, calendarRepository, application)
     }
 
-    // Opsi Prioritas
     private val priorityOptions = arrayOf("Tinggi", "Sedang", "Rendah")
 
     private var tasksId: Long = -1L
@@ -59,25 +56,13 @@ class AddTasksActivity : AppCompatActivity() {
         binding = ActivityAddTasksBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // bikin status bar transparan sekali untuk semua activity
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // atur warna status bar
         window.statusBarColor = getColor(R.color.colorPrimary)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
 
-        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
-        WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = true
-
-        // otomatis kasih padding top di root view sesuai status bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-            view.setPadding(
-                view.paddingLeft,
-                statusBarInsets.top,
-                view.paddingRight,
-                view.paddingBottom
-            )
+            view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
             insets
         }
 
@@ -92,12 +77,9 @@ class AddTasksActivity : AppCompatActivity() {
         }
     }
 
-    // 1. SETUP DROPDOWN PRIORITAS
     private fun setupPriorityDropdown() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, priorityOptions)
         binding.autoCompletePriority.setAdapter(adapter)
-
-        // Default value jika bukan edit mode
         if (!isEditMode) {
             binding.autoCompletePriority.setText("Sedang", false)
         }
@@ -126,17 +108,14 @@ class AddTasksActivity : AppCompatActivity() {
         return if (index != -1) notificationValues[index] else 15
     }
 
+    // --- FUNGSI INI YANG SAYA PERBAIKI ---
     private fun saveTasks() {
         val title = binding.editTitle.text.toString().trim()
         val date = binding.editDate.text.toString().trim()
         val time = binding.editTime.text.toString().trim()
         val location = binding.editLocation.text.toString().trim()
         val description = binding.editDescription.text.toString().trim()
-
-        // Ambil nilai prioritas yang dipilih dari dropdown
         val priority = binding.autoCompletePriority.text.toString()
-
-        // Ambil nilai notifikasi yang dipilih dari dropdown
         val notificationMinutes = getSelectedNotificationValue()
 
         if (title.isEmpty() || date.isEmpty() || time.isEmpty()) {
@@ -144,20 +123,37 @@ class AddTasksActivity : AppCompatActivity() {
             return
         }
 
+        // 1. AMBIL USER ID DARI FIREBASE
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val currentUid = currentUser?.uid
+
+        if (currentUid == null) {
+            Toast.makeText(this, "Gagal: Anda belum login.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val tasksToSave = Tasks(
             id = if (isEditMode) tasksId else 0,
+
+            // 2. MASUKKAN USER ID KE SINI
+            userId = currentUid,
+
+            firestoreId = currentTasks?.firestoreId,
+
+            // 3. SET isSynced = false (Agar Worker tahu ini data baru yang perlu diupload)
+            isSynced = false,
+
             title = title,
             date = date,
             time = time,
             location = location,
             description = description,
-            priority = priority, // <--- GUNAKAN VALUE BARU
-            inputSource = currentTasks?.inputSource ?: "MANUAL", // Pertahankan source asli
+            priority = priority,
+            inputSource = currentTasks?.inputSource ?: "MANUAL",
             isCompleted = if (isEditMode) currentTasks?.isCompleted ?: false else false,
             notificationMinutesBefore = notificationMinutes
         )
 
-        // Panggil viewModel hanya dengan satu argumen
         viewModel.insertOrUpdate(tasksToSave)
 
         val message = if (isEditMode) "Tugas berhasil diperbarui" else "Tugas berhasil ditambahkan"
@@ -184,11 +180,7 @@ class AddTasksActivity : AppCompatActivity() {
                     binding.editTime.setText(it.time)
                     binding.editLocation.setText(it.location)
                     binding.editDescription.setText(it.description)
-
-                    // Load Prioritas
                     binding.autoCompletePriority.setText(it.priority, false)
-
-                    // Muat pengaturan notifikasi yang sudah ada
                     val notificationText = getNotificationOptionText(it.notificationMinutesBefore)
                     binding.autoCompleteNotification.setText(notificationText, false)
                 }

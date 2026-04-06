@@ -114,4 +114,7 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.firebase.storage)
 
+    // WorkManager (Untuk jalanin task di background)
+    implementation(libs.androidx.work.runtime.ktx)
+
 }

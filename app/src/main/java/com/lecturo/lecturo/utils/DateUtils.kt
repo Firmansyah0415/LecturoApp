@@ -3,14 +3,6 @@ package com.lecturo.lecturo.utils
 import java.text.SimpleDateFormat
 import java.util.*
 
-/**
- * Extension function untuk kelas String.
- * Mengubah String tanggal dari format "dd/MM/yyyy" ke format yang lebih mudah dibaca.
- *
- * Cara Penggunaan:
- * val tanggalAsli = "19/07/2025"
- * val tanggalBaru = tanggalAsli.toReadableDate() // Hasil: "Sabtu, 19 Juli 2025"
- */
 fun String.toReadableDate(): String {
     // 'this' merujuk pada objek String itu sendiri yang memanggil fungsi ini.
     val dateString = this

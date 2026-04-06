@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.lecturo.lecturo.data.model.CalendarEntry
+import com.lecturo.lecturo.data.model.TaskWithFocusStats // <--- Import baru
 import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
@@ -21,26 +22,32 @@ class TasksViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val allTasks: LiveData<List<Tasks>> = tasksRepository.getAllTasks()
+    // [UBAH] Sekarang kita menarik data lengkap dengan statistiknya
+    private val allTasksWithStats: LiveData<List<TaskWithFocusStats>> = tasksRepository.getAllTasksWithStats()
     private val searchQuery = MutableLiveData<String>("")
 
-    val filteredTasks = MediatorLiveData<List<Tasks>>().apply {
-        addSource(allTasks) { tasks -> value = applyFilters(tasks, searchQuery.value) }
-        addSource(searchQuery) { query -> value = applyFilters(allTasks.value, query) }
+    // [UBAH] MediatorLiveData sekarang menangani TaskWithFocusStats
+    val filteredTasks = MediatorLiveData<List<TaskWithFocusStats>>().apply {
+        addSource(allTasksWithStats) { tasksWithStats -> value = applyFilters(tasksWithStats, searchQuery.value) }
+        addSource(searchQuery) { query -> value = applyFilters(allTasksWithStats.value, query) }
     }
 
-    val pendingTasks: LiveData<List<Tasks>> = filteredTasks.map { tasks -> tasks.filter { !it.isCompleted } }
-    val completedTasks: LiveData<List<Tasks>> = filteredTasks.map { tasks -> tasks.filter { it.isCompleted } }
+    // [UBAH] Pecah berdasarkan status isCompleted milik entitas task
+    val pendingTasks: LiveData<List<TaskWithFocusStats>> = filteredTasks.map { list -> list.filter { !it.task.isCompleted } }
+    val completedTasks: LiveData<List<TaskWithFocusStats>> = filteredTasks.map { list -> list.filter { it.task.isCompleted } }
 
-    private fun applyFilters(tasks: List<Tasks>?, query: String?): List<Tasks> {
-        if (tasks == null) return emptyList()
-        if (query.isNullOrBlank()) return tasks
+    private fun applyFilters(tasksWithStats: List<TaskWithFocusStats>?, query: String?): List<TaskWithFocusStats> {
+        if (tasksWithStats == null) return emptyList()
+        if (query.isNullOrBlank()) return tasksWithStats
         val lowerCaseQuery = query.lowercase(Locale.getDefault())
-        return tasks.filter {
-            it.title.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                    it.description?.lowercase(Locale.getDefault())?.contains(lowerCaseQuery) == true
+        return tasksWithStats.filter { item ->
+            item.task.title.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
+                    item.task.description?.lowercase(Locale.getDefault())?.contains(lowerCaseQuery) == true
         }
     }
+
+    // Fungsi get, set, delete, dan update biarkan sama saja
+    // karena mereka hanya butuh ID dan model 'Tasks' murni.
 
     fun getTasksById(id: Long): LiveData<Tasks> = tasksRepository.getTasksById(id)
 
@@ -48,8 +55,8 @@ class TasksViewModel(
         searchQuery.value = query
     }
 
+    // ... sisa fungsi insertOrUpdate, deleteTasks, dan updateTasksCompletedStatus tetap sama ...
     fun insertOrUpdate(tasks: Tasks) = viewModelScope.launch {
-        // 1. Bersihkan notifikasi lama jika ada (untuk update)
         if (tasks.id != 0L) {
             val scheduler = NotificationScheduler(getApplication())
             val oldEntries = calendarRepository.getEntriesForSource("TASK", tasks.id)
@@ -59,12 +66,9 @@ class TasksViewModel(
             calendarRepository.deleteEntriesForSource("TASK", tasks.id)
         }
 
-        // 2. Simpan ke Repository (Ini akan handle Lokal + Cloud Sync)
         val taskId = tasksRepository.insertOrUpdate(tasks)
         val finalTask = tasks.copy(id = taskId)
 
-        // 3. Buat ulang entri kalender & Notifikasi
-        // Hanya buat notifikasi jika tugas BELUM selesai
         if (!finalTask.isCompleted) {
             val calendarEntry = CalendarEntry(
                 title = finalTask.title,
@@ -95,31 +99,12 @@ class TasksViewModel(
         calendarRepository.deleteEntriesForSource("TASK", id)
     }
 
-    // --- PERBAIKAN PENTING DI SINI ---
     fun updateTasksCompletedStatus(id: Long, completed: Boolean) = viewModelScope.launch {
-        // Logika Lama (Hanya Lokal):
-        // tasksRepository.updateTasksCompletedStatus(id, completed)
-
-        // Logika Baru (Lokal + Cloud):
-        // 1. Ambil data task saat ini dari DB (menggunakan DAO suspend function yang kita bahas sebelumnya agar tidak blocking)
-        val currentTask = tasksRepository.getLatestTask() // Atau buat fungsi getTaskById suspend di repo
-
-        // Agar aman, kita pakai cara ini: Ambil dari list yang sudah ada di memori (sedikit hacky tapi cepat)
-        // ATAU yang paling benar: Panggil insertOrUpdate dengan status baru.
-
-        // Mari kita cari task dari list 'allTasks' (karena LiveData sudah pegang datanya)
-        val taskToUpdate = allTasks.value?.find { it.id == id }
-
-        if (taskToUpdate != null) {
-            val updatedTask = taskToUpdate.copy(isCompleted = completed)
-            // Panggil insertOrUpdate agar logic sync ke Backend berjalan otomatis
+        val currentTask = tasksRepository.getTaskByIdSuspend(id)
+        currentTask?.let { task ->
+            val updatedTask = task.copy(isCompleted = completed)
             insertOrUpdate(updatedTask)
-        } else {
-            // Fallback jika data null (jarang terjadi), update lokal saja
-            tasksRepository.updateTasksCompletedStatus(id, completed)
         }
-
-        // Kelola notifikasi (Hapus notifikasi jika tugas selesai)
         if (completed) {
             val scheduler = NotificationScheduler(getApplication())
             val entriesToCancel = calendarRepository.getEntriesForSource("TASK", id)
@@ -127,6 +112,5 @@ class TasksViewModel(
                 scheduler.cancelNotification(entry.notificationId)
             }
         }
-        // Jika tugas di-uncheck (belum selesai), insertOrUpdate di atas otomatis akan menjadwalkan ulang notifikasi.
     }
 }

@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -12,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.lecturo.lecturo.R
@@ -42,7 +44,7 @@ class AddTeachingActivity : AppCompatActivity() {
         val repository = TeachingRepository(
             database.teachingRuleDao(),
             database.calendarEntryDao(),
-            apiService
+            applicationContext
         )
         TeachingViewModelFactory(repository, application)
     }
@@ -73,6 +75,21 @@ class AddTeachingActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
             view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
+            insets
+        }
+
+        // [SOLUSI PRO: Mendorong btnSave ke atas Navigasi Sistem]
+        ViewCompat.setOnApplyWindowInsetsListener(binding.buttonSave) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Konversi margin dasar 16dp dari XML ke satuan Pixel
+            val baseMarginPx = (16 * resources.displayMetrics.density).toInt()
+
+            // Update HANYA margin bawahnya, margin lain biarkan sesuai XML
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + baseMarginPx
+            }
+
             insets
         }
 
@@ -123,6 +140,15 @@ class AddTeachingActivity : AppCompatActivity() {
         val studentCount = studentCountText.toIntOrNull()
         if (studentCount == null) { binding.editTextStudentCount.error = "Harus berupa angka"; return }
 
+        // 1. AMBIL USER ID
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        val currentUid = currentUser?.uid
+
+        if (currentUid == null) {
+            Toast.makeText(this, "Gagal: Anda belum login.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // --- PERBAIKAN PENTING DI SINI ---
         val teachingRule = TeachingRule(
             // 1. localId: Gunakan ID dari Intent jika edit, 0 jika baru
@@ -131,8 +157,9 @@ class AddTeachingActivity : AppCompatActivity() {
             // 2. firestoreId: Ambil dari currentRule agar ID Cloud tidak hilang saat update
             firestoreId = currentRule?.firestoreId,
 
-            // 3. userId: Ambil dari currentRule atau string kosong (Repository akan menimpa ini dengan User yang Login)
-            userId = currentRule?.userId ?: "",
+            // 2. MASUKKAN USER ID & SYNC FLAG
+            userId = currentUid,
+            isSynced = false, // Tandai belum sync
 
             courseName = courseName,
             classCode = classCode,

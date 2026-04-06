@@ -1,5 +1,6 @@
 package com.lecturo.lecturo.data.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
@@ -13,7 +14,12 @@ data class Tasks(
     @SerializedName("firestoreId")
     var firestoreId: String? = null,
 
-    // Tetap ada untuk Manual Injection
+    @ColumnInfo(name = "is_synced")
+    var isSynced: Boolean = false,
+
+    @ColumnInfo(name = "is_deleted")
+    var isDeleted: Boolean = false,
+
     @SerializedName("user_id")
     val userId: String? = null,
 

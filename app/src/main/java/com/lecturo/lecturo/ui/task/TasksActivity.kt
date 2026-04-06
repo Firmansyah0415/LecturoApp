@@ -6,7 +6,9 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView // Import yang benar
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.updateLayoutParams
+import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,10 +18,10 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.Tasks
-import com.lecturo.lecturo.data.remote.RetrofitClient
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
 import com.lecturo.lecturo.databinding.ActivityTasksBinding
+import com.lecturo.lecturo.ui.focus.FocusActivity
 import com.lecturo.lecturo.viewmodel.task.TasksViewModel
 import com.lecturo.lecturo.viewmodel.task.TasksViewModelFactory
 
@@ -32,8 +34,7 @@ class TasksActivity : AppCompatActivity() {
 
     fun getViewModelFactory(): TasksViewModelFactory {
         val database = AppDatabase.getDatabase(applicationContext)
-        val apiService = RetrofitClient.instance
-        val tasksRepository = TasksRepository(database.tasksDao(), apiService)
+        val tasksRepository = TasksRepository(database.tasksDao(), database.focusSessionDao(), applicationContext)
         val calendarRepository = CalendarRepository(database.calendarEntryDao())
         return TasksViewModelFactory(tasksRepository, calendarRepository, application)
     }
@@ -43,29 +44,32 @@ class TasksActivity : AppCompatActivity() {
         binding = ActivityTasksBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // bikin status bar transparan sekali untuk semua activity
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // atur warna status bar
         window.statusBarColor = getColor(R.color.colorPrimary)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
 
-        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
-        WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = true
-
-        // otomatis kasih padding top di root view sesuai status bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-            view.setPadding(
-                view.paddingLeft,
-                statusBarInsets.top,
-                view.paddingRight,
-                view.paddingBottom
-            )
+            view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
             insets
         }
 
-        // Mengganti toolbar lama dengan yang baru dari binding
+        // [SOLUSI PRO: Mendorong FAB ke atas Navigasi Sistem]
+        ViewCompat.setOnApplyWindowInsetsListener(binding.fabAddTasks) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Konversi margin dasar 20dp dari XML ke satuan Pixel
+            val baseMarginPx = (20 * resources.displayMetrics.density).toInt()
+
+            // Update HANYA margin bawahnya, ditambahkan dengan tinggi navigasi sistem
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + baseMarginPx
+                rightMargin = baseMarginPx // Sesuaikan juga margin kanan agar presisi
+            }
+
+            insets
+        }
+
         setSupportActionBar(binding.taskToolbar)
         setupToolbar()
         setupViewPager()
@@ -83,51 +87,31 @@ class TasksActivity : AppCompatActivity() {
         return true
     }
 
-    // --- PERBAIKAN UTAMA DI SINI ---
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.tasks_menu, menu)
-
-        // 1. Dapatkan item menu search
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as? SearchView
 
-        // 2. Tambahkan listener untuk mendeteksi input teks
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            // Dipanggil saat pengguna menekan tombol search di keyboard (tidak kita gunakan di sini)
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return true
-            }
-
-            // Dipanggil setiap kali teks di search bar berubah
+            override fun onQueryTextSubmit(query: String?): Boolean = true
             override fun onQueryTextChange(newText: String?): Boolean {
-                // 3. Kirim query ke ViewModel untuk memfilter daftar secara real-time
                 viewModel.setSearchQuery(newText ?: "")
                 return true
             }
         })
 
-        // (Opsional tapi direkomendasikan) Hapus filter saat search ditutup
         searchItem?.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
-                return true // Harus return true
-            }
-
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                viewModel.setSearchQuery("") // Hapus query saat search ditutup
-                return true // Harus return true
+                viewModel.setSearchQuery("")
+                return true
             }
         })
-
         return true
     }
 
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // ... (logika item menu Anda yang lain bisa ditambahkan di sini)
-        return super.onOptionsItemSelected(item)
-    }
-
     private fun setupViewPager() {
+        // Pastikan TasksPagerAdapter Anda mengirim 'handleTasksAction' ke Fragment
         val pagerAdapter = TasksPagerAdapter(this)
         binding.viewPager.adapter = pagerAdapter
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
@@ -135,11 +119,15 @@ class TasksActivity : AppCompatActivity() {
         }.attach()
     }
 
+    // --- [UBAH DISINI] Fungsi yang dipanggil dari Adapter/Fragment ---
     fun handleTasksAction(tasks: Tasks, action: String) {
         when (action) {
             "delete" -> showDeleteConfirmation(tasks)
             "complete" -> viewModel.updateTasksCompletedStatus(tasks.id, true)
             "uncomplete" -> viewModel.updateTasksCompletedStatus(tasks.id, false)
+
+            // Saat item diklik (sinyal 'edit' dari adapter), kita munculkan Dialog Pilihan dulu
+            "edit" -> showTaskOptions(tasks)
         }
     }
 
@@ -165,5 +153,65 @@ class TasksActivity : AppCompatActivity() {
             .setPositiveButton("Ya") { _, _ -> viewModel.deleteTasks(tasks.id) }
             .setNegativeButton("Batal", null)
             .show()
+    }
+
+    // --- [TAMBAHAN BARU] LOGIKA MENU PILIHAN ---
+    private fun showTaskOptions(task: Tasks) {
+        // 1. Inisialisasi BottomSheetDialog
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+
+        // 2. Inflate Layout XML yang sudah Anda buat
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_task_options, null)
+        dialog.setContentView(view)
+
+        // 3. Set Judul Tugas di Header Bottom Sheet
+        val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvSheetTitle)
+        tvTitle.text = task.title
+
+        // 4. LOGIKA KLIK MENU
+
+        // A. Menu Fokus (Pomodoro)
+        view.findViewById<android.view.View>(R.id.layoutFocus).setOnClickListener {
+            dialog.dismiss() // Tutup dialog
+
+            // --- [PERBAIKAN BUG 1: BLOKIR JIKA ADA TUGAS LAIN JALAN] ---
+            val prefs = com.lecturo.lecturo.utils.FocusPreferences(this)
+            val activeTaskId = prefs.getActiveTaskId()
+
+            // Jika ada tugas aktif, DAN id-nya BUKAN tugas yang sedang diklik ini
+            if (activeTaskId != -1L && activeTaskId != task.id) {
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("Sesi Lain Sedang Aktif")
+                    .setMessage("Anda memiliki sesi fokus yang sedang berjalan/jeda di tugas lain. Harap selesaikan atau hentikan sesi tersebut terlebih dahulu.")
+                    .setPositiveButton("Mengerti", null)
+                    .show()
+                return@setOnClickListener // Hentikan proses, jangan buka FocusActivity
+            }
+            // -----------------------------------------------------------
+
+            val intent = Intent(this, FocusActivity::class.java)
+            intent.putExtra("TASK_ID", task.id)
+            intent.putExtra("TASK_TITLE", task.title)
+            intent.putExtra("TASK_FIRESTORE_ID", task.firestoreId)
+            startActivity(intent)
+        }
+
+        // B. Menu Edit
+        view.findViewById<android.view.View>(R.id.layoutEdit).setOnClickListener {
+            dialog.dismiss()
+
+            val intent = Intent(this, AddTasksActivity::class.java)
+            intent.putExtra("tasks_id", task.id)
+            startActivity(intent)
+        }
+
+        // C. Menu Hapus
+        view.findViewById<android.view.View>(R.id.layoutDelete).setOnClickListener {
+            dialog.dismiss()
+            showDeleteConfirmation(task) // Panggil fungsi konfirmasi hapus yang sudah ada
+        }
+
+        // 5. Tampilkan Dialog
+        dialog.show()
     }
 }

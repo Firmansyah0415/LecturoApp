@@ -6,8 +6,9 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
     android:layout_marginTop="8dp"
-    app:cardCornerRadius="16dp"
-    app:strokeWidth="2dp"
+    app:cardCornerRadius="@dimen/card_corner_radius"
+    android:backgroundTint="@color/card_background"
+    app:strokeWidth="0dp"
     app:cardElevation="0dp">
 
     <!-- Gunakan ConstraintLayout untuk fleksibilitas posisi -->

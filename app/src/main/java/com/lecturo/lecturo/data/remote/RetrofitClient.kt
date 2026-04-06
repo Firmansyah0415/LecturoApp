@@ -13,7 +13,9 @@ object RetrofitClient {
     // 2. Jika pakai HP Fisik colok USB: Gunakan IP Laptop (misal "http://192.168.1.5:3000/")
     //    (Pastikan Laptop & HP di WiFi yang sama, dan Firewall laptop dimatikan sebentar)
 
-    private const val BASE_URL = "http://192.168.162.129:3000/"
+    private const val BASE_URL = "http://76.13.192.59:3000/"
+//    private const val BASE_URL = "http://192.168.100.129:3000/"
+//    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY // Ini biar bisa lihat log request/response di Logcat

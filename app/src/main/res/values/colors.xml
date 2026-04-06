@@ -27,6 +27,7 @@
     <!-- Success colors -->
     <color name="success_background">#E8F5E8</color>
     <color name="success_color">#4CAF50</color>
+    <color name="success_color_low">#88D789</color>
     <color name="success_text_color">#2E7D32</color>
 
     <!-- Warning colors -->
@@ -95,5 +96,15 @@
     <!-- Background Colors -->
     <color name="background">#FAFAFA</color>
     <color name="card_background">#FFFFFF</color>
+
+    <!-- Priority teks Colors -->
+    <color name="hight_priority">#D32F2F</color>
+    <color name="medium_priority">#E65100</color>
+    <color name="low_priority">#2E7D32</color>
+
+    <!-- Priority backgorundtint Colors -->
+    <color name="hight_priority_bg">#FFEBEE</color>
+    <color name="medium_priority_bg">#FFF3E0</color>
+    <color name="low_priority_bg">#E8F5E9</color>
 
 </resources>

@@ -273,12 +273,18 @@
 
     <!-- Fragmen Home -->
     <string name="weekly_calendar_title">Weekly Calendar</string>
+    <string name="weekly_calendar_title_id">Kalender Mingguan</string>
     <string name="main_menu_title">Main Menu</string>
     <string name="today_s_schedule_title">Today\'s Schedule</string>
+    <string name="today_s_schedule_title_id">Jadwal Hari ini</string>
     <string name="class_title_home">Class</string>
+    <string name="class_title_home_id">Kelas</string>
     <string name="task_title_home">Task</string>
+    <string name="task_title_home_id">Tugas</string>
     <string name="event_title_home">Event</string>
+    <string name="event_title_home_id">Agenda</string>
     <string name="consultation_title_home">Consultation</string>
+    <string name="consultation_title_home_id">Konsultasi</string>
 
     <string name="profile_image_description">profile image</string>
 

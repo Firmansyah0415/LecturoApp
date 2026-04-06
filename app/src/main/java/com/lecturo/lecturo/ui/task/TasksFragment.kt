@@ -43,14 +43,12 @@ class TasksFragment : Fragment(R.layout.fragment_tasks) {
 
     private fun setupRecyclerView() {
         tasksAdapter = TasksAdapter { tasks, action ->
-            if (action == "edit") {
-                val intent = Intent(requireContext(), AddTasksActivity::class.java)
-                intent.putExtra("tasks_id", tasks.id)
-                startActivity(intent)
-            } else {
-                (activity as? TasksActivity)?.handleTasksAction(tasks, action)
-            }
+            // PERBAIKAN:
+            // Jangan filter action di sini. Langsung lempar semuanya ke Activity.
+            // Biarkan Activity yang memutuskan apakah mau buka BottomSheet atau langsung hapus.
+            (activity as? TasksActivity)?.handleTasksAction(tasks, action)
         }
+
         binding.rvTaskFragment.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = tasksAdapter
@@ -62,6 +60,14 @@ class TasksFragment : Fragment(R.layout.fragment_tasks) {
         liveDataToObserve.observe(viewLifecycleOwner) { taskss ->
             tasksAdapter.submitList(taskss)
         }
+    }
+
+    // Taruh di dalam class Fragment kamu (misal: TasksFragment)
+    override fun onResume() {
+        super.onResume()
+        // Paksa adapter untuk menggambar ulang list agar mengecek FocusPreferences terbaru.
+        // (Pastikan nama 'recyclerViewTasks' sesuai dengan ID di layout fragment kamu)
+        binding.rvTaskFragment.adapter?.notifyDataSetChanged()
     }
 
     override fun onDestroyView() {

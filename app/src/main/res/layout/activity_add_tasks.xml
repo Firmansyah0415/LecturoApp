@@ -37,6 +37,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_title_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -51,6 +55,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_date_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -59,6 +67,7 @@
                     android:layout_height="wrap_content"
                     android:clickable="true"
                     android:drawableEnd="@drawable/ic_date"
+                    android:drawableTint="@color/primary_color"
                     android:focusable="false"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -68,6 +77,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_time_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -76,6 +89,7 @@
                     android:layout_height="wrap_content"
                     android:clickable="true"
                     android:drawableEnd="@drawable/ic_time"
+                    android:drawableTint="@color/primary_color"
                     android:focusable="false"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -85,6 +99,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_location_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -92,6 +110,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableEnd="@drawable/ic_location"
+                    android:drawableTint="@color/colorPrimary"
                     android:inputType="textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -100,6 +119,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_description_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -115,14 +138,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Prioritas Tugas"
                 app:startIconDrawable="@drawable/ic_timeline"
+                app:startIconTint="@color/primary_color"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
                 <AutoCompleteTextView
                     android:id="@+id/autoCompletePriority"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="none"
+                    android:textColor="@color/colorPrimary"
                     android:text="Sedang" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -131,8 +160,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Pengingat Notifikasi"
                 app:startIconDrawable="@drawable/ic_notification"
+                app:startIconTint="@color/primary_color"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
@@ -145,9 +179,12 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSave"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/button_height_large"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:paddingVertical="12dp"
                 android:layout_gravity="bottom"
+                app:cornerRadius="@dimen/button_corner_radius_large"
                 android:text="@string/button_save"
                 android:textSize="16sp"
                 app:icon="@drawable/ic_save"

@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/neutral_background"
     tools:context=".ui.event.EventActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -32,16 +33,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            app:startIconDrawable="@drawable/ic_search"
+            app:hintEnabled="false"
+            app:boxBackgroundMode="none"
             app:endIconMode="clear_text"
-            android:hint="Search event..."
-            style="?attr/textInputFilledStyle">
+            app:endIconTint="?attr/colorControlNormal">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextSearch"
+                android:id="@+id/etSearch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
+                android:background="@drawable/bg_search_rounded"
+                android:drawableStart="@drawable/ic_search"
+                android:drawableTint="?attr/colorControlNormal"
+                android:drawablePadding="12dp"
+                android:paddingHorizontal="16dp"
+                android:hint="Cari jadwal..."
+                android:textSize="14sp"
+                android:inputType="text"
+                android:maxLines="1"
+                android:imeOptions="actionSearch" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -126,10 +136,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginHorizontal="26dp"
-        android:layout_marginVertical="120dp"
+        android:layout_marginEnd="26dp"
+        android:layout_marginBottom="90dp"
         android:src="@drawable/ic_ai"
-        app:backgroundTint="@color/colorAccent"
+        app:backgroundTint="@color/icon_placeholder"
+        app:tint="@android:color/white"
         app:fabCustomSize="45dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -137,9 +148,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginVertical="50dp"
-        android:layout_marginHorizontal="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
         android:src="@drawable/ic_add"
+        app:tint="@android:color/white"
         app:backgroundTint="@color/colorPrimary"
         android:contentDescription="Tambah event baru" />
 

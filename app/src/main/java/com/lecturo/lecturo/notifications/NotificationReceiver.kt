@@ -8,83 +8,66 @@ import com.lecturo.lecturo.data.db.AppDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 
 class NotificationReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val entryId = intent.getLongExtra("entry_id", -1)
+        // 1. PENTING: Panggil goAsync() agar proses tidak dibunuh saat akses Database
+        val pendingResult = goAsync()
 
-        // --- TAMBAHKAN LOG DI SINI ---
-        Log.d("NotificationReceiver", "Alarm DITERIMA! ID Entri: $entryId")
+        val id = intent.getLongExtra("ID", -1)
+        val type = intent.getStringExtra("TYPE") ?: "UNKNOWN" // "CALENDAR_ENTRY" atau "CONSULTATION"
 
-        if (entryId == -1L) {
-            Log.w("NotificationReceiver", "ID Entri tidak valid, proses dihentikan.")
+        Log.d("NotificationReceiver", "Alarm DITERIMA! ID: $id, Tipe: $type")
+
+        if (id == -1L) {
+            pendingResult.finish()
             return
         }
 
         val database = AppDatabase.getDatabase(context)
         val notificationHelper = NotificationHelper(context)
-        val notificationScheduler = NotificationScheduler(context)
 
+        // Scope IO untuk database
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val entry = database.calendarEntryDao().getEntryById(entryId)
-                if (entry != null) {
-                    // Tampilkan notifikasi
-                    val message = buildNotificationMessage(entry.category, entry.time, entry.date)
-                    notificationHelper.showNotification(
-                        entry.notificationId,
-                        entry.title,
-                        message,
-                        entry.category
-                    )
-
-                    // Jadwalkan ulang jika berulang
-                    if (entry.isRepeating && !entry.repeatInterval.isNullOrEmpty()) {
-                        val nextEntry = calculateNextRepeatingEntry(entry)
-                        if (nextEntry != null) {
-                            // Update entry dengan tanggal baru
-                            database.calendarEntryDao().updateEntry(nextEntry)
-                            // Jadwalkan alarm berikutnya
-                            notificationScheduler.scheduleNotification(nextEntry)
+                if (type == "CONSULTATION") {
+                    // --- HANDLE JADWAL KONSULTASI ---
+                    val consultation = database.consultationDao().getScheduleById(id)
+                    if (consultation != null) {
+                        // Cek apakah status masih SCHEDULED (jangan notif kalau cancel)
+                        if (consultation.status == "SCHEDULED") {
+                            notificationHelper.showNotification(
+                                notificationId = id.toInt(), // Gunakan ID database sebagai Notif ID
+                                title = "Pengingat Konsultasi",
+                                message = "${consultation.title} di ${consultation.location} pukul ${consultation.startTime}",
+                                category = "Konsultasi"
+                            )
                         }
+                    }
+                } else {
+                    // --- HANDLE JADWAL LAMA (CalendarEntry) ---
+                    val entry = database.calendarEntryDao().getEntryById(id)
+                    if (entry != null) {
+                        notificationHelper.showNotification(
+                            notificationId = entry.notificationId,
+                            title = entry.title,
+                            message = buildOldMessage(entry.category, entry.time),
+                            category = entry.category
+                        )
+                        // Logika repeat entry lama biarkan saja di sini jika masih dipakai
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("NotificationReceiver", "Error showing notification", e)
+            } finally {
+                // 2. WAJIB: Akhiri pendingResult setelah selesai
+                pendingResult.finish()
             }
         }
     }
 
-    private fun buildNotificationMessage(category: String, time: String, date: String): String {
-        return when (category) {
-            "Mengajar" -> "Kelas dimulai pada $time"
-            "Rapat" -> "Rapat dijadwalkan pada $time"
-            "Tugas" -> "Deadline tugas pada $time"
-            "Konsultasi" -> "Sesi konsultasi pada $time"
-            else -> "Jadwal pada $time"
-        }
-    }
-
-    private fun calculateNextRepeatingEntry(entry: com.lecturo.lecturo.data.model.CalendarEntry): com.lecturo.lecturo.data.model.CalendarEntry? {
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val currentDate = dateFormat.parse(entry.date) ?: return null
-
-        val calendar = Calendar.getInstance()
-        calendar.time = currentDate
-
-        when (entry.repeatInterval) {
-            "DAILY" -> calendar.add(Calendar.DAY_OF_MONTH, 1)
-            "WEEKLY" -> calendar.add(Calendar.WEEK_OF_YEAR, 1)
-            else -> return null
-        }
-
-        return entry.copy(
-            id = 0, // Buat entry baru
-            date = dateFormat.format(calendar.time),
-            notificationId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
-        )
+    private fun buildOldMessage(category: String, time: String): String {
+        return "$category dijadwalkan pada $time"
     }
 }

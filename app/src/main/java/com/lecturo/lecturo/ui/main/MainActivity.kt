@@ -58,16 +58,18 @@ class MainActivity : AppCompatActivity() {
         WindowInsetsControllerCompat(window, window.decorView)
             .isAppearanceLightStatusBars = true
 
-        // otomatis kasih padding top di root view sesuai status bar
+        // otomatis kasih padding di root view sesuai status bar & navigasi sistem
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
-            val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(
                 view.paddingLeft,
-                statusBarInsets.top,
+                systemBars.top,
                 view.paddingRight,
-                view.paddingBottom
+                systemBars.bottom // Terapkan bottom padding untuk mencegah tabrakan dengan 3-tombol navigasi
             )
-            insets
+            // KUNCI RAHASIA: Konsumsi insets di sini agar tidak diteruskan ke BottomAppBar
+            // Ini akan mencegah BottomAppBar melar ke atas
+            WindowInsetsCompat.CONSUMED
         }
 
         askNotificationPermission()

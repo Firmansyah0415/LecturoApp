@@ -126,10 +126,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Full Name"
-                app:boxCornerRadiusBottomStart="@dimen/margin_small"
-                app:boxCornerRadiusBottomEnd="@dimen/margin_small"
-                app:boxCornerRadiusTopStart="@dimen/margin_small"
-                app:boxCornerRadiusTopEnd="@dimen/margin_small"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -146,10 +146,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Phone"
-                app:boxCornerRadiusBottomStart="@dimen/margin_small"
-                app:boxCornerRadiusBottomEnd="@dimen/margin_small"
-                app:boxCornerRadiusTopStart="@dimen/margin_small"
-                app:boxCornerRadiusTopEnd="@dimen/margin_small"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -166,10 +166,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Email"
-                app:boxCornerRadiusBottomStart="@dimen/margin_small"
-                app:boxCornerRadiusBottomEnd="@dimen/margin_small"
-                app:boxCornerRadiusTopStart="@dimen/margin_small"
-                app:boxCornerRadiusTopEnd="@dimen/margin_small"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -186,10 +186,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="University"
-                app:boxCornerRadiusBottomStart="@dimen/margin_small"
-                app:boxCornerRadiusBottomEnd="@dimen/margin_small"
-                app:boxCornerRadiusTopStart="@dimen/margin_small"
-                app:boxCornerRadiusTopEnd="@dimen/margin_small"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -206,10 +206,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Faculty"
-                app:boxCornerRadiusBottomStart="@dimen/margin_small"
-                app:boxCornerRadiusBottomEnd="@dimen/margin_small"
-                app:boxCornerRadiusTopStart="@dimen/margin_small"
-                app:boxCornerRadiusTopEnd="@dimen/margin_small"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -224,12 +224,12 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="20dp"
                 android:hint="Major"
-                app:boxCornerRadiusBottomStart="@dimen/margin_small"
-                app:boxCornerRadiusBottomEnd="@dimen/margin_small"
-                app:boxCornerRadiusTopStart="@dimen/margin_small"
-                app:boxCornerRadiusTopEnd="@dimen/margin_small"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -254,7 +254,7 @@
                     android:layout_weight="1"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    app:cornerRadius="8dp"
+                    app:cornerRadius="16dp"
                     android:layout_marginEnd="16dp"
                     android:text="Cancle"
                     android:textColor="@color/text_secondary"
@@ -267,7 +267,7 @@
                     android:layout_weight="1"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    app:cornerRadius="8dp"
+                    app:cornerRadius="16dp"
                     android:text="Save"
                     android:backgroundTint="@color/colorPrimary"
                     android:textColor="@color/white" />

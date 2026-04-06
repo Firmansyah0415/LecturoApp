@@ -24,6 +24,9 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -37,6 +40,28 @@
         android:theme="@style/Theme.LecturoApp"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".ui.focus.FocusHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.focus.FocusSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.focus.FocusActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.consultation.pattern.ConsultationPatternActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.consultation.pattern.ManagePatternActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.consultation.ConsultationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.consultation.DetailConsultationActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.profile.ProfileActivity"
             android:exported="false" />
@@ -73,12 +98,15 @@
             android:name=".notifications.NotificationReceiver"
             android:enabled="true"
             android:exported="false" />
+
         <receiver
             android:name=".notifications.RebootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
 
@@ -91,6 +119,12 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <service
+            android:name=".service.TimerService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>

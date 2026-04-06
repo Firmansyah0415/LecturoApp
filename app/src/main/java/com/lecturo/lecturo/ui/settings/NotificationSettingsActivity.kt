@@ -2,6 +2,7 @@ package com.lecturo.lecturo.ui.settings
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updateLayoutParams
 import androidx.preference.PreferenceManager
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.ActivityNotificationSettingsBinding
@@ -57,6 +59,21 @@ class NotificationSettingsActivity : AppCompatActivity() {
                 view.paddingRight,
                 view.paddingBottom
             )
+            insets
+        }
+
+        // [SOLUSI PRO: Mendorong btnSave ke atas Navigasi Sistem]
+        ViewCompat.setOnApplyWindowInsetsListener(binding.buttonSave) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Konversi margin dasar 16dp dari XML ke satuan Pixel
+            val baseMarginPx = (16 * resources.displayMetrics.density).toInt()
+
+            // Update HANYA margin bawahnya, margin lain biarkan sesuai XML
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + baseMarginPx
+            }
+
             insets
         }
 

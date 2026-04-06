@@ -1,97 +1,200 @@
 package com.lecturo.lecturo.data.repository
 
-import android.util.Log
-import androidx.lifecycle.LiveData
+import com.google.firebase.firestore.Source
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+import android.content.Context
+import androidx.lifecycle.LiveData
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.lecturo.lecturo.data.db.AppDatabase
+import com.lecturo.lecturo.data.db.AppDatabase.Companion.getDatabase
 import com.lecturo.lecturo.data.db.dao.EventDao
+import com.lecturo.lecturo.data.model.CalendarEntry
 import com.lecturo.lecturo.data.model.Event
-import com.lecturo.lecturo.data.model.EventRequest // Pastikan import model request
-import com.lecturo.lecturo.data.remote.ApiService
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
+import com.lecturo.lecturo.notifications.NotificationScheduler
+import com.lecturo.lecturo.workers.SyncEventWorker
 
 class EventRepository(
     private val eventDao: EventDao,
-    private val apiService: ApiService, // TAMBAHAN: Inject ApiService
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val context: Context
 ) {
 
     fun getAllEvents(): LiveData<List<Event>> {
         return eventDao.getAllEvents()
     }
 
-    // --- FUNGSI SIMPAN (UPDATE) ---
-    suspend fun insertOrUpdate(event: Event): Long {
-        // 1. Simpan Lokal (Room) - Agar Offline tetap jalan
-        val localId = eventDao.insertOrUpdate(event)
+    suspend fun syncEventsFromCloud() {
+        try {
+            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+            val db = FirebaseFirestore.getInstance()
 
-        // 2. Simpan Cloud (Node.js -> Firestore)
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            withContext(NonCancellable) {
+            val dbSqlite = AppDatabase.getDatabase(context)
+            val calendarDao = dbSqlite.calendarEntryDao()
+            val scheduler = NotificationScheduler(context)
+
+            val snapshot = db.collection("users").document(uid).collection("events")
+                .get(Source.SERVER).await()
+
+            for (document in snapshot.documents) {
                 try {
-                    // Mapping Event (Lokal) ke EventRequest (Network)
-                    val request = EventRequest(
-                        uid = userId,
-                        eventId = event.firestoreId, // Null jika baru
-                        title = event.title,
-                        category = event.category,
-                        priority = event.priority ?: "Sedang",
-                        inputSource = event.inputSource ?: "MANUAL",
-                        date = event.date,
-                        time = event.time,
-                        location = event.location ?: "-",
-                        description = event.description ?: "",
-                        isCompleted = event.isCompleted,
-                        notificationMinutes = event.notificationMinutesBefore
-                    )
+                    val firestoreId = document.id
+                    val title = document.getString("title") ?: continue
+                    val category = document.getString("category") ?: "Lainnya"
+                    val date = document.getString("date") ?: continue
+                    val time = document.getString("time") ?: continue
+                    val location = document.getString("location") ?: ""
+                    val description = document.getString("description") ?: ""
+                    val priority = document.getString("priority") ?: "Sedang"
+                    val isCompleted = document.getBoolean("is_completed") ?: false
+                    val notificationMinutes = document.getLong("notification_minutes")?.toInt() ?: 15
 
-                    val response = apiService.syncEvent(request)
+                    val existing = eventDao.getEventByFirestoreId(firestoreId)
 
-                    if (response.isSuccessful && response.body()?.status == "success") {
-                        val newFirestoreId = response.body()?.data?.get("firestore_id") as? String
+                    if (existing != null) {
+                        if (existing.isSynced) {
+                            val updated = existing.copy(
+                                userId = uid,
+                                title = title,
+                                category = category,
+                                date = date,
+                                time = time,
+                                location = location,
+                                description = description,
+                                priority = priority,
+                                isCompleted = isCompleted,
+                                notificationMinutesBefore = notificationMinutes,
+                                isSynced = true,
+                                isDeleted = false
+                            )
+                            updated.firestoreId = firestoreId
+                            eventDao.updateEventRaw(updated)
 
-                        // Jika dapat ID baru dari cloud, update data lokal
-                        if (newFirestoreId != null && event.firestoreId != newFirestoreId) {
-                            val updatedEvent = event.copy(id = localId, firestoreId = newFirestoreId)
-                            eventDao.insertOrUpdate(updatedEvent)
-                            Log.d("EventRepo", "Sync Sukses. ID Cloud: $newFirestoreId")
+                            val oldEntries = calendarDao.getEntriesForSource("EVENT", existing.id)
+                            oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
+                            calendarDao.deleteEntriesForSource("EVENT", existing.id)
+
+                            if (!updated.isCompleted) {
+                                val entry = CalendarEntry(
+                                    title = updated.title,
+                                    date = updated.date,
+                                    time = updated.time,
+                                    category = updated.category,
+                                    priority = updated.priority ?: "Sedang",
+                                    sourceFeatureType = "EVENT",
+                                    sourceFeatureId = existing.id,
+                                    notificationMinutesBefore = updated.notificationMinutesBefore
+                                )
+                                val entryId = calendarDao.insertEntry(entry)
+                                scheduler.scheduleNotification(entry.copy(id = entryId))
+                            }
+                        }
+                    } else {
+                        val newEvent = Event(
+                            userId = uid,
+                            title = title,
+                            category = category,
+                            date = date,
+                            time = time,
+                            location = location,
+                            description = description,
+                            priority = priority,
+                            isCompleted = isCompleted,
+                            notificationMinutesBefore = notificationMinutes,
+                            firestoreId = firestoreId,
+                            isSynced = true,
+                            isDeleted = false,
+                            inputSource = "WEB_UPLOAD"
+                        )
+                        val newId = eventDao.insertEventRaw(newEvent)
+
+                        if (!newEvent.isCompleted) {
+                            val entry = CalendarEntry(
+                                title = newEvent.title,
+                                date = newEvent.date,
+                                time = newEvent.time,
+                                category = newEvent.category,
+                                priority = newEvent.priority ?: "Sedang",
+                                sourceFeatureType = "EVENT",
+                                sourceFeatureId = newId,
+                                notificationMinutesBefore = newEvent.notificationMinutesBefore
+                            )
+                            val entryId = calendarDao.insertEntry(entry)
+                            scheduler.scheduleNotification(entry.copy(id = entryId))
                         }
                     }
-                } catch (e: Exception) {
-                    Log.e("EventRepo", "Gagal Sync (Mungkin Offline): ${e.message}")
-                }
+                } catch (e: Exception) { e.printStackTrace() }
             }
+        } catch (e: Exception) { }
+    }
+
+    suspend fun insertOrUpdate(event: Event): Long {
+        event.isSynced = false
+        event.isDeleted = false
+
+        val localId = eventDao.insertOrUpdate(event)
+
+        // [BASMI HANTU UPDATE & RE-SCHEDULE ALARM]
+        val dbSqlite = getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
+        val scheduler = NotificationScheduler(context)
+
+        // Hapus entri lama
+        val oldEntries = calendarDao.getEntriesForSource("EVENT", localId)
+        oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
+        calendarDao.deleteEntriesForSource("EVENT", localId)
+
+        // Buat entri baru jika belum selesai
+        if (!event.isCompleted) {
+            val entry = CalendarEntry(
+                title = event.title, date = event.date, time = event.time,
+                category = event.category, priority = event.priority ?: "Sedang",
+                sourceFeatureType = "EVENT", sourceFeatureId = localId,
+                notificationMinutesBefore = event.notificationMinutesBefore
+            )
+            val entryId = calendarDao.insertEntry(entry)
+            scheduler.scheduleNotification(entry.copy(id = entryId))
         }
 
+        scheduleSync()
         return localId
     }
 
-    // --- FUNGSI HAPUS ---
+    // --- LOGIC BARU: SOFT DELETE ---
     suspend fun deleteById(eventId: Long) {
-        // Ambil data dulu untuk cek firestoreId
-        val event = eventDao.getEventById(eventId)
+        // 1. Soft Delete Lokal
+        eventDao.softDelete(eventId)
 
-        // 1. Hapus Lokal
-        eventDao.deleteById(eventId)
-
-        // 2. Hapus Cloud
-        if (event?.firestoreId != null && auth.currentUser != null) {
-            withContext(NonCancellable) {
-                try {
-                    apiService.deleteEvent(auth.currentUser!!.uid, event.firestoreId!!)
-                    Log.d("EventRepo", "Hapus Cloud Sukses")
-                } catch (e: Exception) {
-                    Log.e("EventRepo", "Gagal Hapus Cloud: ${e.message}")
-                }
-            }
-        }
+        // 2. Trigger Worker
+        scheduleSync()
     }
 
-    // --- FUNGSI LAINNYA (TIDAK BERUBAH) ---
+    // --- LOGIC BARU: UNIQUE WORKER ---
+    private fun scheduleSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncRequest = OneTimeWorkRequestBuilder<SyncEventWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "SyncEventWork", // Nama Unik
+            ExistingWorkPolicy.KEEP,
+            syncRequest
+        )
+    }
+
+    // --- HELPER LAINNYA ---
     suspend fun updateCompletedStatus(eventId: Long, isCompleted: Boolean) {
+        // Update status dan tandai kotor (isSynced=0) via DAO
         eventDao.updateCompletedStatus(eventId, isCompleted)
-        // Opsional: Jika ingin sync status completed ke backend, bisa tambahkan logika di sini nanti
+        scheduleSync()
     }
 
     suspend fun getEventById(eventId: Long): Event? {

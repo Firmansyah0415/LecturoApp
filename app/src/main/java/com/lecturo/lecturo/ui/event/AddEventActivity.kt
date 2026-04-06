@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Build
 import android.os.Bundle
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -12,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.lecturo.lecturo.R
@@ -41,9 +43,7 @@ class AddEventActivity : AppCompatActivity() {
     // 2. Inisialisasi ViewModel
     private val viewModel: EventViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
-        val apiService = RetrofitClient.instance
-
-        val eventRepository = EventRepository(database.eventDao(), apiService)
+        val eventRepository = EventRepository(database.eventDao(), applicationContext)
         val calendarRepository = CalendarRepository(database.calendarEntryDao())
 
         EventViewModelFactory(eventRepository, calendarRepository, application)
@@ -74,6 +74,21 @@ class AddEventActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
             view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
+            insets
+        }
+
+        // [SOLUSI PRO: Mendorong btnSave ke atas Navigasi Sistem]
+        ViewCompat.setOnApplyWindowInsetsListener(binding.buttonSave) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Konversi margin dasar 16dp dari XML ke satuan Pixel
+            val baseMarginPx = (16 * resources.displayMetrics.density).toInt()
+
+            // Update HANYA margin bawahnya, margin lain biarkan sesuai XML
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + baseMarginPx
+            }
+
             insets
         }
 
@@ -153,13 +168,22 @@ class AddEventActivity : AppCompatActivity() {
             return
         }
 
+        // [TAMBAHAN WAJIB] Ambil User ID
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        val currentUid = currentUser?.uid
+
+        if (currentUid == null) {
+            Toast.makeText(this, "Gagal: Anda belum login.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // Gunakan ID dari currentEvent
         val event = Event(
             id = if (isEditMode) eventId else 0,
-
-            // Ambil ID Cloud dari data lama (jika edit), agar update berhasil sync ke backend
             firestoreId = currentEvent?.firestoreId,
-
+            userId = currentUid,
+            isSynced = false,
+            isDeleted = false,
             title = title,
             category = category,
             priority = priority,

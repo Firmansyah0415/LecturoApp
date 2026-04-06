@@ -54,6 +54,10 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Nama Lengkap"
                 app:startIconDrawable="@drawable/ic_person"
                 android:layout_marginBottom="@dimen/margin_medium">
@@ -70,6 +74,10 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Email Institusi (Opsional)"
                 app:startIconDrawable="@drawable/ic_email"
                 android:layout_marginBottom="@dimen/margin_medium">
@@ -87,6 +95,10 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Nama Universitas / Kampus"
                 app:startIconDrawable="@drawable/ic_school"
                 android:layout_marginBottom="@dimen/margin_medium">
@@ -104,6 +116,10 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Fakultas"
                 android:layout_marginBottom="@dimen/margin_medium">
 
@@ -120,8 +136,12 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Program Studi / Jurusan"
-                android:layout_marginBottom="@dimen/margin_xlarge">
+                android:layout_marginBottom="@dimen/margin_large">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etMajor"

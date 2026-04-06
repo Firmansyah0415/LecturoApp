@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
@@ -40,7 +42,7 @@ class TeachingActivity : AppCompatActivity() {
         val repository = TeachingRepository(
             database.teachingRuleDao(),
             database.calendarEntryDao(),
-            apiService // <--- Masukkan ke sini
+            applicationContext
         )
         TeachingViewModelFactory(repository, application)
     }
@@ -77,6 +79,22 @@ class TeachingActivity : AppCompatActivity() {
                 view.paddingRight,
                 view.paddingBottom
             )
+            insets
+        }
+
+        // [SOLUSI PRO: Mendorong FAB ke atas Navigasi Sistem]
+        ViewCompat.setOnApplyWindowInsetsListener(binding.fabAddTeaching) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Konversi margin dasar 20dp dari XML ke satuan Pixel
+            val baseMarginPx = (20 * resources.displayMetrics.density).toInt()
+
+            // Update HANYA margin bawahnya, ditambahkan dengan tinggi navigasi sistem
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + baseMarginPx
+                rightMargin = baseMarginPx // Sesuaikan juga margin kanan agar presisi
+            }
+
             insets
         }
 

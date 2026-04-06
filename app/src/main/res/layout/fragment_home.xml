@@ -4,19 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/neutral_background"
     tools:context=".ui.main.HomeFragment">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:layout_height="match_parent">
 
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/nestedScrollView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingBottom="16dp">
+            android:paddingBottom="110dp">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -56,7 +57,7 @@
                             android:id="@+id/greetingTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Good Morning,"
+                            android:text="Selamat Pagi,"
                             android:textAppearance="?attr/textAppearanceBodyMedium"
                             android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -86,7 +87,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="@string/weekly_calendar_title"
+                    android:text="@string/weekly_calendar_title_id"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface"
                     app:layout_constraintStart_toStartOf="parent"
@@ -134,11 +135,13 @@
                         android:layout_columnWeight="1"
                         android:layout_margin="6dp"
                         app:strokeWidth="2dp"
+                        app:strokeColor="@color/primary_color"
                         app:cardCornerRadius="16dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
+                            android:background="@color/card_background"
                             android:padding="12dp">
 
                             <ImageView
@@ -164,7 +167,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="5dp"
-                                android:text="@string/class_title_home"
+                                android:text="@string/class_title_home_id"
                                 android:textAppearance="?attr/textAppearanceLabelLarge"
                                 android:textColor="?attr/colorOnSurface"
                                 app:layout_constraintBottom_toBottomOf="parent"
@@ -182,11 +185,13 @@
                         android:layout_columnWeight="1"
                         android:layout_margin="6dp"
                         app:strokeWidth="2dp"
+                        app:strokeColor="@color/task_color"
                         app:cardCornerRadius="16dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
+                            android:background="@color/card_background"
                             android:padding="12dp">
 
                             <ImageView
@@ -212,7 +217,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="5dp"
-                                android:text="@string/task_title_home"
+                                android:text="@string/task_title_home_id"
                                 android:textAppearance="?attr/textAppearanceLabelLarge"
                                 android:textColor="?attr/colorOnSurface"
                                 app:layout_constraintBottom_toBottomOf="@+id/tasksCountTextView"
@@ -229,11 +234,13 @@
                         android:layout_columnWeight="1"
                         android:layout_margin="6dp"
                         app:strokeWidth="2dp"
+                        app:strokeColor="@color/event_color"
                         app:cardCornerRadius="16dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
+                            android:background="@color/card_background"
                             android:padding="12dp">
 
                             <ImageView
@@ -259,7 +266,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="5dp"
-                                android:text="@string/event_title_home"
+                                android:text="@string/event_title_home_id"
                                 android:textAppearance="?attr/textAppearanceLabelLarge"
                                 android:textColor="?attr/colorOnSurface"
                                 app:layout_constraintBottom_toBottomOf="@+id/eventCountTextView"
@@ -276,11 +283,13 @@
                         android:layout_columnWeight="1"
                         android:layout_margin="6dp"
                         app:strokeWidth="2dp"
+                        app:strokeColor="@color/consultation_color"
                         app:cardCornerRadius="16dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
+                            android:background="@color/card_background"
                             android:padding="12dp">
 
                             <ImageView
@@ -306,7 +315,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="5dp"
-                                android:text="@string/consultation_title_home"
+                                android:text="@string/consultation_title_home_id"
                                 android:textAppearance="?attr/textAppearanceLabelLarge"
                                 android:textColor="?attr/colorOnSurface"
                                 app:layout_constraintBottom_toBottomOf="@+id/consultationCountTextView"
@@ -322,7 +331,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="@string/today_s_schedule_title"
+                    android:text="@string/today_s_schedule_title_id"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface"
                     app:layout_constraintStart_toStartOf="parent"
@@ -337,6 +346,7 @@
                     app:strokeWidth="0dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/agendaLabel">
 
                     <LinearLayout
@@ -348,7 +358,8 @@
                             android:id="@+id/agendaRecyclerView"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:paddingBottom="65dp"
+                            android:background="@color/neutral_background"
+                            android:paddingBottom="@dimen/padding_small"
                             android:nestedScrollingEnabled="false"
                             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                             tools:listitem="@layout/item_agenda" />

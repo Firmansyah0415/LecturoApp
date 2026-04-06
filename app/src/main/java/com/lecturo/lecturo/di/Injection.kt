@@ -6,6 +6,7 @@ import com.lecturo.lecturo.data.remote.RetrofitClient // <-- Pastikan import ini
 import com.lecturo.lecturo.data.pref.UserPreference
 import com.lecturo.lecturo.data.pref.dataStore
 import com.lecturo.lecturo.data.repository.*
+import okhttp3.internal.platform.PlatformRegistry.applicationContext
 
 object Injection {
     fun provideViewModelFactory(context: Context): ViewModelFactory {
@@ -17,24 +18,29 @@ object Injection {
 
         val userRepository = UserRepository.getInstance(userPreference)
 
-        // Masukkan apiService ke Constructor TeachingRepository
         val teachingRepository = TeachingRepository(
             database.teachingRuleDao(),
             database.calendarEntryDao(),
-            apiService // <--- Parameter baru yang diminta
+            context.applicationContext
         )
 
         val tasksRepository = TasksRepository(
             database.tasksDao(),
-            apiService
+            database.focusSessionDao(),
+            context.applicationContext
 
         )
+
         val eventRepository = EventRepository(
             database.eventDao(),
-            apiService
+            context.applicationContext
         )
 
         val calendarRepository = CalendarRepository(database.calendarEntryDao())
+        val consultationRepository = ConsultationRepository(
+            database.consultationDao(),
+            context.applicationContext
+            )
 
         return ViewModelFactory(
             userRepository,
@@ -42,6 +48,7 @@ object Injection {
             eventRepository,
             teachingRepository,
             calendarRepository,
+            consultationRepository,
             context.applicationContext as android.app.Application
         )
     }

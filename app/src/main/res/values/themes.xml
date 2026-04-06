@@ -2,9 +2,31 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.LecturoApp" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-         <item name="colorPrimary">@color/colorPrimary</item>
-         <item name="colorSecondary">@color/colorPrimaryDark</item>
+<!--         <item name="colorPrimary">@color/colorPrimary</item>-->
+<!--         <item name="colorSecondary">@color/colorPrimaryDark</item>-->
 
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/info_background</item>
+        <item name="colorOnPrimaryContainer">@color/colorPrimaryDark</item>
+
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <item name="colorSecondaryContainer">@color/neutral_background</item>
+        <item name="colorOnSecondaryContainer">@color/text_primary</item>
+
+        <item name="colorTertiary">@color/colorAccent</item>
+        <item name="colorOnTertiary">@color/white</item>
+
+        <item name="android:colorBackground">@color/background_light</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+
+        <item name="colorSurface">@color/card_background</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <!-- TAMBAHKAN STYLE BARU INI -->
@@ -28,6 +50,12 @@
         <item name="android:textAppearance">@style/TextAppearance.Material3.BodySmall</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="MyCustomChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/white</item>
+        <item name="chipStrokeColor">@color/border_color</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
     </style>
 
 </resources>

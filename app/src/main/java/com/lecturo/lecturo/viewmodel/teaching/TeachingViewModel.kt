@@ -105,6 +105,7 @@ class TeachingViewModel(private val repository: TeachingRepository, application:
             date = dateFormat.format(date),
             time = rule.startTime,
             category = "Mengajar",
+            priority = rule.priority ?: "Tinggi", // <--- TAMBAHAN PENTING
             sourceFeatureType = "TEACHING_RULE",
             sourceFeatureId = rule.localId,
             notificationMinutesBefore = rule.notificationMinutes

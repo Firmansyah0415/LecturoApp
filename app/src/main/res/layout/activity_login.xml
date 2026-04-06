@@ -55,6 +55,10 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Nomor Handphone (Contoh: 8123...)"
                 app:prefixText="+62 ">
 
@@ -74,7 +78,7 @@
                 android:layout_marginTop="24dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                app:cornerRadius="16dp"
+                app:cornerRadius="24dp"
                 android:text="Kirim Kode OTP"
                 android:textStyle="bold" />
 
@@ -102,7 +106,7 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Masukkan 6 Digit Kode"
+                android:hint="Masukkan 4 Digit Kode"
                 app:endIconMode="clear_text">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -110,10 +114,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:maxLength="6"
+                    android:maxLength="4"
                     android:letterSpacing="0.3"
                     android:gravity="center"
                     android:textSize="24sp"
+                    android:textStyle="bold"
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 

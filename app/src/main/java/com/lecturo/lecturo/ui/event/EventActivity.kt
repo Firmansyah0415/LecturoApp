@@ -11,6 +11,8 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.core.view.updateLayoutParams
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -127,6 +129,35 @@ class EventActivity : AppCompatActivity() {
         binding.fabAi.setOnClickListener {
             showSourceSelectionDialog()
         }
+
+        // --- [SOLUSI PRO: Mendorong KEDUA FAB ke atas Navigasi Sistem] ---
+
+        // 1. Insets untuk FAB Add (Tombol Bawah)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.fabAddEvent) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val baseMarginBottomPx = (20 * resources.displayMetrics.density).toInt()
+            val baseMarginEndPx = (20 * resources.displayMetrics.density).toInt()
+
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + baseMarginBottomPx
+                rightMargin = baseMarginEndPx
+            }
+            insets
+        }
+
+        // 2. Insets untuk FAB AI (Tombol Atas)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.fabAi) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            // Margin bawah 90dp agar selalu memiliki jarak aman di atas FAB Add
+            val baseMarginBottomPx = (90 * resources.displayMetrics.density).toInt()
+            val baseMarginEndPx = (26 * resources.displayMetrics.density).toInt()
+
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + baseMarginBottomPx
+                rightMargin = baseMarginEndPx
+            }
+            insets
+        }
     }
 
     private fun showSourceSelectionDialog() {
@@ -224,13 +255,15 @@ class EventActivity : AppCompatActivity() {
         }
     }
 
+    // EventActivity.kt dan ConsultationActivity.kt
+
     private fun setupSearchView() {
-        binding.editTextSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
+        binding.etSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
                 viewModel.setSearchQuery(s?.toString() ?: "")
             }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
     }
 
@@ -303,7 +336,7 @@ class EventActivity : AppCompatActivity() {
             }
             R.id.action_clear_filters -> {
                 viewModel.clearFilters()
-                binding.editTextSearch.text?.clear()
+                binding.etSearch.text?.clear()
                 binding.chipAll.isChecked = true
                 true
             }

@@ -49,7 +49,7 @@ class DateAdapter(
             } else {
                 itemView.setBackgroundResource(R.drawable.default_date_background)
                 dayTextView.setTextColor(itemView.context.getColor(R.color.colorPrimary))
-                dateTextView.setTextColor(itemView.context.getColor(android.R.color.black))
+                dateTextView.setTextColor(itemView.context.getColor(R.color.colorPrimary))
             }
 
             itemView.setOnClickListener {

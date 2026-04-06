@@ -1,15 +1,19 @@
 package com.lecturo.lecturo.ui.main
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.model.CalendarEntry
+import java.util.Locale
 
 class AgendaAdapter(
     private val onItemClick: (CalendarEntry) -> Unit
@@ -27,35 +31,80 @@ class AgendaAdapter(
 
     inner class AgendaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val iconImageView: ImageView = itemView.findViewById(R.id.iconImageView)
+        private val iconFrame: View = itemView.findViewById(R.id.iconFrame)
         private val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
         private val categoryTextView: TextView = itemView.findViewById(R.id.categoryTextView)
+        private val priorityTextView: TextView = itemView.findViewById(R.id.priorityTextView)
         private val timeTextView: TextView = itemView.findViewById(R.id.timeTextView)
 
         fun bind(entry: CalendarEntry) {
+            val context = itemView.context
             titleTextView.text = entry.title
-            categoryTextView.text = entry.category
             timeTextView.text = entry.time
+            categoryTextView.text = entry.category
 
-            // Set icon based on category
-            val iconRes = when (entry.category) {
-                "Class" -> R.drawable.ic_class
-                "Event" -> R.drawable.ic_event
-                "Task" -> R.drawable.ic_task
-                "consultation" -> R.drawable.ic_consultant
-                else -> R.drawable.ic_event
+            val cleanCategory = entry.category.trim().lowercase(Locale.getDefault())
+            val cleanPriority = entry.priority.trim().lowercase(Locale.getDefault())
+
+            // 1. SETUP IKON & WARNA KATEGORI (MENGGUNAKAN ContextCompat)
+            val iconRes: Int
+            val categoryColorRes: Int // Menggunakan Int (ID), bukan String
+
+            when {
+                cleanCategory == "mengajar" -> {
+                    iconRes = R.drawable.ic_class
+                    categoryColorRes = R.color.teaching_color
+                }
+                cleanCategory == "tugas" -> {
+                    iconRes = R.drawable.ic_task
+                    categoryColorRes = R.color.task_color
+                }
+                cleanCategory == "konsultasi" -> {
+                    iconRes = R.drawable.ic_consultant
+                    categoryColorRes = R.color.consultation_color
+                }
+                else -> { // Event & Lainya
+                    iconRes = R.drawable.ic_event
+                    categoryColorRes = R.color.event_color
+                }
             }
+
+            // Menerapkan warna kategori
+            val resolvedCategoryColor = ContextCompat.getColor(context, categoryColorRes)
             iconImageView.setImageResource(iconRes)
+            iconImageView.setColorFilter(Color.WHITE)
+            iconFrame.backgroundTintList = ColorStateList.valueOf(resolvedCategoryColor)
+            categoryTextView.setTextColor(resolvedCategoryColor)
 
-            // Set category color
-            val categoryColor = when (entry.category) {
-                "Class" -> R.color.colorPrimary
-                "Event" -> R.color.colorAccent
-                "Task" -> R.color.error_color
-                "consultation" -> R.color.success_color
-                else -> R.color.neutral_color
+            // 2. SETUP BADGE PRIORITAS (SESUAI colors.xml)
+            priorityTextView.text = entry.priority.uppercase() // Biar terlihat tegas
+
+            val priorityTextColorRes: Int
+            val priorityBgColorRes: Int
+
+            when (cleanPriority) {
+                "tinggi", "high", "hight", "urgent" -> {
+                    priorityTextColorRes = R.color.hight_priority
+                    priorityBgColorRes = R.color.hight_priority_bg
+                }
+                "rendah", "low" -> {
+                    priorityTextColorRes = R.color.low_priority
+                    priorityBgColorRes = R.color.low_priority_bg
+                }
+                else -> { // Sedang / Medium
+                    priorityTextColorRes = R.color.medium_priority
+                    priorityBgColorRes = R.color.medium_priority_bg
+                }
             }
-            categoryTextView.setTextColor(itemView.context.getColor(categoryColor))
 
+            // Menerapkan warna prioritas
+            val resolvedPriorityTextColor = ContextCompat.getColor(context, priorityTextColorRes)
+            val resolvedPriorityBgColor = ContextCompat.getColor(context, priorityBgColorRes)
+
+            priorityTextView.setTextColor(resolvedPriorityTextColor)
+            priorityTextView.backgroundTintList = ColorStateList.valueOf(resolvedPriorityBgColor)
+
+            // 3. LOGIKA KLIK
             itemView.setOnClickListener {
                 onItemClick(entry)
             }
@@ -66,7 +115,6 @@ class AgendaAdapter(
         override fun areItemsTheSame(oldItem: CalendarEntry, newItem: CalendarEntry): Boolean {
             return oldItem.id == newItem.id
         }
-
         override fun areContentsTheSame(oldItem: CalendarEntry, newItem: CalendarEntry): Boolean {
             return oldItem == newItem
         }

@@ -37,11 +37,11 @@
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_large">56dp</dimen>
     <dimen name="button_corner_radius">8dp</dimen>
-    <dimen name="button_corner_radius_large">12dp</dimen>
+    <dimen name="button_corner_radius_medium">12dp</dimen>
+    <dimen name="button_corner_radius_large">16dp</dimen>
+    <dimen name="button_corner_radius_xlarge">24dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
     <dimen name="button_height_medium">48dp</dimen>
-    <dimen name="button_corner_radius_small">8dp</dimen>
-    <dimen name="button_corner_radius_medium">12dp</dimen>
 
     <!-- Card Dimensions -->
     <dimen name="card_corner_radius">16dp</dimen>

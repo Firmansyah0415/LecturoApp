@@ -1,13 +1,6 @@
 package com.lecturo.lecturo.data.model
 
 import com.google.gson.annotations.SerializedName
-
-/**
- * Request Model untuk Node.js
- * Konsisten menggunakan:
- * - 'id' untuk referensi dokumen Firestore (nullable saat create)
- * - 'user_id' menggantikan 'uid'
- */
 data class TeachingRequest(
     @SerializedName("id")
     val id: String?,
@@ -38,6 +31,12 @@ data class TeachingRequest(
 
     @SerializedName("start_date")
     val startDate: String, // YYYY-MM-DD
+
+    @SerializedName("repetition_type")
+    val repetitionType: String?, // <--- TAMBAHKAN INI
+
+    @SerializedName("repetition_value")
+    val repetitionValue: String?, // <--- TAMBAHKAN INI
 
     @SerializedName("notification_minutes")
     val notificationMinutes: Int

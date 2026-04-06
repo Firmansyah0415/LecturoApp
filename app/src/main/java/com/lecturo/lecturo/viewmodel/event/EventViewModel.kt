@@ -136,22 +136,11 @@ class EventViewModel(
     }
 
     fun updateCompletedStatus(eventId: Long, isCompleted: Boolean) = viewModelScope.launch {
-        // CARA LAMA (Hanya Lokal):
-        // eventRepository.updateCompletedStatus(eventId, isCompleted)
+        // [PERBAIKAN] Cukup panggil fungsi repository yang sudah ada
+        // Fungsi ini sudah otomatis update lokal + trigger worker sync
+        eventRepository.updateCompletedStatus(eventId, isCompleted)
 
-        // CARA BARU (Lokal + Cloud Sync):
-        // 1. Ambil data event saat ini
-        val currentEvent = eventRepository.getEventById(eventId)
-
-        currentEvent?.let { event ->
-            // 2. Ubah statusnya
-            val updatedEvent = event.copy(isCompleted = isCompleted)
-
-            // 3. Panggil insertOrUpdate agar otomatis trigger sync ke backend
-            insertOrUpdate(updatedEvent)
-        }
-
-        // Logic Notifikasi (Tetap sama)
+        // Logic Notifikasi (Boleh tetap ada)
         if (isCompleted) {
             val scheduler = NotificationScheduler(getApplication())
             val entriesToCancel = calendarRepository.getEntriesForSource("EVENT", eventId)

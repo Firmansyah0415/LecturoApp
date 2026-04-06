@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/neutral_background"
     tools:context=".ui.settings.NotificationSettingsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -14,6 +15,12 @@
             android:id="@+id/toolbarSetting"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:titleTextColor="?attr/colorControlNormal"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:layout_constraintTop_toTopOf="parent"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:title="Notification Settings" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -34,6 +41,7 @@
                 android:layout_height="wrap_content"
                 android:text="General Settings"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="12dp" />
 
             <!-- Global Notification Switch -->
@@ -41,8 +49,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:strokeWidth="2dp"
-                app:cardCornerRadius="16dp">
+                app:cardCornerRadius="16dp"
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -77,12 +85,12 @@
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchGlobalNotification"
                             android:layout_width="wrap_content"
-                            android:layout_height="match_parent" />
+                            android:layout_height="wrap_content" />
                     </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="2dp"
+                        android:layout_height="1dp"
                         android:background="?attr/colorOutlineVariant"
                         android:layout_marginHorizontal="16dp"/>
 
@@ -113,12 +121,12 @@
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchSound"
                             android:layout_width="wrap_content"
-                            android:layout_height="match_parent" />
+                            android:layout_height="wrap_content" />
                     </LinearLayout>
 
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="2dp"
+                        android:layout_height="1dp"
                         android:background="?attr/colorOutlineVariant"
                         android:layout_marginHorizontal="16dp"/>
 
@@ -160,6 +168,7 @@
                 android:layout_height="wrap_content"
                 android:text="Default Settings per Category"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="12dp" />
 
             <!-- Default Notification Settings -->
@@ -167,8 +176,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:strokeWidth="2dp"
-                app:cardCornerRadius="16dp">
+                app:cardCornerRadius="16dp"
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -245,10 +254,12 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
+                android:layout_marginBottom="@dimen/margin_medium"
+                app:strokeColor="#BBDEFB"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="#E3F2FD"
                 app:cardCornerRadius="16dp"
-                app:cardBackgroundColor="?attr/colorSurfaceContainer"
-                app:strokeWidth="2dp">
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -258,11 +269,13 @@
                     android:gravity="center_vertical">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@drawable/ic_info"
                         android:layout_marginEnd="12dp"
-                        app:tint="?attr/colorOnSurfaceVariant"
+                        app:tint="#1976D2"
+                        android:background="@drawable/bg_circle_white"
+                        android:padding="6dp"
                         android:contentDescription="Info" />
 
                     <TextView
@@ -280,10 +293,13 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSave"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/button_height_large"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:textSize="16sp"
-                android:text="Save Settings"
+                android:text="Simpan Perubahan"
                 android:paddingVertical="12dp"
+                app:cornerRadius="16dp"
                 app:icon="@drawable/ic_save"
                 app:iconGravity="textStart"/>
 

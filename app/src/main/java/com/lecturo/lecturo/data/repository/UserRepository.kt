@@ -12,11 +12,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import com.lecturo.lecturo.data.model.OtpRequest
+import com.lecturo.lecturo.data.model.VerifyOtpRequest
 
 class UserRepository(
     private val userPreference: UserPreference
 ) {
 
+    // Ini variabel yang kita pakai: "api"
     private val api = RetrofitClient.instance
 
     // 1. SYNC (Simpan/Update Data)
@@ -40,12 +43,11 @@ class UserRepository(
         }
     }
 
-    // 2. GET USER (Ambil Data Terbaru) - [INI YANG KITA TAMBAHKAN]
+    // 2. GET USER (Ambil Data Terbaru)
     suspend fun getUserFromBackend(uid: String): Result<User?> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d("UserRepository", "Fetching user: $uid")
-                // Panggil endpoint GET yang baru dibuat di ApiService
                 val response = api.getUser(uid)
 
                 if (response.isSuccessful && response.body()?.status == "success") {
@@ -65,25 +67,59 @@ class UserRepository(
 
     suspend fun uploadProfilePhoto(uid: String, imageUri: Uri): Result<String> {
         return try {
-            // 1. Buat Referensi Folder di Cloud Storage
-            // Format: profile_images/UID_USER.jpg
-            // Kita pakai UID agar foto lama otomatis tertimpa (hemat storage)
             val storageRef = FirebaseStorage.getInstance().reference
                 .child("profile_images")
                 .child("$uid.jpg")
 
-            // 2. Upload File
             storageRef.putFile(imageUri).await()
-
-            // 3. Ambil URL Download (Public URL)
             val downloadUrl = storageRef.downloadUrl.await()
 
-            // 4. Kembalikan URL sebagai String
             Result.success(downloadUrl.toString())
 
         } catch (e: Exception) {
             e.printStackTrace()
             Result.failure(e)
+        }
+    }
+
+    // --- PERBAIKAN DI SINI (Request OTP) ---
+    suspend fun requestOtpWa(phoneNumber: String): Result<String> {
+        return withContext(Dispatchers.IO) { // Gunakan IO thread
+            try {
+                // Gunakan 'api', bukan 'apiService'
+                val response = api.requestOtp(OtpRequest(phoneNumber))
+
+                if (response.isSuccessful && response.body()?.status == "success") {
+                    Result.success(response.body()?.message ?: "OTP Terkirim")
+                } else {
+                    Result.failure(Exception(response.body()?.message ?: "Gagal request OTP"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    // --- PERBAIKAN DI SINI (Verify OTP) ---
+    suspend fun verifyOtpWa(phoneNumber: String, code: String): Result<String> {
+        return withContext(Dispatchers.IO) { // Gunakan IO thread
+            try {
+                // Gunakan 'api', bukan 'apiService'
+                val response = api.verifyOtp(VerifyOtpRequest(phoneNumber, code))
+
+                if (response.isSuccessful && response.body()?.status == "success") {
+                    val token = response.body()?.token
+                    if (token != null) {
+                        Result.success(token)
+                    } else {
+                        Result.failure(Exception("Token kosong dari server"))
+                    }
+                } else {
+                    Result.failure(Exception(response.body()?.message ?: "Kode OTP Salah"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
     }
 

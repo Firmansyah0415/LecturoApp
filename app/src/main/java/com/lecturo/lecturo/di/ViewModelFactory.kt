@@ -9,6 +9,7 @@ import com.lecturo.lecturo.viewmodel.event.EventViewModel
 import com.lecturo.lecturo.viewmodel.main.MainViewModel
 import com.lecturo.lecturo.viewmodel.auth.CompleteProfileViewModel
 import com.lecturo.lecturo.viewmodel.profile.ProfileViewModel
+import com.lecturo.lecturo.viewmodel.consultation.ConsultationViewModel
 
 class ViewModelFactory(
     private val userRepository: UserRepository,
@@ -16,6 +17,7 @@ class ViewModelFactory(
     private val eventRepository: EventRepository,
     private val teachingRepository: TeachingRepository,
     private val calendarRepository: CalendarRepository,
+    private val consultationRepository: ConsultationRepository,
     private val application: android.app.Application
 ) : ViewModelProvider.NewInstanceFactory() {
 
@@ -29,7 +31,8 @@ class ViewModelFactory(
                     tasksRepository,
                     eventRepository,
                     teachingRepository,
-                    calendarRepository
+                    calendarRepository,
+                    consultationRepository
                 ) as T
             }
 
@@ -43,13 +46,20 @@ class ViewModelFactory(
                 EventViewModel(eventRepository, calendarRepository, application) as T
             }
 
-            // 4. COMPLETE PROFILE VIEW MODEL (YANG BARU DITAMBAHKAN)
+            // 4. COMPLETE PROFILE VIEW MODEL
             modelClass.isAssignableFrom(CompleteProfileViewModel::class.java) -> {
                 CompleteProfileViewModel(userRepository) as T
             }
 
+            // 5. PROFILE VIEW MODEL
             modelClass.isAssignableFrom(ProfileViewModel::class.java) -> {
                 ProfileViewModel(userRepository) as T
+            }
+
+            // 6. KONSULTASI VIEW MODEL (INI YANG DITAMBAHKAN)
+            // Karena ConsultationViewModel hanya butuh 'application' di constructor-nya
+            modelClass.isAssignableFrom(ConsultationViewModel::class.java) -> {
+                ConsultationViewModel(application) as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)

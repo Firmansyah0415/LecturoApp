@@ -12,6 +12,7 @@ data class CalendarEntry(
     val date: String,
     val time: String,
     val category: String,
+    val priority: String = "Sedang",
     val sourceFeatureType: String,
     val sourceFeatureId: Long,
     val notificationMinutesBefore: Int = 15,

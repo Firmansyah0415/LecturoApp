@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".ui.main.MainActivity">
 
-    <!-- Area untuk menampilkan Fragment -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
@@ -15,40 +14,39 @@
         app:defaultNavHost="true"
         app:navGraph="@navigation/main_navigation" />
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         app:fabAlignmentMode="center"
-        app:hideOnScroll="false">
+        app:fabCradleMargin="8dp"
+        app:fabCradleRoundedCornerRadius="24dp"
+        app:fabCradleVerticalOffset="6dp"
+        app:backgroundTint="@color/white">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
+            app:elevation="0dp"
             app:labelVisibilityMode="unlabeled"
-            app:compatShadowEnabled="true"
-            android:elevation="4dp"
             app:itemIconTint="@color/bottom_nav_color"
             app:itemTextColor="@color/bottom_nav_color"
             app:menu="@menu/bottom_nav_menu" />
 
     </com.google.android.material.bottomappbar.BottomAppBar>
 
-    <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="Tambah Jadwal"
         android:src="@drawable/ic_add"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.FAB"
         app:backgroundTint="@color/colorPrimary"
-        app:layout_anchor="@id/bottomAppBar"
-        app:fabCustomSize="45dp"
-        android:layout_gravity="bottom|center"
-        app:tint="@android:color/white" />
+        app:tint="@android:color/white"
+        app:layout_anchor="@id/bottomAppBar" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
