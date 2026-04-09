@@ -67,7 +67,7 @@ interface TasksDao {
     @Query("""
         SELECT t.*, 
                COALESCE(COUNT(f.id), 0) AS completedSessionsCount, 
-               COALESCE(SUM(f.duration_minutes), 0) AS totalFocusMinutes
+               COALESCE(SUM(f.end_time - f.start_time) / 60000, 0) AS totalFocusMinutes
         FROM tasks t
         LEFT JOIN focus_sessions f ON t.id = f.task_id AND f.status = 'COMPLETED' AND f.is_deleted = 0
         WHERE t.is_deleted = 0 

@@ -19,13 +19,10 @@ import androidx.preference.PreferenceManager
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.Event
-import com.lecturo.lecturo.data.remote.RetrofitClient
 import com.lecturo.lecturo.data.repository.EventRepository
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.databinding.ActivityAddEventBinding
 import com.lecturo.lecturo.viewmodel.event.EventViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.lecturo.lecturo.viewmodel.event.EventViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

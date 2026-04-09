@@ -117,16 +117,35 @@ class TeachingRepository(
         } catch (e: Exception) { }
     }
 
+    // --- PERBAIKAN: Fungsi simpan sekarang otomatis mencetak jadwal ---
     suspend fun insertOrUpdateRule(rule: TeachingRule): Long {
         rule.isSynced = false
         rule.isDeleted = false
 
         val localId = teachingRuleDao.insertOrUpdateRule(rule)
+
+        // Bersihkan jadwal & alarm lama jika ini proses Update/Edit
+        val scheduler = NotificationScheduler(context)
+        val oldEntries = calendarEntryDao.getEntriesForSource("TEACHING_RULE", localId)
+        oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
+        calendarEntryDao.deleteEntriesForSource("TEACHING_RULE", localId)
+
+        // Cetak jadwal baru (Gunakan mesin yang sama dengan Cloud Sync)
+        generateAndScheduleEntriesFromCloud(rule.copy(localId = localId), scheduler, calendarEntryDao)
+
         scheduleSync()
         return localId
     }
 
+    // --- PERBAIKAN: Fungsi hapus juga otomatis bersihkan kalender ---
     suspend fun deleteRuleById(ruleId: Long) {
+        // 1. Bersihkan Notifikasi & Kalender
+        val scheduler = NotificationScheduler(context)
+        val entries = calendarEntryDao.getEntriesForSource("TEACHING_RULE", ruleId)
+        entries.forEach { scheduler.cancelNotification(it.notificationId) }
+        calendarEntryDao.deleteEntriesForSource("TEACHING_RULE", ruleId)
+
+        // 2. Soft Delete
         teachingRuleDao.softDeleteRule(ruleId)
         scheduleSync()
     }

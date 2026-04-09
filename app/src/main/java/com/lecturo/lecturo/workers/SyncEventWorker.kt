@@ -21,46 +21,28 @@ class SyncEventWorker(
         val apiService = RetrofitClient.instance
 
         val unsyncedEvents = dao.getUnsyncedEvents()
-
-        if (unsyncedEvents.isEmpty()) {
-            return@withContext Result.success()
-        }
-
-        Log.d("SyncEvent", "Memproses ${unsyncedEvents.size} event...")
+        if (unsyncedEvents.isEmpty()) return@withContext Result.success()
 
         try {
             for (event in unsyncedEvents) {
-
-                if (event.userId.isNullOrEmpty()) {
-                    Log.e("SyncEvent", "SKIP: Data rusak (No User ID).")
-                    continue
-                }
-
-                // --- LOGIKA CABANG: DELETE vs UPLOAD ---
+                if (event.userId.isNullOrEmpty()) continue
 
                 if (event.isDeleted) {
-                    // KASUS 1: DELETE
                     if (event.firestoreId != null) {
                         try {
-                            Log.d("SyncEvent", "Mencoba DELETE di Server: ${event.title}")
                             val response = apiService.deleteEvent(event.userId, event.firestoreId!!)
-
-                            if (response.isSuccessful || response.code() == 404) {
+                            if (response.isSuccessful) {
                                 dao.hardDelete(event.id)
-                                Log.d("SyncEvent", "SUKSES DELETE PERMANEN: ${event.title}")
                             } else {
-                                Log.e("SyncEvent", "GAGAL DELETE Server: ${response.code()}")
+                                return@withContext Result.retry()
                             }
                         } catch (e: Exception) {
-                            Log.e("SyncEvent", "GAGAL DELETE Network: ${e.message}")
+                            return@withContext Result.retry()
                         }
                     } else {
-                        // Belum pernah ke server, hapus lokal langsung
                         dao.hardDelete(event.id)
                     }
-
                 } else {
-                    // KASUS 2: UPLOAD (INSERT/UPDATE)
                     val request = EventRequest(
                         uid = event.userId,
                         eventId = event.firestoreId,
@@ -75,23 +57,21 @@ class SyncEventWorker(
                         isCompleted = event.isCompleted,
                         notificationMinutes = event.notificationMinutesBefore
                     )
-
-                    val response = apiService.syncEvent(request)
-
-                    if (response.isSuccessful && response.body()?.status == "success") {
-                        val newFirestoreId = response.body()?.data?.get("firestore_id") as? String
-                        if (newFirestoreId != null) {
-                            dao.updateSyncStatus(event.id, newFirestoreId)
-                            Log.d("SyncEvent", "SUKSES UPLOAD: ${event.title}")
+                    try {
+                        val response = apiService.syncEvent(request)
+                        if (response.isSuccessful && response.body()?.status == "success") {
+                            val newFirestoreId = response.body()?.data?.get("firestore_id") as? String
+                            if (newFirestoreId != null) dao.updateSyncStatus(event.id, newFirestoreId)
+                        } else {
+                            return@withContext Result.retry()
                         }
-                    } else {
-                        Log.e("SyncEvent", "GAGAL UPLOAD: ${response.code()}")
+                    } catch (e: Exception) {
+                        return@withContext Result.retry()
                     }
                 }
             }
             Result.success()
         } catch (e: Exception) {
-            Log.e("SyncEvent", "CRASH: ${e.message}")
             Result.retry()
         }
     }

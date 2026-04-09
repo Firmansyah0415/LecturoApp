@@ -173,14 +173,25 @@ class FocusViewModel(
         }
     }
 
-    // Dipanggil saat Service mengirim sinyal "SELESAI"
-    // 1. UBAH FUNGSI INI
+    // 1. Dipanggil saat timer HABIS ALAMI dari Service
     fun onTimerFinishedFromService(context: Context) {
         val prefs = com.lecturo.lecturo.utils.FocusPreferences(context)
-        // Cek "Jejak", jika statusnya benar-benar FINISHED, kita eksekusi
         if (prefs.getTimerState() == "FINISHED") {
-            onTimerFinished() // Ini akan menyimpan data ke Room & merubah Fase
-            prefs.setTimerState("STOPPED") // Hapus jejak agar tidak terduplikat
+
+            // [PERBAIKAN BUG AMNESIA 1]: Paksa waktu jadi 0 agar durasi full tersimpan!
+            _timeLeftInMillis.value = 0L
+
+            // Simpan data & Ubah Fase
+            onTimerFinished()
+
+            // Bersihkan jejak Service
+            prefs.setTimerState("STOPPED")
+            prefs.clearActiveTaskId()
+
+            // Reset UI
+            _timeLeftInMillis.value = initialDurationInMillis
+            _progress.value = 100
+            _isPlaying.value = false
         }
     }
 
@@ -189,69 +200,53 @@ class FocusViewModel(
     // =========================================================
 
     // 1. Fungsi Stop Timer (Dipanggil saat tombol Stop atau Reset)
-    fun stopTimer() {
-        // [FIX BUG 3] Cegah Spam
-        if (_isPlaying.value == false && _timeLeftInMillis.value == initialDurationInMillis) {
-            return
-        }
+    // 3. Dipanggil HANYA saat user menekan tombol STOP/RESET (Batal)
+    fun stopTimerManual(context: Context) {
+        // Cegah spam
+        if (_isPlaying.value == false && _timeLeftInMillis.value == initialDurationInMillis) return
 
-        // [HAPUS] timer?.cancel() -> Tidak perlu lagi karena timer ada di Service
+        // Hentikan Service
+        val intent = Intent(context, TimerService::class.java)
+        intent.action = TimerService.ACTION_STOP
+        context.startService(intent)
 
-        // [FIX BUG 2 & 3] Hanya simpan "CANCELLED" jika timer benar-benar sedang berjalan
+        com.lecturo.lecturo.utils.FocusPreferences(context).clearActiveTaskId()
+
+        // Simpan sebagai Batal HANYA JIKA sedang fokus dan belum tuntas
         if (_isPlaying.value == true && _currentPhase.value == "Fokus") {
-            saveSessionData("CANCELLED", 0)
+            saveSessionData("CANCELLED")
         }
 
-        // Reset UI ke awal
+        // Reset UI
         _timeLeftInMillis.value = initialDurationInMillis
         _progress.value = 100
         _isPlaying.value = false
     }
 
     // 2. Fungsi Skip (Lewati/Selesai Cepat)
-    fun skipTimer() {
-        _isPlaying.value = false
+    // 2. Dipanggil saat user menekan SKIP (Selesai Paksa)
+    fun skipTimer(context: Context) {
+        // Hentikan Service
+        val intent = Intent(context, TimerService::class.java)
+        intent.action = TimerService.ACTION_STOP
+        context.startService(intent)
 
-        // Kirim sinyal ke Activity untuk bergetar/bunyi
+        com.lecturo.lecturo.utils.FocusPreferences(context).clearActiveTaskId()
+
+        // Kirim Feedback Suara/Getar
         playSoundEvent.value = true
         playSoundEvent.value = false
 
-        // Langsung panggil logika Selesai (COMPLETED)
+        // Simpan data & Ubah Fase
         onTimerFinished()
-    }
 
-    // 3. Stop Service Helper
-    fun stopTimerService(context: Context) {
-        val intent = Intent(context, TimerService::class.java)
-        intent.action = TimerService.ACTION_STOP
-        context.startService(intent)
-
-        // --- [LOGIKA BARU: HAPUS STATUS TUGAS AKTIF] ---
-        // Hapus ID tugas aktif dari Preferences karena timer dihentikan secara manual (Reset)
-        com.lecturo.lecturo.utils.FocusPreferences(context).clearActiveTaskId()
-        // ------------------------------------------------
-
-        // Panggil stopTimer lokal untuk reset UI & Simpan Cancelled
-        stopTimer()
-    }
-
-    // [TAMBAHAN UNTUK SKIP AGAR SERVICE MATI TAPI TIDAK SIMPAN CANCEL]
-    fun stopTimerServiceForSkip(context: Context) {
-        val intent = Intent(context, TimerService::class.java)
-        intent.action = TimerService.ACTION_STOP
-        context.startService(intent)
-
-        // --- [LOGIKA BARU: HAPUS STATUS TUGAS AKTIF] ---
-        // Hapus ID tugas aktif dari Preferences karena timer di-skip / selesai otomatis
-        com.lecturo.lecturo.utils.FocusPreferences(context).clearActiveTaskId()
-        // ------------------------------------------------
-
-        // Reset UI manual TANPA simpan data CANCELLED
+        // Reset UI (Tanpa memanggil save "CANCELLED")
         _timeLeftInMillis.value = initialDurationInMillis
         _progress.value = 100
         _isPlaying.value = false
     }
 
+    // 4. Fungsi internal untuk merubah Fase
     private fun onTimerFinished() {
         val phase = _currentPhase.value
 
@@ -259,11 +254,11 @@ class FocusViewModel(
         timerFinishedEvent.value = false
 
         if (phase == "Fokus") {
-            // 1. Simpan Data Sesi COMPLETED
-            saveSessionData("COMPLETED", focusDurationMinutes)
+            // Simpan data
+            saveSessionData("COMPLETED")
             completedFocusSessions++
 
-            // 3. Tentukan Istirahat Selanjutnya
+            // Tentukan Istirahat
             if (completedFocusSessions % 4 == 0) {
                 setPhase("Istirahat Panjang")
             } else {
@@ -299,26 +294,34 @@ class FocusViewModel(
     }
 
     // --- PENYIMPANAN DATA ---
-    private fun saveSessionData(status: String, durationMin: Int) {
+    private fun saveSessionData(status: String) {
         if (currentTaskId == -1L) return
 
-        // [TAMBAHAN WAJIB] Ambil UID
         val currentUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
-        if (currentUid == null) return // Tidak simpan jika logout
+        if (currentUid == null) return
 
         val endTime = System.currentTimeMillis()
-        val startTime = endTime - (durationMin * 60 * 1000L)
+        val elapsedMillis = initialDurationInMillis - (_timeLeftInMillis.value ?: initialDurationInMillis)
+        val startTime = endTime - elapsedMillis
+
+        // Cegah menyimpan sesi yang tidak berjalan sama sekali (0 ms)
+        if (elapsedMillis <= 0) return
+
+        // [PERBAIKAN BUG DURASI 0]
+        // Jika user fokus 30 detik (0.5 mnt), Math.round akan menjadikannya 1 menit.
+        // coerceAtLeast(1) memastikan durasi minimal yang tersimpan adalah 1 menit jika timer sudah jalan.
+        val durationInMinutes = Math.round(elapsedMillis / 60000.0).toInt().coerceAtLeast(1)
 
         val session = FocusSession(
-            userId = currentUid, // Gunakan UID asli
+            userId = currentUid,
             taskId = currentTaskId,
             taskFirestoreId = currentTaskFirestoreId,
             startTime = startTime,
             endTime = endTime,
-            durationMinutes = durationMin,
+            durationMinutes = durationInMinutes, // Gunakan variabel yang baru diperbaiki
             status = status,
-            isSynced = false, // Default false
-            isDeleted = false // Default false
+            isSynced = false,
+            isDeleted = false
         )
         viewModelScope.launch {
             repository.saveSession(session)
@@ -352,7 +355,7 @@ class FocusViewModel(
         updateSessionLabel()
     }
 
-    // 2. UBAH FUNGSI INI JUGA (Di bagian paling bawah)
+    // 2. Fungsi pemulihan saat Activity dibuka kembali
     fun restoreStateOrInitialize(context: Context) {
         val prefs = com.lecturo.lecturo.utils.FocusPreferences(context)
         val activeId = prefs.getActiveTaskId()
@@ -371,7 +374,6 @@ class FocusViewModel(
             }
             initialDurationInMillis = minutes * 60 * 1000L
 
-            // --- [LOGIKA BARU PEMBACAAN JEJAK] ---
             when (state) {
                 "PAUSED" -> {
                     val pausedTime = prefs.getPausedTimeLeft()
@@ -385,10 +387,19 @@ class FocusViewModel(
                     _isPlaying.value = true
                 }
                 "FINISHED" -> {
-                    // Jika user baru buka aplikasi, dan ternyata timer habis di latar belakang
                     _isPlaying.value = false
+
+                    // [PERBAIKAN BUG AMNESIA 2]: Paksa waktu jadi 0 agar durasi full tersimpan!
+                    _timeLeftInMillis.value = 0L
+
                     onTimerFinished() // Simpan data ke database
+
                     prefs.setTimerState("STOPPED") // Bersihkan jejak
+                    prefs.clearActiveTaskId()
+
+                    // Reset UI
+                    _timeLeftInMillis.value = initialDurationInMillis
+                    _progress.value = 100
                 }
             }
         } else {

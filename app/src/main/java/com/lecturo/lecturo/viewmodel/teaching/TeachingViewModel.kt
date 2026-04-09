@@ -7,119 +7,24 @@ import androidx.lifecycle.viewModelScope
 import com.lecturo.lecturo.data.model.TeachingRule
 import com.lecturo.lecturo.data.repository.TeachingRepository
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
-import com.lecturo.lecturo.data.model.CalendarEntry
-import com.lecturo.lecturo.notifications.NotificationScheduler
 
 class TeachingViewModel(private val repository: TeachingRepository, application: Application) : AndroidViewModel(application) {
 
+    // Mengambil daftar aturan mengajar untuk ditampilkan di UI
     val teachingRules: LiveData<List<TeachingRule>> = repository.getAllRules()
 
+    // Fungsi simpan: Sekarang sangat simpel karena logika perulangan sudah diurus Repository
     fun saveNewTeachingRule(rule: TeachingRule) = viewModelScope.launch {
         try {
-            // Cek berdasarkan localId
-            if (rule.localId != 0L) {
-                val scheduler = NotificationScheduler(getApplication())
-                val oldEntries = repository.getCalendarEntriesForSource("TEACHING_RULE", rule.localId)
-                oldEntries.forEach { oldEntry ->
-                    scheduler.cancelNotification(oldEntry.notificationId)
-                }
-                repository.deleteCalendarEntriesForSource("TEACHING_RULE", rule.localId)
-            }
-
-            // Simpan dan dapatkan ID baru (Long)
-            val newLocalId = repository.insertOrUpdateRule(rule)
-
-            // PERBAIKAN: Update localId, bukan id (String)
-            val updatedRule = rule.copy(localId = newLocalId)
-
-            generateAndScheduleEntries(updatedRule)
-
+            repository.insertOrUpdateRule(rule)
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    private suspend fun generateAndScheduleEntries(rule: TeachingRule) {
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val startDate = dateFormat.parse(rule.startDate) ?: return
-
-        val calendar = Calendar.getInstance()
-        calendar.time = startDate
-
-        val dayMap = mapOf(
-            "Senin" to Calendar.MONDAY, "Selasa" to Calendar.TUESDAY, "Rabu" to Calendar.WEDNESDAY,
-            "Kamis" to Calendar.THURSDAY, "Jumat" to Calendar.FRIDAY, "Sabtu" to Calendar.SATURDAY,
-            "Minggu" to Calendar.SUNDAY
-        )
-
-        val targetDayOfWeek = dayMap[rule.dayOfWeek] ?: return
-        val scheduler = NotificationScheduler(getApplication())
-
-        // Fungsi bantuan untuk memproses setiap tanggal yang valid
-        val processAndSchedule: suspend (Date) -> Unit = { date ->
-            // Buat objek CalendarEntry sementara
-            val tempEntry = createCalendarEntry(rule, date)
-
-            // Simpan ke DB untuk mendapatkan ID asli
-            val newId = repository.insertCalendarEntry(tempEntry)
-
-            // Buat objek final dengan ID yang benar
-            val finalEntry = tempEntry.copy(id = newId)
-
-            // Jadwalkan notifikasi dengan objek final
-            if (finalEntry.notificationMinutesBefore >= 0) {
-                scheduler.scheduleNotification(finalEntry)
-            }
-        }
-
-        if (rule.repetitionType == "DATE") {
-            val endDate = dateFormat.parse(rule.repetitionValue) ?: return
-            while (calendar.time <= endDate) {
-                if (calendar.get(Calendar.DAY_OF_WEEK) == targetDayOfWeek) {
-                    processAndSchedule(calendar.time)
-                }
-                calendar.add(Calendar.DAY_OF_MONTH, 1)
-            }
-        } else if (rule.repetitionType == "COUNT") {
-            val targetMeetings = rule.repetitionValue?.toIntOrNull() ?: return
-            if (targetMeetings <= 0) return
-            var meetingCount = 0
-            val maxCalendar = Calendar.getInstance().apply { time = startDate; add(Calendar.YEAR, 1) }
-
-            while (meetingCount < targetMeetings && calendar.time <= maxCalendar.time) {
-                if (calendar.get(Calendar.DAY_OF_WEEK) == targetDayOfWeek) {
-                    processAndSchedule(calendar.time)
-                    meetingCount++
-                }
-                calendar.add(Calendar.DAY_OF_MONTH, 1)
-            }
-        }
-    }
-
-    private fun createCalendarEntry(rule: TeachingRule, date: Date): CalendarEntry {
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        return CalendarEntry(
-            title = "${rule.courseName} - ${rule.classCode}",
-            date = dateFormat.format(date),
-            time = rule.startTime,
-            category = "Mengajar",
-            priority = rule.priority ?: "Tinggi", // <--- TAMBAHAN PENTING
-            sourceFeatureType = "TEACHING_RULE",
-            sourceFeatureId = rule.localId,
-            notificationMinutesBefore = rule.notificationMinutes
-        )
-    }
-
+    // Fungsi hapus: Repository akan otomatis membersihkan jadwal terkait di kalender
     fun deleteTeachingRule(ruleId: Long) = viewModelScope.launch {
-        val scheduler = NotificationScheduler(getApplication())
-        val entriesToDelete = repository.getCalendarEntriesForSource("TEACHING_RULE", ruleId)
-        entriesToDelete.forEach { entry ->
-            scheduler.cancelNotification(entry.notificationId)
-        }
         repository.deleteRuleById(ruleId)
-        repository.deleteCalendarEntriesForSource("TEACHING_RULE", ruleId)
     }
 
     suspend fun getTeachingRuleById(ruleId: Long): TeachingRule? {

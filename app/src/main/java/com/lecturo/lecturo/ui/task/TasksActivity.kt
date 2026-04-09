@@ -159,8 +159,6 @@ class TasksActivity : AppCompatActivity() {
     private fun showTaskOptions(task: Tasks) {
         // 1. Inisialisasi BottomSheetDialog
         val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
-
-        // 2. Inflate Layout XML yang sudah Anda buat
         val view = layoutInflater.inflate(R.layout.bottom_sheet_task_options, null)
         dialog.setContentView(view)
 
@@ -168,24 +166,41 @@ class TasksActivity : AppCompatActivity() {
         val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvSheetTitle)
         tvTitle.text = task.title
 
-        // 4. LOGIKA KLIK MENU
+        // =============================================================
+        // [KODE YANG DIPINDAH KE ATAS] Ambil data dari Preferences di sini
+        // =============================================================
+        val prefs = com.lecturo.lecturo.utils.FocusPreferences(this)
+        val activeTaskId = prefs.getActiveTaskId()
+        val currentPhase = prefs.getCurrentPhase()
 
+        // Ambil View TextView-nya
+        val tvFocusTitle = view.findViewById<android.widget.TextView>(R.id.tvFocusActionTitle)
+        val tvFocusSub = view.findViewById<android.widget.TextView>(R.id.tvFocusActionSubtitle)
+
+        // Ubah teks jika tugas ini adalah tugas yang sedang berjalan di Pomodoro
+        if (activeTaskId == task.id) {
+            tvFocusTitle.text = if (currentPhase == "Fokus") "Lanjutkan Fokus" else "Lanjutkan Istirahat"
+            tvFocusSub.text = "Sesi sedang berjalan"
+        } else {
+            tvFocusTitle.text = "Mulai Fokus"
+            tvFocusSub.text = "Mode Pomodoro"
+        }
+        // =============================================================
+
+        // 4. LOGIKA KLIK MENU
         // A. Menu Fokus (Pomodoro)
         view.findViewById<android.view.View>(R.id.layoutFocus).setOnClickListener {
             dialog.dismiss() // Tutup dialog
 
             // --- [PERBAIKAN BUG 1: BLOKIR JIKA ADA TUGAS LAIN JALAN] ---
-            val prefs = com.lecturo.lecturo.utils.FocusPreferences(this)
-            val activeTaskId = prefs.getActiveTaskId()
-
-            // Jika ada tugas aktif, DAN id-nya BUKAN tugas yang sedang diklik ini
+            // Kita cukup panggil variabel activeTaskId yang sudah dideklarasikan di atas tadi
             if (activeTaskId != -1L && activeTaskId != task.id) {
                 MaterialAlertDialogBuilder(this)
                     .setTitle("Sesi Lain Sedang Aktif")
                     .setMessage("Anda memiliki sesi fokus yang sedang berjalan/jeda di tugas lain. Harap selesaikan atau hentikan sesi tersebut terlebih dahulu.")
                     .setPositiveButton("Mengerti", null)
                     .show()
-                return@setOnClickListener // Hentikan proses, jangan buka FocusActivity
+                return@setOnClickListener
             }
             // -----------------------------------------------------------
 
@@ -199,7 +214,6 @@ class TasksActivity : AppCompatActivity() {
         // B. Menu Edit
         view.findViewById<android.view.View>(R.id.layoutEdit).setOnClickListener {
             dialog.dismiss()
-
             val intent = Intent(this, AddTasksActivity::class.java)
             intent.putExtra("tasks_id", task.id)
             startActivity(intent)
@@ -208,7 +222,7 @@ class TasksActivity : AppCompatActivity() {
         // C. Menu Hapus
         view.findViewById<android.view.View>(R.id.layoutDelete).setOnClickListener {
             dialog.dismiss()
-            showDeleteConfirmation(task) // Panggil fungsi konfirmasi hapus yang sudah ada
+            showDeleteConfirmation(task) // Panggil fungsi konfirmasi hapus
         }
 
         // 5. Tampilkan Dialog

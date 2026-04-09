@@ -81,21 +81,31 @@ class FocusHistoryActivity : AppCompatActivity() {
     }
 
     private fun observeData() {
-        // Ambil Data History dari ViewModel
         viewModel.getHistory().observe(this) { historyList ->
             adapter.submitList(historyList)
 
-            // Pisahkan data yang Tuntas dan Batal
             val completedList = historyList.filter { it.status == "COMPLETED" }
             val cancelledList = historyList.filter { it.status == "CANCELLED" }
 
-            // Hitung Statistik
-            val totalMinutes = completedList.sumOf { it.durationMinutes }
+            // [PERBAIKAN FORMAT TOTAL JAM]
+            // Hitung total dari selisih waktu asli agar super akurat
+            val totalMillis = completedList.sumOf { it.endTime - it.startTime }
+            val totalMinutes = (totalMillis / 60000).toInt()
+
+            val hours = totalMinutes / 60
+            val minutes = totalMinutes % 60
+
+            val timeFormatted = when {
+                hours > 0 && minutes > 0 -> "$hours Jam $minutes Mnt"
+                hours > 0 -> "$hours Jam"
+                else -> "$totalMinutes Mnt"
+            }
+
             val completedCount = completedList.size
             val cancelledCount = cancelledList.size
 
             // Tampilkan ke UI
-            binding.tvTotalFocusTime.text = "$totalMinutes Mnt"
+            binding.tvTotalFocusTime.text = timeFormatted
             binding.tvCompletedCount.text = "$completedCount Sesi"
             binding.tvCancelledCount.text = "$cancelledCount Sesi"
         }

@@ -29,23 +29,30 @@ class FocusHistoryAdapter(
             val startStr = timeFormat.format(Date(session.startTime))
             val endStr = timeFormat.format(Date(session.endTime))
 
-            // 1. Judul Utama adalah Rentang Waktu (Bukan Tulisan "Sesi ke-...")
             binding.tvSessionType.text = "$startStr - $endStr"
 
-            // 2. Format Warna, Ikon, dan Sub-Judul berdasarkan status
-            if (session.status == "COMPLETED") {
-                binding.ivStatusIcon.setImageResource(R.drawable.ic_check_circle)
-                binding.ivStatusIcon.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")) // Hijau
+            // [PERBAIKAN FORMAT WAKTU ASLI]
+            val durationMillis = session.endTime - session.startTime
+            val totalSeconds = durationMillis / 1000
+            val minutes = totalSeconds / 60
+            val seconds = totalSeconds % 60
 
-                binding.tvSessionTime.text = "$dateStr • ${session.durationMinutes} mnt • Tuntas"
-            } else {
-                binding.ivStatusIcon.setImageResource(R.drawable.ic_cancle_circle) // Pastikan nama drawable ini benar
-                binding.ivStatusIcon.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336")) // Merah
-
-                binding.tvSessionTime.text = "$dateStr • ${session.durationMinutes} mnt • Batal"
+            val durationText = when {
+                minutes > 0 && seconds > 0 -> "$minutes mnt $seconds dtk"
+                minutes > 0 -> "$minutes mnt"
+                else -> "$seconds dtk"
             }
 
-            // 3. Tombol Hapus
+            if (session.status == "COMPLETED") {
+                binding.ivStatusIcon.setImageResource(R.drawable.ic_check_circle)
+                binding.ivStatusIcon.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                binding.tvSessionTime.text = "$dateStr • $durationText • Tuntas"
+            } else {
+                binding.ivStatusIcon.setImageResource(R.drawable.ic_cancle_circle) // pastikan nama file benar
+                binding.ivStatusIcon.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
+                binding.tvSessionTime.text = "$dateStr • $durationText • Batal"
+            }
+
             binding.btnDeleteSession.setOnClickListener {
                 onDeleteClick(session)
             }

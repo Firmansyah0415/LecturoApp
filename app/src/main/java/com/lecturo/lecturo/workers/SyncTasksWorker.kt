@@ -21,76 +21,60 @@ class SyncTasksWorker(
         val apiService = RetrofitClient.instance
 
         val unsyncedTasks = dao.getUnsyncedTasks()
-
-        if (unsyncedTasks.isEmpty()) {
-            return@withContext Result.success()
-        }
+        if (unsyncedTasks.isEmpty()) return@withContext Result.success()
 
         Log.d("SyncTasks", "Memproses ${unsyncedTasks.size} tugas...")
 
         try {
             for (task in unsyncedTasks) {
-
-                if (task.userId.isNullOrEmpty()) {
-                    Log.e("SyncTasks", "SKIP: Data rusak (No User ID).")
-                    continue
-                }
-
-                // --- LOGIKA CABANG: DELETE vs UPLOAD ---
+                if (task.userId.isNullOrEmpty()) continue
 
                 if (task.isDeleted) {
-                    // KASUS 1: DELETE
                     if (task.firestoreId != null) {
                         try {
-                            Log.d("SyncTasks", "Mencoba DELETE di Server: ${task.title}")
                             val response = apiService.deleteTask(task.userId, task.firestoreId!!)
-
-                            if (response.isSuccessful || response.code() == 404) {
+                            // PERBAIKAN 1: Hapus || response.code() == 404
+                            if (response.isSuccessful) {
                                 dao.hardDelete(task.id)
-                                Log.d("SyncTasks", "SUKSES DELETE PERMANEN: ${task.title}")
                             } else {
-                                Log.e("SyncTasks", "GAGAL DELETE Server: ${response.code()}")
+                                // PERBAIKAN 2: Tolak Hapus Lokal & Retry
+                                return@withContext Result.retry()
                             }
                         } catch (e: Exception) {
-                            Log.e("SyncTasks", "GAGAL DELETE Network: ${e.message}")
+                            // PERBAIKAN 3: Jika server/ngrok mati, Retry
+                            return@withContext Result.retry()
                         }
                     } else {
-                        // Belum pernah ke server, hapus lokal langsung
                         dao.hardDelete(task.id)
                     }
-
                 } else {
-                    // KASUS 2: UPLOAD (INSERT/UPDATE)
                     val request = TaskRequest(
                         uid = task.userId,
                         taskId = task.firestoreId,
                         title = task.title,
                         description = task.description ?: "",
-                        date = task.date,
-                        time = task.time,
+                        date = task.date, time = task.time,
                         location = task.location ?: "-",
                         priority = task.priority ?: "Sedang",
                         inputSource = task.inputSource ?: "MANUAL",
                         isCompleted = task.isCompleted,
                         notificationMinutes = task.notificationMinutesBefore
                     )
-
-                    val response = apiService.syncTask(request)
-
-                    if (response.isSuccessful && response.body()?.status == "success") {
-                        val newFirestoreId = response.body()?.data?.get("firestore_id") as? String
-                        if (newFirestoreId != null) {
-                            dao.updateSyncStatus(task.id, newFirestoreId)
-                            Log.d("SyncTasks", "SUKSES UPLOAD: ${task.title}")
+                    try {
+                        val response = apiService.syncTask(request)
+                        if (response.isSuccessful && response.body()?.status == "success") {
+                            val newFirestoreId = response.body()?.data?.get("firestore_id") as? String
+                            if (newFirestoreId != null) dao.updateSyncStatus(task.id, newFirestoreId)
+                        } else {
+                            return@withContext Result.retry() // Gagal Upload? Retry!
                         }
-                    } else {
-                        Log.e("SyncTasks", "GAGAL UPLOAD: ${response.code()}")
+                    } catch (e: Exception) {
+                        return@withContext Result.retry() // Server mati saat upload? Retry!
                     }
                 }
             }
             Result.success()
         } catch (e: Exception) {
-            Log.e("SyncTasks", "CRASH: ${e.message}")
             Result.retry()
         }
     }

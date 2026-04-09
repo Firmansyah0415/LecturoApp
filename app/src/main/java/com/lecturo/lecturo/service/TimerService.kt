@@ -85,23 +85,22 @@ class TimerService : Service() {
         return START_NOT_STICKY
     }
 
+    private var targetEndTime: Long = 0L // Tambahkan variabel ini di atas
+
     private fun startTimer() {
         if (isTimerRunning) return
 
-        // Bikin notifikasi awal yang langsung berisi Judul Tugas dan Label Sesi
+        // [PERBAIKAN 1]: Catat Waktu Berakhir di Dunia Nyata
+        targetEndTime = System.currentTimeMillis() + timeLeftInMillis
+
         val notification = createNotification(
             title = "$currentSessionLabel: $currentTaskTitle",
             content = "Menghitung mundur..."
         )
 
-        // Logic untuk startForeground sesuai versi Android
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             try {
-                startForeground(
-                    NOTIFICATION_ID,
-                    notification,
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                )
+                startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
             } catch (e: Exception) {
                 startForeground(NOTIFICATION_ID, notification)
             }
@@ -111,30 +110,33 @@ class TimerService : Service() {
 
         isTimerRunning = true
 
-        // Jalankan CountDownTimer
         timer = object : CountDownTimer(timeLeftInMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                timeLeftInMillis = millisUntilFinished
+                // [PERBAIKAN 2]: Hitung sisa waktu berdasarkan Jam Dunia Nyata (Kebal Doze Mode)
+                val realTimeLeft = targetEndTime - System.currentTimeMillis()
 
-                // Update notifikasi setiap detik dengan format yang keren
-                val timeString = getFormattedTime(millisUntilFinished)
-                updateNotification(
-                    title = "$currentSessionLabel: $currentTaskTitle",
-                    content = "Sisa Waktu: $timeString"
-                )
-
-                sendBroadcastUpdate(millisUntilFinished)
+                if (realTimeLeft <= 0) {
+                    // Waktu sudah habis, tapi CountDownTimer telat sadar! Paksa Selesai!
+                    this.cancel()
+                    onFinish()
+                } else {
+                    timeLeftInMillis = realTimeLeft
+                    val timeString = getFormattedTime(realTimeLeft)
+                    updateNotification(
+                        title = "$currentSessionLabel: $currentTaskTitle",
+                        content = "Sisa Waktu: $timeString"
+                    )
+                    sendBroadcastUpdate(realTimeLeft)
+                }
             }
 
             override fun onFinish() {
                 timeLeftInMillis = 0
                 isTimerRunning = false
 
-                // [PERBAIKAN BUG 2: TINGGALKAN JEJAK BAHWA SUDAH SELESAI]
                 val prefs = FocusPreferences(this@TimerService)
                 prefs.setTimerState("FINISHED")
 
-                // Mainkan Alarm & Notifikasi langsung dari Latar Belakang!
                 playAlarmAndNotification()
 
                 val finishIntent = Intent(ACTION_TIMER_FINISHED)
@@ -248,8 +250,10 @@ class TimerService : Service() {
         if (prefs.isSoundEnabled()) {
             try {
                 val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                val r = RingtoneManager.getRingtone(applicationContext, notification)
-                r.play()
+                if (notification != null) {
+                    val r = RingtoneManager.getRingtone(applicationContext, notification)
+                    r?.play()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }

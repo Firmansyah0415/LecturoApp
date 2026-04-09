@@ -144,7 +144,8 @@ class FocusActivity : AppCompatActivity() {
                     viewModel.updateTimerFromService(millisLeft, duration)
                 }
                 com.lecturo.lecturo.service.TimerService.ACTION_TIMER_FINISHED -> {
-                    viewModel.stopTimerService(this@FocusActivity)
+                    // [PERBAIKAN] Panggil fungsi ini agar tidak nyangkut
+                    viewModel.onTimerFinishedFromService(this@FocusActivity)
                 }
             }
         }
@@ -194,11 +195,11 @@ class FocusActivity : AppCompatActivity() {
             }
         }
 
-        // Observer Selesai Tugas
+        // 2. Ganti observer Selesai Tugas
         viewModel.taskFinishedEvent.observe(this) { finished ->
             if (finished) {
-                // [TAMBAHAN PENTING] Matikan service agar notifikasi hilang
-                viewModel.stopTimerService(this)
+                // Matikan service dan simpan sisa waktu dengan benar
+                viewModel.stopTimerManual(this)
                 finish()
             }
         }
@@ -221,11 +222,12 @@ class FocusActivity : AppCompatActivity() {
 
         binding.btnStop.setOnClickListener {
             MaterialAlertDialogBuilder(this)
-                .setTitle("Reset Timer?") // Ubah wording biar user paham ini Reset
+                .setTitle("Reset Timer?")
                 .setMessage("Waktu akan dikembalikan ke awal.")
                 .setNegativeButton("Batal", null)
                 .setPositiveButton("Reset") { _, _ ->
-                    viewModel.stopTimerService(this)
+                    // [PERBAIKAN] Panggil nama fungsi baru
+                    viewModel.stopTimerManual(this)
                 }
                 .show()
         }
@@ -240,9 +242,7 @@ class FocusActivity : AppCompatActivity() {
                 .setMessage(message)
                 .setNegativeButton("Batal", null)
                 .setPositiveButton("Ya") { _, _ ->
-                    // [TAMBAHAN PENTING] Matikan service dulu, baru pindah fase
-                    viewModel.stopTimerServiceForSkip(this)
-                    viewModel.skipTimer()
+                    viewModel.skipTimer(this)
                 }
                 .show()
         }
@@ -258,7 +258,7 @@ class FocusActivity : AppCompatActivity() {
                 .setMessage("Selamat! Tugas ini akan ditandai selesai.")
                 .setNegativeButton("Belum", null)
                 .setPositiveButton("Ya, Selesai") { _, _ ->
-                    viewModel.stopTimerServiceForSkip(this)
+                    viewModel.stopTimerManual(this)
                     viewModel.finishTask()
                 }
                 .show()
@@ -296,14 +296,14 @@ class FocusActivity : AppCompatActivity() {
         if (prefs.isSoundEnabled()) {
             try {
                 val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                val r = RingtoneManager.getRingtone(applicationContext, notification)
-                r.play()
+                if (notification != null) {
+                    val r = RingtoneManager.getRingtone(applicationContext, notification)
+                    r?.play()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
-        // Kita tidak membuat Notifikasi Sistem (Banner) di sini karena
-        // user sedang menatap layar saat menekan tombol Skip.
     }
 
     private fun setupSystemUI() {

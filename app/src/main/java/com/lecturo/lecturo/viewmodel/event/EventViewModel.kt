@@ -95,59 +95,18 @@ class EventViewModel(
     }
 
     fun insertOrUpdate(event: Event) = viewModelScope.launch {
-        if (event.id != 0L) {
-            val scheduler = NotificationScheduler(getApplication())
-            val oldEntries = calendarRepository.getEntriesForSource("EVENT", event.id)
-            oldEntries.forEach { oldEntry ->
-                scheduler.cancelNotification(oldEntry.notificationId)
-            }
-            calendarRepository.deleteEntriesForSource("EVENT", event.id)
-        }
-
-        val eventId = eventRepository.insertOrUpdate(event)
-        val finalEvent = event.copy(id = eventId)
-
-        val calendarEntry = CalendarEntry(
-            title = finalEvent.title,
-            date = finalEvent.date,
-            time = finalEvent.time,
-            category = finalEvent.category,
-            sourceFeatureType = "EVENT",
-            sourceFeatureId = finalEvent.id,
-            notificationMinutesBefore = finalEvent.notificationMinutesBefore
-        )
-        val calendarEntryId = calendarRepository.insertEntry(calendarEntry)
-        val finalCalendarEntry = calendarEntry.copy(id = calendarEntryId)
-
-        if (finalEvent.notificationMinutesBefore >= 0) {
-            val scheduler = NotificationScheduler(getApplication())
-            scheduler.scheduleNotification(finalCalendarEntry)
-        }
+        // Sepenuhnya diserahkan ke Repository
+        eventRepository.insertOrUpdate(event)
     }
 
     fun delete(eventId: Long) = viewModelScope.launch {
-        val scheduler = NotificationScheduler(getApplication())
-        val entriesToDelete = calendarRepository.getEntriesForSource("EVENT", eventId)
-        entriesToDelete.forEach { entry ->
-            scheduler.cancelNotification(entry.notificationId)
-        }
+        // Sepenuhnya diserahkan ke Repository
         eventRepository.deleteById(eventId)
-        calendarRepository.deleteEntriesForSource("EVENT", eventId)
     }
 
     fun updateCompletedStatus(eventId: Long, isCompleted: Boolean) = viewModelScope.launch {
-        // [PERBAIKAN] Cukup panggil fungsi repository yang sudah ada
-        // Fungsi ini sudah otomatis update lokal + trigger worker sync
+        // Sepenuhnya diserahkan ke Repository
         eventRepository.updateCompletedStatus(eventId, isCompleted)
-
-        // Logic Notifikasi (Boleh tetap ada)
-        if (isCompleted) {
-            val scheduler = NotificationScheduler(getApplication())
-            val entriesToCancel = calendarRepository.getEntriesForSource("EVENT", eventId)
-            entriesToCancel.forEach { entry ->
-                scheduler.cancelNotification(entry.notificationId)
-            }
-        }
     }
 
     fun setCategoryFilter(category: String) { _categoryFilter.value = category }

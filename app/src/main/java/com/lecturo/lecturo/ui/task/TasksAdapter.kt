@@ -84,24 +84,51 @@ class TasksAdapter(
             // Hanya tampilkan badge jika ada sesi yang sudah selesai
             if (item.completedSessionsCount > 0) {
                 binding.tvFocusStatsBadge.visibility = View.VISIBLE
-                binding.tvFocusStatsBadge.text = "${item.completedSessionsCount} Sesi (${item.totalFocusMinutes} mnt)"
+
+                // [PERBAIKAN] Format Total Menit menjadi Jam & Menit
+                // Gunakan elvis operator (?: 0) untuk jaga-jaga jika null
+                val totalMinutes = item.totalFocusMinutes ?: 0
+                val hours = totalMinutes / 60
+                val minutes = totalMinutes % 60
+
+                val timeFormatted = when {
+                    hours > 0 && minutes > 0 -> "$hours Jam $minutes mnt"
+                    hours > 0 -> "$hours Jam"
+                    else -> "$totalMinutes mnt"
+                }
+
+                binding.tvFocusStatsBadge.text = "${item.completedSessionsCount} Sesi ($timeFormatted)"
             } else {
                 binding.tvFocusStatsBadge.visibility = View.GONE
             }
 
             // --- LOGIKA TANDA TUGAS AKTIF ---
-            val prefs = FocusPreferences(context) // Menggunakan 'context' yang sudah dideklarasikan di atas
+            val prefs = FocusPreferences(context)
             val activeTaskId = prefs.getActiveTaskId()
 
             if (tasks.id == activeTaskId) {
+                val currentPhase = prefs.getCurrentPhase()
+                val isFocusing = currentPhase == "Fokus"
+
                 binding.indicatorActiveFocus.visibility = View.VISIBLE
-                (binding.root as com.google.android.material.card.MaterialCardView).strokeColor =
-                    ContextCompat.getColor(context, R.color.colorPrimary) // <-- Gunakan ContextCompat
+
+                // Set Teks sesuai fase
+                binding.indicatorActiveFocus.text = if (isFocusing) "SEDANG FOKUS" else "SEDANG ISTIRAHAT"
+
+                // Set Warna (Biru Primary untuk Fokus, Oranye untuk Istirahat)
+                val activeColorRes = if (isFocusing) R.color.colorPrimary else android.R.color.holo_orange_dark
+                val resolvedActiveColor = ContextCompat.getColor(context, activeColorRes)
+
+                // Ubah warna background indikator
+                binding.indicatorActiveFocus.backgroundTintList = ColorStateList.valueOf(resolvedActiveColor)
+
+                // Ubah warna garis bingkai CardView
+                (binding.root as com.google.android.material.card.MaterialCardView).strokeColor = resolvedActiveColor
                 (binding.root as com.google.android.material.card.MaterialCardView).strokeWidth = 4
             } else {
                 binding.indicatorActiveFocus.visibility = View.GONE
                 (binding.root as com.google.android.material.card.MaterialCardView).strokeColor =
-                    ContextCompat.getColor(context, com.google.android.material.R.color.m3_sys_color_light_outline_variant) // <-- Gunakan ContextCompat
+                    ContextCompat.getColor(context, com.google.android.material.R.color.m3_sys_color_light_outline_variant)
                 (binding.root as com.google.android.material.card.MaterialCardView).strokeWidth = 2
             }
 

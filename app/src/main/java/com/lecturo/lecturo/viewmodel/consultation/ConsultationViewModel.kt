@@ -69,73 +69,16 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
     }
 
 // --- FUNGSI CRUD + NOTIFIKASI + SYNC ---
-
     fun insertSchedule(schedule: ConsultationSchedule) = viewModelScope.launch {
-        // 1. Simpan ke Tabel Asli (Consultation)
-        val newId = repository.insertSchedule(schedule)
-        val savedSchedule = schedule.copy(id = newId)
-
-        // 2. Jadwalkan Notifikasi
-        notificationScheduler.scheduleConsultation(savedSchedule)
-
-        // 3. SYNC: Simpan ke CalendarEntry (Untuk Home Fragment)
-        // Jika notifikasinya >= 0 atau memang ingin selalu tampil di kalender
-        val dateForCalendar = convertDateToOldFormat(savedSchedule.date)
-
-        val entry = CalendarEntry(
-            title = savedSchedule.title,
-            date = dateForCalendar,
-            time = savedSchedule.startTime,
-            category = "Konsultasi",
-            sourceFeatureType = "CONSULTATION",
-            sourceFeatureId = newId,
-            notificationMinutesBefore = savedSchedule.notificationMinutesBefore
-            // isCompleted dihapus karena tidak ada di Entity CalendarEntry
-        )
-        calendarRepository.insertEntry(entry)
+        repository.insertSchedule(schedule)
     }
 
     fun updateSchedule(schedule: ConsultationSchedule) = viewModelScope.launch {
-        // 1. Update Tabel Asli
         repository.updateSchedule(schedule)
-
-        // 2. Reset Notifikasi
-        notificationScheduler.cancelConsultation(schedule.id)
-        if (schedule.status == "SCHEDULED") {
-            notificationScheduler.scheduleConsultation(schedule)
-        }
-
-        // 3. SYNC: Update CalendarEntry
-        // Hapus entri lama dulu (best practice di app ini untuk menghindari duplikat jika tanggal berubah)
-        calendarRepository.deleteEntriesForSource("CONSULTATION", schedule.id)
-
-        // Masukkan lagi ke CalendarEntry HANYA JIKA statusnya bukan CANCELLED
-        // Jika COMPLETED, tetap masuk agar tercatat di agenda (tapi tidak dicoret di Home, karena keterbatasan CalendarEntry)
-        if (schedule.status != "CANCELLED") {
-            val dateForCalendar = convertDateToOldFormat(schedule.date)
-            val entry = CalendarEntry(
-                title = schedule.title,
-                date = dateForCalendar,
-                time = schedule.startTime,
-                category = "Konsultasi",
-                sourceFeatureType = "CONSULTATION",
-                sourceFeatureId = schedule.id,
-                notificationMinutesBefore = schedule.notificationMinutesBefore
-                // isCompleted dihapus
-            )
-            calendarRepository.insertEntry(entry)
-        }
     }
 
     fun deleteSchedule(schedule: ConsultationSchedule) = viewModelScope.launch {
-        // 1. Hapus Tabel Asli
         repository.deleteSchedule(schedule)
-
-        // 2. Hapus Notifikasi
-        notificationScheduler.cancelConsultation(schedule.id)
-
-        // 3. SYNC: Hapus dari CalendarEntry
-        calendarRepository.deleteEntriesForSource("CONSULTATION", schedule.id)
     }
 
     // Helper untuk konversi yyyy-MM-dd -> dd/MM/yyyy

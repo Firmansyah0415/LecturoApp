@@ -164,12 +164,21 @@ class EventRepository(
         return localId
     }
 
-    // --- LOGIC BARU: SOFT DELETE ---
+    // --- LOGIC BARU: SOFT DELETE & CLEANUP CALENDAR ---
     suspend fun deleteById(eventId: Long) {
-        // 1. Soft Delete Lokal
+        // 1. Hapus Notifikasi & Kalender Lama dulu
+        val dbSqlite = getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
+        val scheduler = NotificationScheduler(context)
+
+        val entriesToDelete = calendarDao.getEntriesForSource("EVENT", eventId)
+        entriesToDelete.forEach { scheduler.cancelNotification(it.notificationId) }
+        calendarDao.deleteEntriesForSource("EVENT", eventId)
+
+        // 2. Soft Delete Lokal
         eventDao.softDelete(eventId)
 
-        // 2. Trigger Worker
+        // 3. Trigger Worker
         scheduleSync()
     }
 
@@ -192,8 +201,16 @@ class EventRepository(
 
     // --- HELPER LAINNYA ---
     suspend fun updateCompletedStatus(eventId: Long, isCompleted: Boolean) {
-        // Update status dan tandai kotor (isSynced=0) via DAO
         eventDao.updateCompletedStatus(eventId, isCompleted)
+
+        // Matikan alarm jika event diselesaikan
+        if (isCompleted) {
+            val dbSqlite = getDatabase(context)
+            val calendarDao = dbSqlite.calendarEntryDao()
+            val scheduler = NotificationScheduler(context)
+            val entriesToCancel = calendarDao.getEntriesForSource("EVENT", eventId)
+            entriesToCancel.forEach { scheduler.cancelNotification(it.notificationId) }
+        }
         scheduleSync()
     }
 

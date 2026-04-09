@@ -7,8 +7,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
-import com.lecturo.lecturo.data.model.CalendarEntry
-import com.lecturo.lecturo.data.model.TaskWithFocusStats // <--- Import baru
+import com.lecturo.lecturo.data.model.TaskWithFocusStats
 import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
@@ -22,17 +21,17 @@ class TasksViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    // [UBAH] Sekarang kita menarik data lengkap dengan statistiknya
+    // Menarik data lengkap dengan statistiknya
     private val allTasksWithStats: LiveData<List<TaskWithFocusStats>> = tasksRepository.getAllTasksWithStats()
     private val searchQuery = MutableLiveData<String>("")
 
-    // [UBAH] MediatorLiveData sekarang menangani TaskWithFocusStats
+    // MediatorLiveData menangani TaskWithFocusStats
     val filteredTasks = MediatorLiveData<List<TaskWithFocusStats>>().apply {
         addSource(allTasksWithStats) { tasksWithStats -> value = applyFilters(tasksWithStats, searchQuery.value) }
         addSource(searchQuery) { query -> value = applyFilters(allTasksWithStats.value, query) }
     }
 
-    // [UBAH] Pecah berdasarkan status isCompleted milik entitas task
+    // Pecah berdasarkan status isCompleted milik entitas task
     val pendingTasks: LiveData<List<TaskWithFocusStats>> = filteredTasks.map { list -> list.filter { !it.task.isCompleted } }
     val completedTasks: LiveData<List<TaskWithFocusStats>> = filteredTasks.map { list -> list.filter { it.task.isCompleted } }
 
@@ -46,58 +45,58 @@ class TasksViewModel(
         }
     }
 
-    // Fungsi get, set, delete, dan update biarkan sama saja
-    // karena mereka hanya butuh ID dan model 'Tasks' murni.
-
     fun getTasksById(id: Long): LiveData<Tasks> = tasksRepository.getTasksById(id)
 
     fun setSearchQuery(query: String) {
         searchQuery.value = query
     }
 
-    // ... sisa fungsi insertOrUpdate, deleteTasks, dan updateTasksCompletedStatus tetap sama ...
+    // ==============================================================================
+    // PERBAIKAN 1: Fungsi insertOrUpdate sekarang sangat bersih!
+    // Semua logika pembuatan CalendarEntry, Set Notifikasi, dan Prioritas
+    // SUDAH ditangani dengan sempurna oleh TasksRepository.
+    // Jadi di sini kita cukup memanggil Repository-nya saja.
+    // ==============================================================================
     fun insertOrUpdate(tasks: Tasks) = viewModelScope.launch {
-        if (tasks.id != 0L) {
-            val scheduler = NotificationScheduler(getApplication())
-            val oldEntries = calendarRepository.getEntriesForSource("TASK", tasks.id)
-            oldEntries.forEach { oldEntry ->
-                scheduler.cancelNotification(oldEntry.notificationId)
-            }
-            calendarRepository.deleteEntriesForSource("TASK", tasks.id)
-        }
-
-        val taskId = tasksRepository.insertOrUpdate(tasks)
-        val finalTask = tasks.copy(id = taskId)
-
-        if (!finalTask.isCompleted) {
-            val calendarEntry = CalendarEntry(
-                title = finalTask.title,
-                date = finalTask.date,
-                time = finalTask.time,
-                category = "Tugas",
-                sourceFeatureType = "TASK",
-                sourceFeatureId = finalTask.id,
-                notificationMinutesBefore = finalTask.notificationMinutesBefore
-            )
-            val calendarEntryId = calendarRepository.insertEntry(calendarEntry)
-            val finalCalendarEntry = calendarEntry.copy(id = calendarEntryId)
-
-            if (finalTask.notificationMinutesBefore >= 0) {
-                val scheduler = NotificationScheduler(getApplication())
-                scheduler.scheduleNotification(finalCalendarEntry)
-            }
-        }
+        tasksRepository.insertOrUpdate(tasks)
     }
 
+    // ==============================================================================
+    // PERBAIKAN 2: Fungsi Delete tetap butuh mematikan notifikasi dan menghapus kalender
+    // Karena TasksRepository.deleteTasks() hanya menghapus Tugas & Sesi Pomodoro.
+    // ==============================================================================
     fun deleteTasks(id: Long) = viewModelScope.launch {
         val scheduler = NotificationScheduler(getApplication())
         val entriesToDelete = calendarRepository.getEntriesForSource("TASK", id)
         entriesToDelete.forEach { entry ->
             scheduler.cancelNotification(entry.notificationId)
         }
+
+        // Hapus dari repo tugas dan hapus dari repo kalender
         tasksRepository.deleteTasks(id)
         calendarRepository.deleteEntriesForSource("TASK", id)
     }
+
+    // ==============================================================================
+    // PERBAIKAN 3: Memanfaatkan insertOrUpdate yang baru
+    // ==============================================================================
+//    fun updateTasksCompletedStatus(id: Long, completed: Boolean) = viewModelScope.launch {
+//        val currentTask = tasksRepository.getTaskByIdSuspend(id)
+//        currentTask?.let { task ->
+//            val updatedTask = task.copy(isCompleted = completed)
+//            // Memanggil ini akan otomatis memicu Repository untuk mengurus sisa logikanya
+//            insertOrUpdate(updatedTask)
+//        }
+//
+//        // Jaring pengaman: Jika tugas dicentang selesai, matikan alarmnya
+//        if (completed) {
+//            val scheduler = NotificationScheduler(getApplication())
+//            val entriesToCancel = calendarRepository.getEntriesForSource("TASK", id)
+//            entriesToCancel.forEach { entry ->
+//                scheduler.cancelNotification(entry.notificationId)
+//            }
+//        }
+//    }
 
     fun updateTasksCompletedStatus(id: Long, completed: Boolean) = viewModelScope.launch {
         val currentTask = tasksRepository.getTaskByIdSuspend(id)
@@ -105,12 +104,34 @@ class TasksViewModel(
             val updatedTask = task.copy(isCompleted = completed)
             insertOrUpdate(updatedTask)
         }
+
         if (completed) {
-            val scheduler = NotificationScheduler(getApplication())
+            // [SOLUSI ERROR KOTLIN] Deklarasikan tipe Application secara eksplisit
+            val app = getApplication<Application>()
+
+            // 1. Matikan Notifikasi Kalender
+            val scheduler = NotificationScheduler(app)
             val entriesToCancel = calendarRepository.getEntriesForSource("TASK", id)
             entriesToCancel.forEach { entry ->
                 scheduler.cancelNotification(entry.notificationId)
             }
+
+            // =======================================================
+            // [PERBAIKAN BUG POMODORO] - Pembunuhan Service Jarak Jauh
+            // =======================================================
+            val prefs = com.lecturo.lecturo.utils.FocusPreferences(app)
+
+            // Cek apakah Tugas yang dicentang ini adalah tugas yang sedang berjalan di Pomodoro
+            if (prefs.getActiveTaskId() == id) {
+                // Tembak mati TimerService menggunakan variabel 'app'
+                val stopIntent = android.content.Intent(app, com.lecturo.lecturo.service.TimerService::class.java)
+                stopIntent.action = com.lecturo.lecturo.service.TimerService.ACTION_STOP
+                app.startService(stopIntent)
+
+                // Bersihkan jejaknya agar tidak stuck
+                prefs.clearActiveTaskId()
+            }
+            // =======================================================
         }
     }
 }

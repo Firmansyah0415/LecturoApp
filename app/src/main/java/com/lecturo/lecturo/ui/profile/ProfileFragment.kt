@@ -9,14 +9,19 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide // Import Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy // Import Cache Strategy
 import com.lecturo.lecturo.R
+import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.databinding.FragmentProfileBinding
 import com.lecturo.lecturo.di.ViewModelFactory
 import com.lecturo.lecturo.ui.auth.LoginActivity
 import com.lecturo.lecturo.viewmodel.main.MainViewModel
 import com.lecturo.lecturo.viewmodel.profile.ProfileViewModel // Import ProfileViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ProfileFragment : Fragment() {
 
@@ -114,8 +119,18 @@ class ProfileFragment : Fragment() {
     }
 
     private fun performLogout() {
-        mainViewModel.logout {
-            navigateToLogin()
+        // 1. Eksekusi sapu bersih di background thread
+        lifecycleScope.launch(Dispatchers.IO) {
+            val context = requireContext()
+            // Menghapus seluruh tabel di Room Database lokal
+            AppDatabase.getDatabase(context).clearAllTables()
+
+            // 2. Kembali ke Main Thread untuk memanggil fungsi logout & pindah UI
+            withContext(Dispatchers.Main) {
+                mainViewModel.logout {
+                    navigateToLogin()
+                }
+            }
         }
     }
 

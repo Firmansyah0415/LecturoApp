@@ -18,6 +18,13 @@ class DataRestoreManager(private val context: Context) {
     suspend fun restoreUserData(uid: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
+
+                // === TAMBAHKAN KODE INI ===
+                // Sapu bersih database lokal sebelum mendownload data baru dari server.
+                // Ini akan menghapus semua sisa calendar_entries dan tabel lainnya.
+                db.clearAllTables()
+                // ==========================
+
                 // -----------------------------------------------------------
                 // 1. Restore Teaching Rules
                 // -----------------------------------------------------------

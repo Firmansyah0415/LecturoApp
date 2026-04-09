@@ -23,25 +23,25 @@ class SyncConsultationWorker(
 
         // ================= 1. SYNC SCHEDULES =================
         val unsyncedSchedules = dao.getUnsyncedSchedules()
-
         for (s in unsyncedSchedules) {
             if (s.userId.isNullOrEmpty()) continue
 
             if (s.isDeleted) {
-                // DELETE
                 if (s.firestoreId != null) {
                     try {
                         val res = api.deleteConsultation(s.userId, s.firestoreId!!)
-                        if (res.isSuccessful || res.code() == 404) {
+                        if (res.isSuccessful) {
                             dao.hardDeleteSchedule(s.id)
-                            Log.d("SyncConsul", "Deleted Schedule: ${s.title}")
+                        } else {
+                            return@withContext Result.retry()
                         }
-                    } catch (e: Exception) { Log.e("SyncConsul", "Err Del Schedule: ${e.message}") }
+                    } catch (e: Exception) {
+                        return@withContext Result.retry()
+                    }
                 } else {
                     dao.hardDeleteSchedule(s.id)
                 }
             } else {
-                // UPLOAD / UPDATE
                 val req = ConsultationRequest(
                     uid = s.userId,
                     consultationId = s.firestoreId,
@@ -62,32 +62,36 @@ class SyncConsultationWorker(
                     if (res.isSuccessful && res.body()?.status == "success") {
                         val fid = res.body()?.data?.firestoreId
                         if (fid != null) dao.updateScheduleSyncStatus(s.id, fid)
+                    } else {
+                        return@withContext Result.retry()
                     }
-                } catch (e: Exception) { Log.e("SyncConsul", "Err Sync Schedule: ${e.message}") }
+                } catch (e: Exception) {
+                    return@withContext Result.retry()
+                }
             }
         }
 
         // ================= 2. SYNC PATTERNS =================
         val unsyncedPatterns = dao.getUnsyncedPatterns()
-
         for (p in unsyncedPatterns) {
             if (p.userId.isNullOrEmpty()) continue
 
             if (p.isDeleted) {
-                // DELETE
                 if (p.firestoreId != null) {
                     try {
                         val res = api.deletePattern(p.userId, p.firestoreId!!)
-                        if (res.isSuccessful || res.code() == 404) {
+                        if (res.isSuccessful) {
                             dao.hardDeletePattern(p.id)
-                            Log.d("SyncConsul", "Deleted Pattern: ${p.titleTemplate}")
+                        } else {
+                            return@withContext Result.retry()
                         }
-                    } catch (e: Exception) { Log.e("SyncConsul", "Err Del Pattern: ${e.message}") }
+                    } catch (e: Exception) {
+                        return@withContext Result.retry()
+                    }
                 } else {
                     dao.hardDeletePattern(p.id)
                 }
             } else {
-                // UPLOAD
                 val req = ConsultationPatternRequest(
                     uid = p.userId,
                     patternId = p.firestoreId,
@@ -103,11 +107,14 @@ class SyncConsultationWorker(
                     if (res.isSuccessful && res.body()?.status == "success") {
                         val fid = res.body()?.data?.firestoreId
                         if (fid != null) dao.updatePatternSyncStatus(p.id, fid)
+                    } else {
+                        return@withContext Result.retry()
                     }
-                } catch (e: Exception) { Log.e("SyncConsul", "Err Sync Pattern: ${e.message}") }
+                } catch (e: Exception) {
+                    return@withContext Result.retry()
+                }
             }
         }
-
         Result.success()
     }
 }

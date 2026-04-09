@@ -200,7 +200,15 @@ class ConsultationRepository(
     }
 
     suspend fun deleteSchedule(schedule: ConsultationSchedule) {
-        // Soft Delete via DAO
+        // 1. Hapus Notifikasi dan Kalender
+        val dbSqlite = AppDatabase.getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
+        val scheduler = NotificationScheduler(context)
+
+        scheduler.cancelConsultation(schedule.id)
+        calendarDao.deleteEntriesForSource("CONSULTATION", schedule.id)
+
+        // 2. Soft Delete via DAO
         consultationDao.softDeleteSchedule(schedule.id)
         scheduleSync()
     }
