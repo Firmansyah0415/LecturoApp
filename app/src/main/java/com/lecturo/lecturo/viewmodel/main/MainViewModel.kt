@@ -40,15 +40,15 @@ class MainViewModel(
     private val eventRepository: EventRepository,
     private val teachingRepository: TeachingRepository,
     private val calendarRepository: CalendarRepository,
-    private val consultationRepository: ConsultationRepository // Tetap butuh ini untuk hitung angka statistik
+    private val consultationRepository: ConsultationRepository
 ) : ViewModel() {
 
     private val _isRefreshing = MutableLiveData<Boolean>()
     val isRefreshing: LiveData<Boolean> = _isRefreshing
 
-    // --- HELPER DATE ---
+    // --- [PERBAIKAN BUG] HELPER DATE HARUS dd/MM/yyyy ---
     private val todayDate: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        get() = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
 
     // --- SESI PENGGUNA ---
     fun getSession(): LiveData<UserModel> {
@@ -92,14 +92,10 @@ class MainViewModel(
     // 3. Teaching: Jumlah Aturan Mengajar
     val teachingRuleCount: LiveData<Int> = teachingRepository.getAllRules().map { it.size }
 
-    // 4. Consultation: Hitung Jadwal 'SCHEDULED' (Menggunakan Repo Asli agar akurat)
+    // 4. Consultation: Hitung Jadwal 'SCHEDULED'
     val consultationCount: LiveData<Int> = consultationRepository.getUpcomingSchedules(todayDate).map { schedules ->
         schedules.count { it.status == "SCHEDULED" }
     }
-
-    // --- AGENDA (VERSI BERSIH / CLEAN) ---
-    // Sekarang Agenda hanya membaca dari satu sumber: CalendarRepository
-    // Karena ConsultationViewModel sudah otomatis Sync data ke sana saat Save/Update.
 
     private val _selectedDate = MutableLiveData<Date>().apply { value = Date() }
     val selectedDate: LiveData<Date> = _selectedDate

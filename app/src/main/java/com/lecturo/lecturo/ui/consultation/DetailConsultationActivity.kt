@@ -151,7 +151,7 @@ class DetailConsultationActivity : AppCompatActivity() {
             datePicker.addOnPositiveButtonClickListener { selection ->
                 val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
                 calendar.timeInMillis = selection
-                val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 binding.etDate.setText(format.format(calendar.time))
             }
             datePicker.show(supportFragmentManager, "DATE_PICKER")

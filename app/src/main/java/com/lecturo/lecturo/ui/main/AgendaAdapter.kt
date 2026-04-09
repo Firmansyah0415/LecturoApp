@@ -46,9 +46,9 @@ class AgendaAdapter(
             val cleanCategory = entry.category.trim().lowercase(Locale.getDefault())
             val cleanPriority = entry.priority.trim().lowercase(Locale.getDefault())
 
-            // 1. SETUP IKON & WARNA KATEGORI (MENGGUNAKAN ContextCompat)
+            // 1. SETUP IKON & WARNA KATEGORI
             val iconRes: Int
-            val categoryColorRes: Int // Menggunakan Int (ID), bukan String
+            val categoryColorRes: Int
 
             when {
                 cleanCategory == "mengajar" -> {
@@ -69,33 +69,37 @@ class AgendaAdapter(
                 }
             }
 
-            // Menerapkan warna kategori
             val resolvedCategoryColor = ContextCompat.getColor(context, categoryColorRes)
             iconImageView.setImageResource(iconRes)
             iconImageView.setColorFilter(Color.WHITE)
             iconFrame.backgroundTintList = ColorStateList.valueOf(resolvedCategoryColor)
             categoryTextView.setTextColor(resolvedCategoryColor)
 
-            // 2. SETUP BADGE PRIORITAS (SESUAI colors.xml)
-            priorityTextView.text = entry.priority.uppercase() // Biar terlihat tegas
-
+            // 2. SETUP BADGE PRIORITAS & PENERJEMAH OTOMATIS (PERBAIKAN BUG)
             val priorityTextColorRes: Int
             val priorityBgColorRes: Int
+            val displayPriorityText: String // <--- Variabel baru untuk teks UI
 
             when (cleanPriority) {
                 "tinggi", "high", "hight", "urgent" -> {
                     priorityTextColorRes = R.color.hight_priority
                     priorityBgColorRes = R.color.hight_priority_bg
+                    displayPriorityText = "TINGGI" // Paksa jadi bahasa Indonesia
                 }
                 "rendah", "low" -> {
                     priorityTextColorRes = R.color.low_priority
                     priorityBgColorRes = R.color.low_priority_bg
+                    displayPriorityText = "RENDAH" // Paksa jadi bahasa Indonesia
                 }
                 else -> { // Sedang / Medium
                     priorityTextColorRes = R.color.medium_priority
                     priorityBgColorRes = R.color.medium_priority_bg
+                    displayPriorityText = "SEDANG" // Paksa jadi bahasa Indonesia
                 }
             }
+
+            // Terapkan Teks yang sudah diterjemahkan
+            priorityTextView.text = displayPriorityText
 
             // Menerapkan warna prioritas
             val resolvedPriorityTextColor = ContextCompat.getColor(context, priorityTextColorRes)

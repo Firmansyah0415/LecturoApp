@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.lecturo.lecturo.data.db.AppDatabase
-import com.lecturo.lecturo.data.model.CalendarEntry
 import com.lecturo.lecturo.data.model.ConsultationPattern
 import com.lecturo.lecturo.data.model.ConsultationSchedule
 import com.lecturo.lecturo.data.repository.CalendarRepository
@@ -40,7 +39,7 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
     // ================= DATA STREAMS =================
 
     private val todayDate: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        get() = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
 
     val schedules: LiveData<List<ConsultationSchedule>> = _filterType.switchMap { filter ->
         when (filter) {
@@ -79,18 +78,6 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
 
     fun deleteSchedule(schedule: ConsultationSchedule) = viewModelScope.launch {
         repository.deleteSchedule(schedule)
-    }
-
-    // Helper untuk konversi yyyy-MM-dd -> dd/MM/yyyy
-    private fun convertDateToOldFormat(isoDate: String): String {
-        return try {
-            val input = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val output = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val date = input.parse(isoDate)
-            output.format(date!!)
-        } catch (e: Exception) {
-            isoDate // Fallback jika error
-        }
     }
 
     // Helper untuk mengambil satu data

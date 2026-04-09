@@ -170,12 +170,25 @@ class ConsultationActivity : AppCompatActivity() {
         dialog.setContentView(sheetBinding.root)
 
         val patternAdapter = PatternAdapter { pattern ->
-            val nextDate = DateHelper.getNextDateForDay(pattern.dayOfWeek)
+            // 1. Ambil tanggal asli dari helper (biasanya yyyy-MM-dd)
+            val nextDateRaw = DateHelper.getNextDateForDay(pattern.dayOfWeek)
+
+            // 2. [PERBAIKAN BUG 15] Cegat dan ubah secara paksa menjadi dd/MM/yyyy
+            val formattedNextDate = try {
+                val inFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                val outFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                val dateObj = inFormat.parse(nextDateRaw)
+                outFormat.format(dateObj!!)
+            } catch (e: Exception) {
+                nextDateRaw // Fallback jika gagal
+            }
+
+            // 3. Kirim tanggal yang sudah cantik ke halaman Detail
             val intent = Intent(this, DetailConsultationActivity::class.java).apply {
                 putExtra("IS_FROM_TEMPLATE", true)
                 putExtra("TEMPLATE_ID", pattern.id.toString())
                 putExtra("PREFILL_TITLE", pattern.titleTemplate)
-                putExtra("PREFILL_DATE", nextDate)
+                putExtra("PREFILL_DATE", formattedNextDate) // <--- Gunakan yang sudah dikonversi
                 putExtra("PREFILL_START", pattern.startTime)
                 putExtra("PREFILL_END", pattern.endTime)
                 putExtra("PREFILL_LOCATION", pattern.locationDefault)

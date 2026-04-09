@@ -22,19 +22,21 @@ class ConsultationAdapter(
         fun bind(item: ConsultationSchedule) {
             binding.tvTitle.text = item.title
 
-            // Format Tanggal ke Indonesia
-            val dateInputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            // --- [PERBAIKAN BUG 15] ALAT BACA TANGGAL ---
+            // Jadikan dd/MM/yyyy sebagai format utama yang diharapkan
+            val dateInputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             val dateOutputFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
             try {
                 val dateObj = dateInputFormat.parse(item.date)
                 binding.tvDate.text = dateOutputFormat.format(dateObj!!)
             } catch (e: Exception) {
-                // Fallback jika format dari CSV/Web berbeda
-                val fallbackOutput = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                // Fallback: Jika ternyata ada sisa data lama yang masih pakai yyyy-MM-dd
+                val fallbackInput = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 try {
-                    val fallbackDate = fallbackOutput.parse(item.date)
+                    val fallbackDate = fallbackInput.parse(item.date)
                     binding.tvDate.text = dateOutputFormat.format(fallbackDate!!)
                 } catch (ex: Exception) {
+                    // Jika hancur semua, tampilkan apa adanya
                     binding.tvDate.text = item.date
                 }
             }

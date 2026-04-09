@@ -23,6 +23,16 @@ class ConsultationRepository(
     private val context: Context
 ) {
 
+    // --- [PERBAIKAN BUG] PENERJEMAH PRIORITAS UNTUK KALENDER ---
+    private fun mapPriorityToIndo(priority: String?): String {
+        return when (priority?.lowercase()) {
+            "high" -> "Tinggi"
+            "medium" -> "Sedang"
+            "low" -> "Rendah"
+            else -> "Sedang"
+        }
+    }
+
     suspend fun syncConsultationsFromCloud() {
         try {
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -48,10 +58,6 @@ class ConsultationRepository(
                     val status = document.getString("status") ?: "SCHEDULED"
                     val notificationMinutes = document.getLong("notification_minutes")?.toInt() ?: 15
 
-                    // Konversi format tanggal YYYY-MM-DD dari Web ke DD/MM/YYYY untuk HomeFragment
-                    val dateParts = date.split("-")
-                    val dateForCalendar = if (dateParts.size == 3) "${dateParts[2]}/${dateParts[1]}/${dateParts[0]}" else date
-
                     val existing = consultationDao.getScheduleByFirestoreId(firestoreId)
 
                     if (existing != null) {
@@ -73,25 +79,22 @@ class ConsultationRepository(
                             updated.firestoreId = firestoreId
                             consultationDao.updateScheduleRaw(updated)
 
-                            // Bersihkan Alarm dan Kalender Lama
                             scheduler.cancelConsultation(existing.id)
                             calendarDao.deleteEntriesForSource("CONSULTATION", existing.id)
 
-                            // Masukkan ke Kalender (HomeFragment) & Nyalakan Alarm Baru
                             if (updated.status != "CANCELLED") {
                                 val entry = CalendarEntry(
                                     title = updated.title,
-                                    date = dateForCalendar,
+                                    date = updated.date,
                                     time = updated.startTime,
                                     category = "Konsultasi",
-                                    priority = updated.priority ?: "Sedang",
+                                    priority = mapPriorityToIndo(updated.priority), // <--- DITERJEMAHKAN!
                                     sourceFeatureType = "CONSULTATION",
                                     sourceFeatureId = existing.id,
                                     notificationMinutesBefore = updated.notificationMinutesBefore
                                 )
                                 calendarDao.insertEntry(entry)
 
-                                // Alarm konsultasi dipanggil menggunakan fungsinya sendiri
                                 if (updated.status == "SCHEDULED") scheduler.scheduleConsultation(updated)
                             }
                         }
@@ -115,21 +118,19 @@ class ConsultationRepository(
                         val newId = consultationDao.insertScheduleRaw(newSchedule)
                         val finalSchedule = newSchedule.copy(id = newId)
 
-                        // Masukkan ke Kalender (HomeFragment) & Nyalakan Alarm Baru
                         if (finalSchedule.status != "CANCELLED") {
                             val entry = CalendarEntry(
                                 title = finalSchedule.title,
-                                date = dateForCalendar,
+                                date = finalSchedule.date,
                                 time = finalSchedule.startTime,
                                 category = "Konsultasi",
-                                priority = finalSchedule.priority ?: "Sedang",
+                                priority = mapPriorityToIndo(finalSchedule.priority), // <--- DITERJEMAHKAN!
                                 sourceFeatureType = "CONSULTATION",
                                 sourceFeatureId = newId,
                                 notificationMinutesBefore = finalSchedule.notificationMinutesBefore
                             )
                             calendarDao.insertEntry(entry)
 
-                            // Alarm konsultasi dipanggil menggunakan fungsinya sendiri
                             if (finalSchedule.status == "SCHEDULED") scheduler.scheduleConsultation(finalSchedule)
                         }
                     }
@@ -145,19 +146,19 @@ class ConsultationRepository(
         schedule.isDeleted = false
         val id = consultationDao.insertSchedule(schedule)
 
-        // Masukkan ke Kalender & Alarm
         val dbSqlite = AppDatabase.getDatabase(context)
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
 
-        val dateParts = schedule.date.split("-")
-        val dateForCalendar = if (dateParts.size == 3) "${dateParts[2]}/${dateParts[1]}/${dateParts[0]}" else schedule.date
-
         if (schedule.status != "CANCELLED") {
             val entry = CalendarEntry(
-                title = schedule.title, date = dateForCalendar, time = schedule.startTime,
-                category = "Konsultasi", priority = schedule.priority ?: "Sedang",
-                sourceFeatureType = "CONSULTATION", sourceFeatureId = id,
+                title = schedule.title,
+                date = schedule.date,
+                time = schedule.startTime,
+                category = "Konsultasi",
+                priority = mapPriorityToIndo(schedule.priority), // <--- DITERJEMAHKAN!
+                sourceFeatureType = "CONSULTATION",
+                sourceFeatureId = id,
                 notificationMinutesBefore = schedule.notificationMinutesBefore
             )
             calendarDao.insertEntry(entry)
@@ -172,24 +173,22 @@ class ConsultationRepository(
         schedule.isSynced = false
         consultationDao.updateSchedule(schedule)
 
-        // [BASMI HANTU UPDATE]
         val dbSqlite = AppDatabase.getDatabase(context)
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
 
-        // Hapus yang lama
         scheduler.cancelConsultation(schedule.id)
         calendarDao.deleteEntriesForSource("CONSULTATION", schedule.id)
 
-        // Masukkan yang baru
-        val dateParts = schedule.date.split("-")
-        val dateForCalendar = if (dateParts.size == 3) "${dateParts[2]}/${dateParts[1]}/${dateParts[0]}" else schedule.date
-
         if (schedule.status != "CANCELLED") {
             val entry = CalendarEntry(
-                title = schedule.title, date = dateForCalendar, time = schedule.startTime,
-                category = "Konsultasi", priority = schedule.priority ?: "Sedang",
-                sourceFeatureType = "CONSULTATION", sourceFeatureId = schedule.id,
+                title = schedule.title,
+                date = schedule.date,
+                time = schedule.startTime,
+                category = "Konsultasi",
+                priority = mapPriorityToIndo(schedule.priority), // <--- DITERJEMAHKAN!
+                sourceFeatureType = "CONSULTATION",
+                sourceFeatureId = schedule.id,
                 notificationMinutesBefore = schedule.notificationMinutesBefore
             )
             calendarDao.insertEntry(entry)
@@ -200,7 +199,6 @@ class ConsultationRepository(
     }
 
     suspend fun deleteSchedule(schedule: ConsultationSchedule) {
-        // 1. Hapus Notifikasi dan Kalender
         val dbSqlite = AppDatabase.getDatabase(context)
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
@@ -208,7 +206,6 @@ class ConsultationRepository(
         scheduler.cancelConsultation(schedule.id)
         calendarDao.deleteEntriesForSource("CONSULTATION", schedule.id)
 
-        // 2. Soft Delete via DAO
         consultationDao.softDeleteSchedule(schedule.id)
         scheduleSync()
     }
@@ -233,8 +230,6 @@ class ConsultationRepository(
         scheduleSync()
     }
 
-    // ================= WORKER TRIGGER =================
-
     private fun scheduleSync() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -251,8 +246,6 @@ class ConsultationRepository(
         )
     }
 
-    // ================= READERS (Pass Through) =================
-    // Tidak berubah, hanya meneruskan dari DAO
     suspend fun getScheduleById(id: Long) = consultationDao.getScheduleById(id)
     fun getUpcomingSchedules(date: String) = consultationDao.getUpcomingSchedules(date)
     fun getHistorySchedules(date: String) = consultationDao.getHistorySchedules(date)
