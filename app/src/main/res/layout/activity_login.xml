@@ -34,7 +34,7 @@
             android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Masuk dengan nomor HP Anda untuk melanjutkan."
+            android:text="Masuk dengan nomor WhatsApp Anda untuk melanjutkan."
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginTop="8dp"
@@ -50,6 +50,15 @@
             android:visibility="visible"
             app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nomor Handphone (Contoh: 8123...)"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/phoneEditTextLayout"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -59,7 +68,7 @@
                 app:boxCornerRadiusTopEnd="16dp"
                 app:boxCornerRadiusBottomStart="16dp"
                 app:boxCornerRadiusBottomEnd="16dp"
-                android:hint="Nomor Handphone (Contoh: 8123...)"
+                app:hintEnabled="false"
                 app:prefixText="+62 ">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -67,6 +76,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="phone"
+                    android:hint="0000 0000 000"
+                    android:letterSpacing="0.05"
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -79,6 +90,7 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 app:cornerRadius="24dp"
+                android:textColor="@color/white"
                 android:text="Kirim Kode OTP"
                 android:textStyle="bold" />
 

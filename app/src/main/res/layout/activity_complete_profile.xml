@@ -159,7 +159,8 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 app:cornerRadius="16dp"
-                android:text="Save"
+                android:textColor="@color/white"
+                android:text="Simpan"
                 android:textSize="@dimen/text_size_large"
                 android:textStyle="bold" />
 
