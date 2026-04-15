@@ -66,7 +66,7 @@
                             android:layout_height="48dp"
                             android:contentDescription="Bulan Sebelumnya"
                             app:icon="@drawable/ic_chevron_left"
-                            app:iconTint="@color/primary_color" />
+                            app:iconTint="@color/colorPrimary" />
 
                         <TextView
                             android:id="@+id/tvCurrentMonth"
@@ -86,7 +86,7 @@
                             android:layout_height="48dp"
                             android:contentDescription="Bulan Selanjutnya"
                             app:icon="@drawable/ic_chevron_right"
-                            app:iconTint="@color/primary_color" />
+                            app:iconTint="@color/colorPrimary" />
 
                     </LinearLayout>
 
@@ -296,7 +296,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Tugas"
-                            android:textColor="@color/chip_foreground_on_light_bg"
+                            android:textColor="@color/text_secondary"
                             app:chipBackgroundColor="@color/task_color_light"
                             app:checkedIconTint="@color/chip_icon_tint_selector"
                             android:checked="true" />
@@ -307,7 +307,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Mengajar"
-                            android:textColor="@color/chip_foreground_on_light_bg"
+                            android:textColor="@color/text_secondary"
                             app:chipBackgroundColor="@color/teaching_color_light"
                             app:checkedIconTint="@color/chip_icon_tint_selector"
                             android:checked="true" />
@@ -318,7 +318,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Event"
-                            android:textColor="@color/chip_foreground_on_light_bg"
+                            android:textColor="@color/text_secondary"
                             app:chipBackgroundColor="@color/event_color_light"
                             app:checkedIconTint="@color/chip_icon_tint_selector"
                             android:checked="true" />
@@ -329,7 +329,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Konsultasi"
-                            android:textColor="@color/chip_foreground_on_light_bg"
+                            android:textColor="@color/text_secondary"
                             app:chipBackgroundColor="@color/consultation_color_light"
                             app:checkedIconTint="@color/chip_icon_tint_selector"
                             android:checked="true" />
@@ -382,7 +382,7 @@
                             android:paddingHorizontal="8dp"
                             android:paddingVertical="4dp"
                             android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
-                            android:textColor="@color/primary_color"
+                            android:textColor="@color/colorPrimary"
                             tools:text="3" />
 
                     </LinearLayout>

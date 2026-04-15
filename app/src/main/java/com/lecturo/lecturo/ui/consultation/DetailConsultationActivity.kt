@@ -2,7 +2,6 @@ package com.lecturo.lecturo.ui.consultation
 
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -10,6 +9,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.preference.PreferenceManager
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
@@ -17,7 +17,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.model.ConsultationSchedule
 import com.lecturo.lecturo.databinding.ActivityDetailConsultationBinding
-import com.lecturo.lecturo.di.ViewModelFactory // Pastikan import ini ada
+import com.lecturo.lecturo.di.ViewModelFactory
 import com.lecturo.lecturo.viewmodel.consultation.ConsultationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,41 +26,31 @@ class DetailConsultationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDetailConsultationBinding
 
-    // PERBAIKAN PENTING: Gunakan ViewModelFactory agar Repository ter-inject dengan benar
     private val viewModel: ConsultationViewModel by viewModels {
         ViewModelFactory.getInstance(application)
     }
 
     private var scheduleId: Long = 0
     private var recurringIdFromTemplate: String? = null
-
-    // TAMBAHKAN INI: Variabel untuk menyimpan ID Firestore saat mode Edit
     private var currentFirestoreId: String? = null
+
+    // 1. Variabel penampung nilai menit notifikasi
+    // Tidak lagi di-hardcode ke 15!
+    private var selectedNotifMinutes: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDetailConsultationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // bikin status bar transparan sekali untuk semua activity
+        // Status bar transparan
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // atur warna status bar
         window.statusBarColor = getColor(R.color.colorPrimary)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
 
-        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
-        WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = true
-
-        // otomatis kasih padding top di root view sesuai status bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-            view.setPadding(
-                view.paddingLeft,
-                statusBarInsets.top,
-                view.paddingRight,
-                view.paddingBottom
-            )
+            view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
             insets
         }
 
@@ -68,7 +58,10 @@ class DetailConsultationActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Buat Konsultasi"
 
-        setupNotificationDropdown()
+        // --- [PERBAIKAN FITUR: Terapkan Default Settings] ---
+        applyDefaultSettings()
+
+        setupNotificationChips()
 
         binding.btnSave.setOnClickListener {
             saveConsultation()
@@ -81,6 +74,45 @@ class DetailConsultationActivity : AppCompatActivity() {
             loadScheduleData(scheduleId)
         } else if (intent.getBooleanExtra("IS_FROM_TEMPLATE", false)) {
             setupFromTemplate()
+        }
+    }
+
+    // --- FUNGSI BARU: Membaca Default dari Settings ---
+    private fun applyDefaultSettings() {
+        val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this)
+        // Baca nilai pengaturan untuk konsultasi. Jika belum pernah diatur, default-nya 30 (sesuai Setting Activity-mu)
+        selectedNotifMinutes = sharedPrefs.getInt("default_notification_consultation", 30)
+
+        // Panggil fungsi untuk menyalakan/menyorot Chip yang sesuai dengan nilai default ini
+        checkNotificationChipByValue(selectedNotifMinutes)
+    }
+
+    // --- FUNGSI BARU: Mencari dan Menyorot Chip berdasarkan nilai (Menit) ---
+    private fun checkNotificationChipByValue(minutes: Int) {
+        val chipId = when (minutes) {
+            -1 -> R.id.chipNotifNone
+            0 -> R.id.chipNotifOnTime
+            5 -> R.id.chipNotif5m
+            15 -> R.id.chipNotif15m
+            30 -> R.id.chipNotif30m
+            60 -> R.id.chipNotif1h
+            else -> R.id.chipNotifOnTime // Fallback ke Tepat Waktu jika aneh
+        }
+        binding.chipGroupNotification.check(chipId)
+    }
+
+    private fun setupNotificationChips() {
+        binding.chipGroupNotification.setOnCheckedStateChangeListener { group, checkedIds ->
+            selectedNotifMinutes = when (checkedIds.firstOrNull()) {
+                R.id.chipNotifNone -> -1
+                R.id.chipNotifOnTime -> 0
+                R.id.chipNotif5m -> 5
+                R.id.chipNotif15m -> 15
+                R.id.chipNotif30m -> 30
+                R.id.chipNotif1h -> 60
+                // Fallback default jika di-uncheck paksa (meski selectionRequired=true mencegah ini)
+                else -> PreferenceManager.getDefaultSharedPreferences(this).getInt("default_notification_consultation", 30)
+            }
         }
     }
 
@@ -110,35 +142,25 @@ class DetailConsultationActivity : AppCompatActivity() {
                 binding.etLocation.setText(schedule.location)
                 binding.etDescription.setText(schedule.description)
 
-                // TAMBAHAN DEBUGGING (Cek Logcat nanti)
                 android.util.Log.d("DETAIL_CONS", "Loaded ID: ${schedule.id}, FirestoreID: ${schedule.firestoreId}")
-
-                // Simpan ID Firestore agar tidak hilang
                 currentFirestoreId = schedule.firestoreId
 
-                // Jika null (misal hasil restore gagal simpan ID), coba log error
                 if (currentFirestoreId == null) {
                     android.util.Log.e("DETAIL_CONS", "BAHAYA: Firestore ID Kosong! Edit mungkin gagal sync.")
                 }
 
+                // Set Chip Notifikasi sesuai menit dari database
+                selectedNotifMinutes = schedule.notificationMinutesBefore
+                checkNotificationChipByValue(selectedNotifMinutes)
+
+                // Set Chip Prioritas
                 when (schedule.priority) {
                     "High" -> binding.chipGroupPriority.check(binding.chipHigh.id)
-                    "Medium" -> binding.chipGroupPriority.check(binding.chipMedium.id)
                     "Low" -> binding.chipGroupPriority.check(binding.chipLow.id)
+                    else -> binding.chipGroupPriority.check(binding.chipMedium.id)
                 }
             }
         }
-    }
-
-    private fun setupNotificationDropdown() {
-        val notificationOptions = listOf(
-            "15 minutes before",
-            "30 minutes before",
-            "1 hour before",
-            "1 day before"
-        )
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, notificationOptions)
-        binding.actNotification.setAdapter(adapter)
     }
 
     private fun setupPickers() {
@@ -177,7 +199,6 @@ class DetailConsultationActivity : AppCompatActivity() {
     }
 
     private fun saveConsultation() {
-        // 1. Ambil data dari Input
         val title = binding.etTitle.text.toString()
         val date = binding.etDate.text.toString()
         val startTime = binding.etStartTime.text.toString()
@@ -191,13 +212,11 @@ class DetailConsultationActivity : AppCompatActivity() {
             else -> "Medium"
         }
 
-        // 2. Validasi Input Kosong
         if (title.isEmpty() || date.isEmpty() || startTime.isEmpty() || endTime.isEmpty()) {
             Toast.makeText(this, "Mohon lengkapi judul, tanggal, dan waktu", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // 3. AMBIL UID (Hanya Satu Kali Di Sini)
         val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
         val currentUid = currentUser?.uid
 
@@ -206,7 +225,6 @@ class DetailConsultationActivity : AppCompatActivity() {
             return
         }
 
-        // 4. Buat Objek & Simpan
         val schedule = ConsultationSchedule(
             id = if (scheduleId != 0L) scheduleId else 0,
             recurringId = recurringIdFromTemplate,
@@ -217,7 +235,8 @@ class DetailConsultationActivity : AppCompatActivity() {
             location = location,
             description = desc,
             priority = priority,
-            userId = currentUid, // Gunakan UID asli
+            userId = currentUid,
+            notificationMinutesBefore = selectedNotifMinutes, // Variabel pintar
             firestoreId = currentFirestoreId,
             status = "SCHEDULED"
         )

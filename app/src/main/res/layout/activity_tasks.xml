@@ -9,17 +9,20 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/taskToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@android:color/transparent"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:menu="@menu/tasks_menu"
-            app:titleTextColor="?attr/colorControlNormal"
+            app:titleTextColor="?attr/colorOnSurface"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
@@ -28,10 +31,10 @@
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            app:tabTextColor="@android:color/white"
-            app:tabSelectedTextColor="@android:color/white"
-            app:tabIndicatorColor="@android:color/white" />
+            android:background="@color/colorBackground"
+            app:tabTextColor="@color/task_color"
+            app:tabSelectedTextColor="@color/task_color"
+            app:tabIndicatorColor="@color/task_color" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -50,6 +53,6 @@
         android:layout_marginBottom="20dp"
         android:src="@drawable/ic_add"
         app:tint="@android:color/white"
-        app:backgroundTint="@color/colorPrimary" />
+        app:backgroundTint="@color/task_color" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

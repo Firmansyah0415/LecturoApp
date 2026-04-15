@@ -211,7 +211,7 @@ class TasksRepository(
         // PENTING: Gunakan 'KEEP' agar worker tidak numpuk
         WorkManager.getInstance(context).enqueueUniqueWork(
             "SyncTasksWork", // Nama Unik
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             syncRequest
         )
     }
@@ -228,7 +228,7 @@ class TasksRepository(
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "SyncFocusWork",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             syncRequest
         )
     }

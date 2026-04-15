@@ -53,18 +53,18 @@ class CalendarDayAdapter(
                 when {
                     isSelected -> {
                         binding.cardDayBackground.setCardBackgroundColor(
-                            ContextCompat.getColor(context, R.color.primary_color_light)
+                            ContextCompat.getColor(context, R.color.colorOnPrimaryContainer)
                         )
                         binding.tvDayNumber.setTextColor(
-                            ContextCompat.getColor(context, R.color.primary_color)
+                            ContextCompat.getColor(context, R.color.text_tertiary)
                         )
                     }
                     calendarDay.isToday -> {
                         binding.cardDayBackground.setCardBackgroundColor(
-                            ContextCompat.getColor(context, R.color.primary_color_light)
+                            ContextCompat.getColor(context, R.color.colorOnPrimaryContainer)
                         )
                         binding.tvDayNumber.setTextColor(
-                            ContextCompat.getColor(context, R.color.primary_color)
+                            ContextCompat.getColor(context, R.color.text_tertiary)
                         )
                     }
                     else -> {

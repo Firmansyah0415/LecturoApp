@@ -107,7 +107,7 @@ class TeachingActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(binding.teachingToolbar)
-        supportActionBar?.title = "Aturan Jadwal Mengajar"
+        supportActionBar?.title = "Jadwal Mengajar"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 

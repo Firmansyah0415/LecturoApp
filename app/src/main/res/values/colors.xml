@@ -1,28 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="colorSecondary">#4CAF50</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
     <color name="icon_placeholder">#BDBDBD</color>
-    <color name="colorError">#F44336</color>
-    <color name="chip_background_color">#F0F0F0</color>
-    <color name="background_secondary">#F5F5F5</color>
     <color name="divider_color">#1F000000</color>
-
-    <!-- Existing colors -->
-    <color name="colorPrimary">#2196F3</color>
-    <color name="colorPrimaryDark">#1976D2</color>
-    <color name="colorAccent">#FF9800</color>
     <color name="border_color">#E0E0E0</color>
 
-    <!-- Info colors for notification cards and info sections -->
-    <color name="info_background">#E3F2FD</color>
-    <color name="info_color">#1976D2</color>
-    <color name="info_text_color">#0D47A1</color>
+    <color name="colorPrimary">#1976D2</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorPrimaryContainer">#E3F2FD</color>
+    <color name="colorOnPrimaryContainer">#0D47A1</color>
 
-    <!-- Additional info variants -->
-    <color name="info_background_light">#F3F9FF</color>
-    <color name="info_background_dark">#BBDEFB</color>
+    <color name="colorSecondary">#4CAF50</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
+    <color name="colorSecondaryContainer">#E8F5E9</color>
+    <color name="colorOnSecondaryContainer">#1B5E20</color>
+
+    <color name="colorBackground">#FAFAFA</color>
+    <color name="colorSurface">#FFFFFF</color>
+
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_tertiary">#BDBDBD</color>
+
+    <color name="task_color">#F44336</color>
+    <color name="task_color_light">#FFEBEE</color>
+
+    <color name="teaching_color">#5E35B1</color>
+    <color name="teaching_color_light">#EDE7F6</color>
+
+    <color name="event_color">#F57C00</color>
+    <color name="event_color_light">#FFF3E0</color>
+
+    <color name="consultation_color">#00897B</color>
+    <color name="consultation_color_light">#E0F2F1</color>
+
+    <color name="high_priority">#C62828</color>
+    <color name="high_priority_bg">#FFEBEE</color>
+
+    <color name="medium_priority">#EF6C00</color>
+    <color name="medium_priority_bg">#FFF3E0</color>
+
+    <color name="low_priority">#2E7D32</color>
+    <color name="low_priority_bg">#E8F5E9</color>
+
+    <!-- Error colors -->
+    <color name="error_background">#FFEBEE</color>
+    <color name="error_color">#F44336</color>
+    <color name="error_text_color">#C62828</color>
 
     <!-- Success colors -->
     <color name="success_background">#E8F5E8</color>
@@ -35,76 +60,10 @@
     <color name="warning_color">#FF9800</color>
     <color name="warning_text_color">#E65100</color>
 
-    <!-- Error colors -->
-    <color name="error_background">#FFEBEE</color>
-    <color name="error_color">#F44336</color>
-    <color name="error_text_color">#C62828</color>
-
-    <!-- Neutral colors -->
-    <color name="neutral_background">#F5F5F5</color>
-    <color name="neutral_color">#9E9E9E</color>
-    <color name="neutral_text_color">#424242</color>
-
-    <!-- Primary Colors -->
-    <color name="primary_color">#2196F3</color>
-    <color name="primary_color_dark">#1976D2</color>
-    <color name="primary_color_light">#BBDEFB</color>
-
-    <!-- Background Colors -->
-    <color name="background_light">#FAFAFA</color>
-    <color name="surface_color">#FFFFFF</color>
-
-    <!-- Text Colors -->
-    <color name="text_primary">#2196F3</color>
-    <color name="text_secondary">#757575</color>
-    <color name="text_tertiary">#BDBDBD</color>
-
-    <!-- Category Colors -->
-    <!-- Task - Red -->
-    <color name="task_color">#F44336</color>
-    <color name="task_color_light">#FFEBEE</color>
-
-    <!-- Teaching - Blue -->
-    <color name="teaching_color">#2196F3</color>
-    <color name="teaching_color_light">#E3F2FD</color>
-
-    <!-- Event - Orange -->
-    <color name="event_color">#FF9800</color>
-    <color name="event_color_light">#FFF3E0</color>
-
-    <!-- Consultation - Green -->
-    <color name="consultation_color">#4CAF50</color>
-    <color name="consultation_color_light">#E8F5E8</color>
-
-    <!-- Default -->
-    <color name="default_color">#9E9E9E</color>
-    <color name="default_color_light">#F5F5F5</color>
-
-    <!-- Thumb -->
-    <color name="checked_thumb">#FFFFFF</color>
-    <color name="unchecked_thumb">#8c8c8c</color>
-    <color name="checked_track">#2196F3</color>
-    <color name="unchecked_track">#cdcdcd</color>
-
-    <!-- Warna gelap untuk teks/ikon di atas background chip yang terang -->
-    <color name="chip_foreground_on_light_bg">#DE000000</color> <!-- 87% Black -->
-
-    <!-- Bottom Navigation Color State -->
-    <color name="bottom_nav_selected">#2196F3</color>
-    <color name="bottom_nav_unselected">#757575</color>
-
-    <!-- Background Colors -->
-    <color name="background">#FAFAFA</color>
+    <!-- Card colors -->
     <color name="card_background">#FFFFFF</color>
 
-    <!-- Priority teks Colors -->
-    <color name="hight_priority">#D32F2F</color>
-    <color name="medium_priority">#E65100</color>
-    <color name="low_priority">#2E7D32</color>
-
-    <!-- Priority backgorundtint Colors -->
-    <color name="hight_priority_bg">#FFEBEE</color>
-    <color name="medium_priority_bg">#FFF3E0</color>
-    <color name="low_priority_bg">#E8F5E9</color>
-
+    <!-- Indicator Active Nav Color -->
+    <color name="bottom_nav_selected">#1976D2</color>
+    <color name="bottom_nav_unselected">#757575</color>
 </resources>

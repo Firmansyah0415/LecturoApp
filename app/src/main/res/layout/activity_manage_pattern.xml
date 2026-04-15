@@ -4,21 +4,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@color/colorBackground">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="@color/white"
             app:title="Buat Template Baru"
-            app:titleTextColor="@android:color/white"
-            android:background="@color/primary_color" />
+            app:titleTextColor="?attr/colorOnSurface" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -33,13 +35,10 @@
             android:padding="16dp">
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                 android:hint="Nama Pola (Cth: Bimbingan Selasa)">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -58,6 +57,7 @@
                 app:boxCornerRadiusBottomStart="16dp"
                 app:boxCornerRadiusBottomEnd="16dp"
                 android:layout_marginTop="16dp"
+                android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                 android:hint="Pilih Hari">
 
                 <AutoCompleteTextView
@@ -75,15 +75,12 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                     android:hint="Jam Mulai">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -92,19 +89,17 @@
                         android:layout_height="wrap_content"
                         android:focusable="false"
                         android:clickable="true"
-                        android:drawableEnd="@drawable/ic_time_small" />
+                        android:drawableEnd="@drawable/ic_time_small"
+                        android:drawableTint="@color/consultation_color"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                     android:hint="Jam Selesai">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -113,19 +108,17 @@
                         android:layout_height="wrap_content"
                         android:focusable="false"
                         android:clickable="true"
-                        android:drawableEnd="@drawable/ic_time_small" />
+                        android:drawableEnd="@drawable/ic_time_small"
+                        android:drawableTint="@color/consultation_color"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                 android:hint="Lokasi Default">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -133,7 +126,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPostalAddress"
-                    android:drawableEnd="@drawable/ic_location_small"/>
+                    android:drawableEnd="@drawable/ic_location_small"
+                    android:drawableTint="@color/consultation_color"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -146,22 +140,21 @@
                 android:text="Simpan Template"
                 android:textAllCaps="false"
                 android:textSize="16sp"
+                android:textColor="@color/white"
                 app:cornerRadius="@dimen/button_corner_radius_xlarge"
-                android:backgroundTint="@color/primary_color" />
+                android:backgroundTint="@color/consultation_color" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDelete"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height_large"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:layout_marginTop="8dp"
                 android:text="Hapus Template"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/error_color"
+                android:backgroundTint="@color/error_background"
                 app:cornerRadius="@dimen/button_corner_radius_xlarge"
-                android:textColor="@color/error_color"
+                android:textColor="@color/error_text_color"
                 android:visibility="visible"/>
 
         </LinearLayout>

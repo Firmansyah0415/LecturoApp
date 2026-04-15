@@ -6,6 +6,7 @@
         android:id="@+id/action_search"
         android:title="@string/cari"
         android:icon="@drawable/ic_search"
+        android:iconTint="?attr/colorOnSurface"
         app:showAsAction="ifRoom|collapseActionView"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
 

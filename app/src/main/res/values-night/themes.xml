@@ -1,17 +1,29 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.LecturoApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <style name="Base.Theme.LecturoApp" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+        <item name="colorPrimaryContainer">@color/colorPrimaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/colorOnPrimaryContainer</item>
+
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item>
+        <item name="colorSecondaryContainer">@color/colorSecondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/colorOnSecondaryContainer</item>
+
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <item name="android:statusBarColor">?attr/colorSurface</item> <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <!-- TAMBAHKAN STYLE BARU INI -->
+    <style name="Theme.LecturoApp" parent="Base.Theme.LecturoApp" />
+
     <style name="ShapeAppearance.App.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
-        <!-- Atur sudut kiri bawah menjadi 16dp -->
         <item name="cornerFamilyBottomLeft">rounded</item>
         <item name="cornerSizeBottomLeft">16dp</item>
-
-        <!-- Atur sudut kanan bawah menjadi 16dp -->
         <item name="cornerFamilyBottomRight">rounded</item>
         <item name="cornerSizeBottomRight">16dp</item>
     </style>
@@ -25,5 +37,4 @@
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:textStyle">bold</item>
     </style>
-
 </resources>

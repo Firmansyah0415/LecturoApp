@@ -13,7 +13,7 @@
         android:layout_height="4dp"
         android:layout_gravity="center"
         android:layout_marginTop="12dp"
-        android:background="#E0E0E0" />
+        android:background="@color/divider_color" />
 
     <TextView
         android:id="@+id/tvSheetTitle"
@@ -23,7 +23,7 @@
         android:paddingVertical="20dp"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"/>
+        android:textColor="@color/text_primary"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnEdit"
@@ -32,10 +32,9 @@
         android:layout_height="wrap_content"
         app:cornerRadius="@dimen/card_corner_radius"
         android:text="Edit Jadwal"
-        android:textColor="@color/black"
-        app:strokeColor="@color/black"
+        android:textColor="@color/text_primary"
         app:icon="@drawable/ic_edit_calendar"
-        app:iconTint="@color/black"
+        app:iconTint="@color/text_primary"
         android:layout_marginBottom="8dp"/>
 
     <com.google.android.material.button.MaterialButton
@@ -45,10 +44,10 @@
         android:layout_height="wrap_content"
         app:cornerRadius="@dimen/card_corner_radius"
         android:text="Tandai Selesai"
-        android:textColor="#388E3C"
-        app:strokeColor="#388E3C"
+        android:textColor="@color/success_text_color"
+        android:backgroundTint="@color/success_background"
         app:icon="@drawable/ic_calendar_check"
-        app:iconTint="#388E3C"
+        app:iconTint="@color/success_text_color"
         android:layout_marginBottom="8dp"/>
 
     <com.google.android.material.button.MaterialButton
@@ -59,7 +58,7 @@
         app:cornerRadius="@dimen/card_corner_radius"
         android:text="Batalkan Jadwal"
         android:textColor="#D32F2F"
-        app:strokeColor="#D32F2F"
+        android:backgroundTint="@color/error_background"
         app:icon="@drawable/ic_event_busy"
         app:iconTint="#D32F2F"
         android:layout_marginBottom="8dp"/>
@@ -72,8 +71,7 @@
         app:cornerRadius="@dimen/card_corner_radius"
         android:text="Hapus Permanen"
         android:textColor="@color/white"
-        app:strokeColor="#D32F2F"
-        android:backgroundTint="#D32F2F"
+        android:backgroundTint="@color/error_color"
         app:icon="@drawable/ic_delete_forever"
         app:iconTint="@color/white"/>
 

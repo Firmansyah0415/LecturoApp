@@ -78,7 +78,7 @@ class TasksActivity : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        supportActionBar?.title = "Tugas"
+        supportActionBar?.title = "Jadwal Tugas"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 

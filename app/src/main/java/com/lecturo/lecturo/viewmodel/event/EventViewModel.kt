@@ -6,11 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.lecturo.lecturo.data.model.CalendarEntry
 import com.lecturo.lecturo.data.model.Event
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.EventRepository
-import com.lecturo.lecturo.notifications.NotificationScheduler
 import kotlinx.coroutines.launch
 import java.util.Locale
 import android.net.Uri

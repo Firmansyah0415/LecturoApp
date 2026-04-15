@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.ksp)
     id("kotlin-parcelize")
     id("com.google.gms.google-services")
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
 }
 
 android {
@@ -51,6 +52,11 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1" // Sesuaikan dengan versi Kotlinmu
     }
 }
 
@@ -63,6 +69,7 @@ dependencies {
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.runtime.livedata)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -116,5 +123,14 @@ dependencies {
 
     // WorkManager (Untuk jalanin task di background)
     implementation(libs.androidx.work.runtime.ktx)
+
+    // Jatpack Compose
+    val composeBom = platform("androidx.compose:compose-bom:2025.08.00")
+    implementation(composeBom)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.compose.runtime:runtime-livedata")
 
 }

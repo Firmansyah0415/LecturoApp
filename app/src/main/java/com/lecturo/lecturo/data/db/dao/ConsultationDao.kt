@@ -25,14 +25,20 @@ interface ConsultationDao {
     @Query("SELECT * FROM consultation_schedules WHERE is_synced = 0")
     suspend fun getUnsyncedSchedules(): List<ConsultationSchedule>
 
-    // --- [PERBAIKAN BUG] SIHIR SQLITE SUBSTR (dd/MM/yyyy -> yyyyMMdd) ---
-    @Query("SELECT * FROM consultation_schedules WHERE substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) >= substr(:currentDate, 7, 4) || substr(:currentDate, 4, 2) || substr(:currentDate, 1, 2) AND status != 'CANCELLED' AND is_deleted = 0 ORDER BY substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) ASC, start_time ASC")
+    // 1. [BARU] FILTER SEMUA (Tanpa peduli tanggal/status, yang penting tidak dihapus)
+    @Query("SELECT * FROM consultation_schedules WHERE is_deleted = 0 ORDER BY substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) DESC, start_time DESC")
+    fun getAllSchedules(): LiveData<List<ConsultationSchedule>>
+
+    // 2. [PERBAIKAN] FILTER SEGERA (Hanya yang masa depan DAN masih SCHEDULED)
+    @Query("SELECT * FROM consultation_schedules WHERE substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) >= substr(:currentDate, 7, 4) || substr(:currentDate, 4, 2) || substr(:currentDate, 1, 2) AND status = 'SCHEDULED' AND is_deleted = 0 ORDER BY substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) ASC, start_time ASC")
     fun getUpcomingSchedules(currentDate: String): LiveData<List<ConsultationSchedule>>
 
+    // 3. FILTER HARI INI (Semua status untuk hari ini)
     @Query("SELECT * FROM consultation_schedules WHERE date = :date AND is_deleted = 0 ORDER BY start_time ASC")
     fun getSchedulesByDate(date: String): LiveData<List<ConsultationSchedule>>
 
-    @Query("SELECT * FROM consultation_schedules WHERE (substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) < substr(:currentDate, 7, 4) || substr(:currentDate, 4, 2) || substr(:currentDate, 1, 2) OR status = 'COMPLETED') AND is_deleted = 0 ORDER BY substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) DESC, start_time DESC")
+    // 4. [PERBAIKAN] FILTER RIWAYAT (Masa lalu, ATAU yang sudah COMPLETED/CANCELLED)
+    @Query("SELECT * FROM consultation_schedules WHERE (substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) < substr(:currentDate, 7, 4) || substr(:currentDate, 4, 2) || substr(:currentDate, 1, 2) OR status IN ('COMPLETED', 'CANCELLED')) AND is_deleted = 0 ORDER BY substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) DESC, start_time DESC")
     fun getHistorySchedules(currentDate: String): LiveData<List<ConsultationSchedule>>
 
     @Query("SELECT * FROM consultation_schedules WHERE title LIKE '%' || :query || '%' AND is_deleted = 0 ORDER BY substr(date, 7, 4) || substr(date, 4, 2) || substr(date, 1, 2) ASC")

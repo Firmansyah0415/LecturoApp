@@ -4,19 +4,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/neutral_background">
+    android:background="@color/colorBackground">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="@android:color/transparent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:titleTextColor="?attr/colorControlNormal"
+        app:titleTextColor="?attr/colorOnSurface"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:title="Pengaturan Fokus"
-        app:layout_constraintTop_toTopOf="parent"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+        app:title="Pengaturan Fokus Pomodoro"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -34,7 +33,7 @@
                 android:text="DURASI"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:textColor="#757575"
+                android:textColor="@color/text_primary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"/>
@@ -43,9 +42,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="16dp"
-                app:strokeWidth="0dp"
+                app:strokeWidth="1dp"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@android:color/white">
+                app:cardBackgroundColor="@color/card_background">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -70,7 +69,7 @@
                             android:text="Fokus"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#000"
+                            android:textColor="@color/text_secondary"
                             android:layout_marginStart="12dp"
                             android:layout_weight="1"
                             android:layout_width="0dp"
@@ -81,7 +80,7 @@
                             android:text="25 min"
                             android:textSize="20sp"
                             android:textStyle="bold"
-                            android:textColor="#1976D2"
+                            android:textColor="@color/colorPrimary"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
                     </LinearLayout>
@@ -93,13 +92,13 @@
                         android:max="60"
                         android:progress="25"
                         android:layout_marginTop="8dp"
-                        android:progressTint="#1976D2"
-                        android:thumbTint="#1976D2"/>
+                        android:progressTint="@color/colorPrimary"
+                        android:thumbTint="@color/colorPrimary"/>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="#E0E0E0"
+                        android:background="@color/divider_color"
                         android:layout_marginTop="16dp"
                         android:layout_marginBottom="16dp"/>
 
@@ -121,7 +120,7 @@
                             android:text="Istirahat Pendek"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#000"
+                            android:textColor="@color/text_secondary"
                             android:layout_marginStart="12dp"
                             android:layout_weight="1"
                             android:layout_width="0dp"
@@ -132,7 +131,7 @@
                             android:text="5 min"
                             android:textSize="20sp"
                             android:textStyle="bold"
-                            android:textColor="#333"
+                            android:textColor="@color/event_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
                     </LinearLayout>
@@ -144,13 +143,13 @@
                         android:max="15"
                         android:progress="5"
                         android:layout_marginTop="8dp"
-                        android:progressTint="#1976D2"
-                        android:thumbTint="#1976D2"/>
+                        android:progressTint="@color/event_color"
+                        android:thumbTint="@color/event_color"/>
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="#E0E0E0"
+                        android:background="@color/divider_color"
                         android:layout_marginTop="16dp"
                         android:layout_marginBottom="16dp"/>
 
@@ -172,7 +171,7 @@
                             android:text="Istirahat Panjang"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#000"
+                            android:textColor="@color/text_secondary"
                             android:layout_marginStart="12dp"
                             android:layout_weight="1"
                             android:layout_width="0dp"
@@ -183,7 +182,7 @@
                             android:text="15 min"
                             android:textSize="20sp"
                             android:textStyle="bold"
-                            android:textColor="#333"
+                            android:textColor="@color/teaching_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
                     </LinearLayout>
@@ -195,8 +194,8 @@
                         android:max="45"
                         android:progress="15"
                         android:layout_marginTop="8dp"
-                        android:progressTint="#1976D2"
-                        android:thumbTint="#1976D2"/>
+                        android:progressTint="@color/teaching_color"
+                        android:thumbTint="@color/teaching_color"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -204,7 +203,7 @@
                 android:text="NOTIFIKASI"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:textColor="#757575"
+                android:textColor="@color/text_primary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -214,8 +213,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="16dp"
-                app:strokeWidth="0dp"
-                app:cardBackgroundColor="@android:color/white">
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/card_background">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -233,7 +232,7 @@
                             android:src="@drawable/ic_volume_up"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            app:tint="#666"/>
+                            app:tint="@color/text_primary"/>
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -244,13 +243,13 @@
                             <TextView
                                 android:text="Suara Alarm"
                                 android:textStyle="bold"
-                                android:textColor="#000"
+                                android:textColor="@color/text_primary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                             <TextView
                                 android:text="Bunyi saat timer habis"
                                 android:textSize="12sp"
-                                android:textColor="#757575"
+                                android:textColor="@color/text_secondary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>
@@ -278,7 +277,7 @@
                             android:src="@drawable/ic_vibration"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            app:tint="#666"/>
+                            app:tint="@color/text_primary"/>
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -289,13 +288,13 @@
                             <TextView
                                 android:text="Getaran"
                                 android:textStyle="bold"
-                                android:textColor="#000"
+                                android:textColor="@color/text_primary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                             <TextView
                                 android:text="Getar pola pendek"
                                 android:textSize="12sp"
-                                android:textColor="#757575"
+                                android:textColor="@color/text_secondary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
                         </LinearLayout>
@@ -365,9 +364,10 @@
         android:insetBottom="0dp"
         android:text="Simpan Perubahan"
         android:textSize="16sp"
+        android:textColor="@color/white"
         app:cornerRadius="16dp"
         android:layout_margin="16dp"
-        android:backgroundTint="@color/primary_color"
+        android:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

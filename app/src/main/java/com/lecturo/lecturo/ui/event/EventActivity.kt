@@ -5,8 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -26,7 +24,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.model.Event
@@ -36,6 +33,19 @@ import com.lecturo.lecturo.utils.AiExtractionHelper
 import com.lecturo.lecturo.viewmodel.event.EventViewModel
 import kotlinx.coroutines.launch
 import java.io.File
+
+// compose
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 
 class EventActivity : AppCompatActivity() {
 
@@ -107,7 +117,78 @@ class EventActivity : AppCompatActivity() {
         setupSearchView()
         setupFab()
         observeViewModel()
-        setupFilterChips()
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class) // Tambahkan ini karena FilterChip masih experimental di beberapa versi M3
+    private fun setupComposeFilters() {
+        binding.composeViewFilters.setContent {
+            // 1. Ambil data kategori langsung dari ViewModel
+            val categories by viewModel.categories.observeAsState(initial = emptyList())
+
+            // 2. Ambil state filter yang SEDANG AKTIF dari ViewModel!
+            val activeFilter by viewModel.categoryFilter.observeAsState(initial = "")
+
+            // 3. Gabungkan "Semua" ke awal daftar
+            val allFilters = listOf("Semua") + categories
+
+            MaterialTheme {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(allFilters) { category ->
+                        // Jika activeFilter kosong (""), berarti "Semua" sedang terpilih
+                        val isSelected = if (category == "Semua") activeFilter == "" else activeFilter == category
+
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                if (category == "Semua") {
+                                    viewModel.setCategoryFilter("")
+                                } else {
+                                    viewModel.setCategoryFilter(category)
+                                }
+                            },
+                            label = { Text(text = category) },
+                            leadingIcon = if (isSelected) {
+                                {
+                                    // Tentukan ikon kustom berdasarkan 8 kategori asli
+                                    val iconRes = when (category.lowercase(java.util.Locale.getDefault())) {
+                                        "semua" -> R.drawable.ic_event_available // Ikon default kalender/semua
+                                        "rapat" -> R.drawable.ic_meet // Ikon jabat tangan / orang meeting
+                                        "seminar" -> R.drawable.ic_seminar // Ikon mikrofon / panggung
+                                        "webinar" -> R.drawable.ic_webinar // Ikon laptop / video call
+                                        "workshop", "lokakarya" -> R.drawable.ic_workshop // Ikon perkakas / lampu bohlam
+                                        "penelitian" -> R.drawable.ic_research // Ikon mikroskop / buku / kaca pembesar
+                                        "pengabdian masyarakat" -> R.drawable.ic_community // Ikon orang berkumpul / tangan peduli
+                                        "lainnya" -> R.drawable.ic_event_available // Ikon titik tiga / folder campuran
+                                        else -> R.drawable.ic_event_available // Fallback jika tiba-tiba ada kategori aneh
+                                    }
+                                    Icon(
+                                        painter = painterResource(id = iconRes),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    )
+                                }
+                            } else null,
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = colorResource(id = R.color.event_color_light),
+                                labelColor = colorResource(id = R.color.chip_event_text_color),
+                                selectedContainerColor = colorResource(id = R.color.event_color),
+                                selectedLabelColor = Color.White,
+                                selectedLeadingIconColor = Color.White
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isSelected,
+                                borderColor = colorResource(id = R.color.event_color_light),
+                                selectedBorderColor = colorResource(id = R.color.event_color)
+                            )
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun setupStatusBar() {
@@ -230,7 +311,7 @@ class EventActivity : AppCompatActivity() {
     // --- SETUP UI STANDAR ---
     private fun setupToolbar() {
         setSupportActionBar(binding.eventToolbar)
-        supportActionBar?.title = "Event Management"
+        supportActionBar?.title = "Agenda"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
@@ -273,39 +354,10 @@ class EventActivity : AppCompatActivity() {
             updateEmptyState(events.isEmpty())
         }
 
-        viewModel.categories.observe(this) { categories ->
-            setupCategoryChips(categories)
-        }
+        setupComposeFilters()
     }
 
-    private fun setupFilterChips() {
-        binding.chipAll.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                viewModel.setCategoryFilter("")
-            }
-        }
-    }
 
-    private fun setupCategoryChips(categories: List<String>) {
-        val chipGroup = binding.chipGroupFilters
-        val childCount = chipGroup.childCount
-        for (i in childCount - 1 downTo 1) {
-            chipGroup.removeViewAt(i)
-        }
-
-        categories.forEach { category ->
-            val chip = Chip(this)
-            chip.text = category
-            chip.isCheckable = true
-            chip.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    binding.chipAll.isChecked = false
-                    viewModel.setCategoryFilter(category)
-                }
-            }
-            chipGroup.addView(chip)
-        }
-    }
 
     private fun updateEmptyState(isEmpty: Boolean) {
         binding.layoutEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
@@ -337,7 +389,6 @@ class EventActivity : AppCompatActivity() {
             R.id.action_clear_filters -> {
                 viewModel.clearFilters()
                 binding.etSearch.text?.clear()
-                binding.chipAll.isChecked = true
                 true
             }
             else -> super.onOptionsItemSelected(item)

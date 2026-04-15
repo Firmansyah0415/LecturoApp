@@ -238,10 +238,11 @@ class ConsultationActivity : AppCompatActivity() {
     private fun setupSearchAndFilter() {
         binding.chipGroupFilter.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
+                // [PERBAIKAN] Sekarang chipAll benar-benar memanggil ALL, bukan UPCOMING
+                binding.chipAll.id -> viewModel.setFilter(FilterType.ALL)
                 binding.chipUpcoming.id -> viewModel.setFilter(FilterType.UPCOMING)
                 binding.chipToday.id -> viewModel.setFilter(FilterType.TODAY)
                 binding.chipHistory.id -> viewModel.setFilter(FilterType.HISTORY)
-                binding.chipAll.id -> viewModel.setFilter(FilterType.UPCOMING) // Default ke Upcoming atau All (buat logic di repo klo mau All)
             }
         }
 

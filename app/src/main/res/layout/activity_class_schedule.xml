@@ -9,15 +9,19 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:title="Jadwal Kelas" />
+            android:background="@android:color/transparent"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="Jadwal Kelas"
+            app:titleTextColor="?attr/colorOnSurface"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -32,11 +36,11 @@
             android:id="@+id/tabLayoutDays"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/background_light"
+            android:background="@color/colorBackground"
             app:tabMode="scrollable"
-            app:tabTextColor="?attr/colorPrimary"
-            app:tabSelectedTextColor="@color/colorPrimary"
-            app:tabIndicatorColor="@color/colorPrimary">
+            app:tabTextColor="@color/teaching_color"
+            app:tabSelectedTextColor="@color/teaching_color"
+            app:tabIndicatorColor="@color/teaching_color">
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"

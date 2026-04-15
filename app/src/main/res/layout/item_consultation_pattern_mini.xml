@@ -17,7 +17,7 @@
         android:background="@drawable/bg_circle_gray"
         android:padding="8dp"
         android:src="@drawable/ic_repeat"
-        app:tint="#424242" />
+        android:tint="?attr/colorOnSurfaceVariant" />
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -32,7 +32,7 @@
             tools:text="Bimbingan Skripsi"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black" />
+            android:textColor="@color/text_primary" />
 
         <TextView
             android:id="@+id/tvPatternDetail"

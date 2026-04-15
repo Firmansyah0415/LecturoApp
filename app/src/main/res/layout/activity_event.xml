@@ -4,21 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/neutral_background"
+    android:background="@color/colorBackground"
     tools:context=".ui.event.EventActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/event_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:title="Event Management" />
+            android:background="@android:color/transparent"
+            app:title="Agenda"
+            app:titleTextColor="?attr/colorOnSurface"
+            app:navigationIcon="@drawable/ic_arrow_back"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -33,54 +37,38 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            android:background="@drawable/bg_search_rounded"
+            android:backgroundTint="@color/event_color_light"
+            app:cursorColor="@color/event_color"
             app:hintEnabled="false"
             app:boxBackgroundMode="none"
             app:endIconMode="clear_text"
-            app:endIconTint="?attr/colorControlNormal">
+            app:endIconTint="@color/event_color">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etSearch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_search_rounded"
                 android:drawableStart="@drawable/ic_search"
-                android:drawableTint="?attr/colorControlNormal"
+                android:drawableTint="@color/event_color"
                 android:drawablePadding="12dp"
                 android:paddingHorizontal="16dp"
                 android:hint="Cari jadwal..."
+                android:textColorHint="@color/event_color"
                 android:textSize="14sp"
+                android:textColor="@color/event_color"
                 android:inputType="text"
                 android:maxLines="1"
                 android:imeOptions="actionSearch" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Filter Chips -->
-        <HorizontalScrollView
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/composeViewFilters"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="8dp"
-            android:scrollbars="none">
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupFilters"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:singleSelection="true"
-                app:selectionRequired="false">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Semua"
-                    android:checked="true"
-                    style="@style/Widget.MaterialComponents.Chip.Filter" />
-
-            </com.google.android.material.chip.ChipGroup>
-
-        </HorizontalScrollView>
+            android:layout_marginBottom="8dp" />
 
         <!-- RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
@@ -152,7 +140,7 @@
         android:layout_marginBottom="20dp"
         android:src="@drawable/ic_add"
         app:tint="@android:color/white"
-        app:backgroundTint="@color/colorPrimary"
+        app:backgroundTint="@color/event_color"
         android:contentDescription="Tambah event baru" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

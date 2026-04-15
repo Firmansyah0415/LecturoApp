@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@color/colorBackground"
     android:padding="24dp">
 
     <ImageButton
@@ -14,6 +14,7 @@
         android:layout_height="48dp"
         android:src="@drawable/ic_history"
         android:background="@drawable/bg_circle_soft"
+        android:backgroundTint="@color/colorPrimaryContainer"
         android:padding="12dp"
         android:scaleType="fitCenter"
         app:tint="@color/colorPrimary"
@@ -26,11 +27,10 @@
         android:layout_width="wrap_content"
         android:layout_height="56dp"
         app:cornerRadius="16dp"
-        app:strokeWidth="1.5dp"
-        app:strokeColor="@color/primary_color"
         android:elevation="0dp"
         android:text="Selesai"
         android:textColor="@color/colorPrimary"
+        android:backgroundTint="@color/colorPrimaryContainer"
         android:textSize="14sp"
         android:fontFamily="sans-serif-medium"
         style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
         android:text="FOKUS"
-        android:textSize="14sp"
+        android:textSize="24sp"
         android:letterSpacing="0.1"
         android:textColor="@android:color/darker_gray"
         android:layout_marginTop="32dp"
@@ -63,7 +63,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:textColor="#212121"
+        android:textColor="@color/text_primary"
         android:layout_marginTop="8dp"
         android:layout_marginHorizontal="24dp"
         app:layout_constraintTop_toBottomOf="@id/tvFocusStatus"
@@ -97,7 +97,7 @@
             android:textSize="60sp"
             android:includeFontPadding="false"
             android:fontFamily="sans-serif-light"
-            android:textColor="#212121"
+            android:textColor="@color/text_primary"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -141,7 +141,7 @@
                 android:layout_height="64dp"
                 app:cardCornerRadius="32dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F2F2F7"
+                app:cardBackgroundColor="@color/high_priority_bg"
                 android:layout_gravity="center"
                 android:foreground="?android:attr/selectableItemBackground">
 
@@ -168,7 +168,7 @@
                 android:layout_height="96dp"
                 app:cardCornerRadius="48dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/colorPrimary"
+                app:cardBackgroundColor="@color/colorPrimaryContainer"
                 android:layout_gravity="center"
                 android:foreground="?android:attr/selectableItemBackground">
 
@@ -177,7 +177,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:src="@drawable/ic_play_arrow"
-                    app:tint="@android:color/white"
+                    app:tint="@color/colorPrimary"
                     android:layout_gravity="center"
                     android:scaleType="fitCenter"/>
             </androidx.cardview.widget.CardView>
@@ -194,7 +194,7 @@
                 android:layout_height="64dp"
                 app:cardCornerRadius="32dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#F2F2F7"
+                app:cardBackgroundColor="@color/divider_color"
                 android:layout_gravity="center"
                 android:foreground="?android:attr/selectableItemBackground">
 
@@ -202,7 +202,7 @@
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@drawable/ic_skip_next"
-                    app:tint="#8E8E93"
+                    app:tint="@color/text_primary"
                     android:layout_gravity="center"
                     android:scaleType="fitCenter"/>
             </androidx.cardview.widget.CardView>

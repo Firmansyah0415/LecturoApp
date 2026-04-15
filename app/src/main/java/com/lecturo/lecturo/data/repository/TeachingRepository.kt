@@ -161,7 +161,7 @@ class TeachingRepository(
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "SyncTeachingWork",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             syncRequest
         )
     }

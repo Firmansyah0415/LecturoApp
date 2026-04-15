@@ -59,8 +59,8 @@ class TasksAdapter(
             // Gunakan logika yang sama persis dengan AgendaAdapter
             when (priorityText.lowercase()) {
                 "tinggi", "high", "hight", "urgent" -> {
-                    priorityTextColorRes = R.color.hight_priority
-                    priorityBgColorRes = R.color.hight_priority_bg
+                    priorityTextColorRes = R.color.high_priority
+                    priorityBgColorRes = R.color.high_priority_bg
                 }
                 "rendah", "low" -> {
                     priorityTextColorRes = R.color.low_priority

@@ -73,7 +73,9 @@ class AgendaAdapter(
             iconImageView.setImageResource(iconRes)
             iconImageView.setColorFilter(Color.WHITE)
             iconFrame.backgroundTintList = ColorStateList.valueOf(resolvedCategoryColor)
-            categoryTextView.setTextColor(resolvedCategoryColor)
+
+            val neutralTextColor = ContextCompat.getColor(context, R.color.text_secondary)
+            categoryTextView.setTextColor(neutralTextColor)
 
             // 2. SETUP BADGE PRIORITAS & PENERJEMAH OTOMATIS (PERBAIKAN BUG)
             val priorityTextColorRes: Int
@@ -82,8 +84,8 @@ class AgendaAdapter(
 
             when (cleanPriority) {
                 "tinggi", "high", "hight", "urgent" -> {
-                    priorityTextColorRes = R.color.hight_priority
-                    priorityBgColorRes = R.color.hight_priority_bg
+                    priorityTextColorRes = R.color.high_priority
+                    priorityBgColorRes = R.color.high_priority_bg
                     displayPriorityText = "TINGGI" // Paksa jadi bahasa Indonesia
                 }
                 "rendah", "low" -> {

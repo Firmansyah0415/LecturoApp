@@ -26,12 +26,10 @@ class NotificationSettingsActivity : AppCompatActivity() {
         "5 menit sebelumnya",
         "15 menit sebelumnya",
         "30 menit sebelumnya",
-        "1 jam sebelumnya",
-        "2 jam sebelumnya",
-        "1 hari sebelumnya"
+        "1 jam sebelumnya"
     )
 
-    private val notificationValues = arrayOf(-1, 0, 5, 15, 30, 60, 120, 1440)
+    private val notificationValues = arrayOf(-1, 0, 5, 15, 30, 60)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

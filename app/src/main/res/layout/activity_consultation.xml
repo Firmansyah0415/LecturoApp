@@ -5,22 +5,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/neutral_background">
+    android:background="@color/colorBackground">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary_color">
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:title="Jadwal Konsultasi"
-            app:titleTextColor="@color/white"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="@color/white">
+            app:titleTextColor="?attr/colorOnSurface"
+            app:navigationIcon="@drawable/ic_arrow_back">
 
             <ImageView
                 android:id="@+id/btnPatternSettings"
@@ -28,8 +31,7 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_settings"
                 android:layout_gravity="end"
-                android:padding="16dp"
-                app:tint="@color/white"/>
+                android:padding="16dp" />
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -43,10 +45,13 @@
             android:id="@+id/searchContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_search_rounded"
+            android:backgroundTint="@color/consultation_color_light"
+            app:cursorColor="@color/consultation_color"
+            app:hintEnabled="false"
             app:boxBackgroundMode="none"
             app:endIconMode="clear_text"
-            app:endIconTint="?attr/colorControlNormal"
-            app:hintEnabled="false"
+            app:endIconTint="@color/consultation_color"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -55,16 +60,17 @@
                 android:id="@+id/etSearch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_search_rounded"
                 android:drawableStart="@drawable/ic_search"
+                android:drawableTint="@color/consultation_color"
                 android:drawablePadding="12dp"
-                android:drawableTint="?attr/colorControlNormal"
                 android:hint="Cari jadwal..."
+                android:textColorHint="@color/consultation_color"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:maxLines="1"
                 android:paddingHorizontal="16dp"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:textColor="@color/consultation_color"/>
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -80,37 +86,61 @@
                 android:id="@+id/chipGroupFilter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 app:singleSelection="true"
                 app:selectionRequired="true">
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipAll"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeColor="@color/chip_consultation_stroke_color"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="Semua" />
+                    android:text="Semua"
+                    app:checkedIconTint="@color/white"
+                    app:checkedIconVisible="true" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipUpcoming"
-                    style="@style/MyCustomChip"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeColor="@color/chip_consultation_stroke_color"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Segera" />
+                    android:text="Segera"
+                    app:checkedIcon="@drawable/ic_upcoming"
+                    app:checkedIconTint="@color/white"
+                    app:checkedIconVisible="true" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipToday"
-                    style="@style/MyCustomChip"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeColor="@color/chip_consultation_stroke_color"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hari ini" />
+                    android:text="Hari ini"
+                    app:checkedIcon="@drawable/ic_today"
+                    app:checkedIconTint="@color/white"
+                    app:checkedIconVisible="true" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipHistory"
-                    style="@style/MyCustomChip"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeColor="@color/chip_consultation_stroke_color"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Riwayat" />
+                    android:text="Riwayat"
+                    app:checkedIcon="@drawable/ic_history"
+                    app:checkedIconTint="@color/white"
+                    app:checkedIconVisible="true" />
 
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
@@ -161,5 +191,5 @@
         android:layout_marginBottom="16dp"
         android:src="@drawable/ic_add"
         app:tint="@android:color/white"
-        android:backgroundTint="@color/primary_color" />
+        android:backgroundTint="@color/consultation_color" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

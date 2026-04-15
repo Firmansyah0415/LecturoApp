@@ -5,21 +5,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/neutral_background">
+    android:background="@color/colorBackground">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary_color">
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
             app:title="Template Rutin"
-            app:titleTextColor="@color/white"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="@color/white"/>
+            app:titleTextColor="?attr/colorOnSurface"
+            app:navigationIcon="@drawable/ic_arrow_back"/>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -33,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Atur jadwal yang berulang setiap minggu agar pembuatan jadwal lebih cepat."
-            android:textColor="#616161"
+            android:textColor="@color/text_primary"
             android:textSize="14sp"
             app:layout_constraintTop_toTopOf="parent"/>
 
@@ -66,7 +69,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
-        app:tint="@android:color/white"
-        android:backgroundTint="@color/primary_color" />
+        app:tint="@color/white"
+        android:backgroundTint="@color/consultation_color" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

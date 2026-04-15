@@ -101,6 +101,11 @@ class HomeFragment : Fragment() {
     private fun observeMainViewModel() {
         mainViewModel.getSession().observe(viewLifecycleOwner) { user ->
             if (!user.isLogin) {
+                // --- [SABUK PENGAMAN ANTI PING-PONG] ---
+                // Jika DataStore lokal hilang/rusak, paksa putuskan juga sesi Firebase-nya!
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+
+                // Lempar ke layar Login secara bersih
                 startActivity(Intent(requireContext(), LoginActivity::class.java))
                 activity?.finish()
             }

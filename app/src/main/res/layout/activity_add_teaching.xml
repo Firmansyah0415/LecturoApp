@@ -9,14 +9,19 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/addTeachingToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@android:color/transparent"
+            app:navigationIcon="@drawable/ic_arrow_back"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:titleTextColor="?attr/colorOnSurface"
             app:title="Tambah Jadwal Mengajar" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -37,20 +42,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Nama Mata Kuliah *"
                 app:startIconDrawable="@drawable/ic_book"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                app:startIconTint="@color/teaching_color"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextCourseName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textCapWords" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Class Name and Student Count Row -->
@@ -65,13 +67,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
                     android:hint="Nama/Kode Kelas *"
                     app:startIconDrawable="@drawable/ic_task"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    app:startIconTint="@color/teaching_color"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextClassName"
@@ -85,13 +85,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
                     android:hint="Jumlah Mahasiswa *"
                     app:startIconDrawable="@drawable/ic_student"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    app:startIconTint="@color/teaching_color"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextStudentCount"
@@ -113,6 +111,8 @@
                 app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Hari *"
                 app:startIconDrawable="@drawable/ic_calendar"
+                app:startIconTint="@color/teaching_color"
+                android:theme="@style/ThemeOverlay.App.TextInput.Teaching"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
@@ -120,7 +120,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="none" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Start Time and End Time Row -->
@@ -135,13 +134,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
                     android:hint="Jam Mulai *"
                     app:startIconDrawable="@drawable/ic_time"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    app:startIconTint="@color/teaching_color"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextStartTime"
@@ -157,13 +154,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
                     android:hint="Jam Selesai *"
                     app:startIconDrawable="@drawable/ic_time"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    app:startIconTint="@color/teaching_color"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextEndTime"
@@ -180,13 +175,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Ruangan Kelas *"
                 app:startIconDrawable="@drawable/ic_location"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextLocation"
@@ -229,13 +221,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Tanggal Mulai *"
                 app:startIconDrawable="@drawable/ic_date"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                app:startIconTint="@color/teaching_color"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextSemesterStartDate"
@@ -252,13 +242,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Tanggal Selesai *"
                 app:startIconDrawable="@drawable/ic_date"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                app:startIconTint="@color/teaching_color"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextSemesterEndDate"
@@ -298,6 +286,8 @@
                 app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="Pengingat Notifikasi"
                 app:startIconDrawable="@drawable/ic_notification"
+                app:startIconTint="@color/teaching_color"
+                android:theme="@style/ThemeOverlay.App.TextInput.Teaching"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
@@ -319,7 +309,10 @@
                 app:cornerRadius="16dp"
                 android:text="Simpan Jadwal Mengajar"
                 android:textSize="16sp"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/teaching_color"
                 app:icon="@drawable/ic_save"
+                app:iconTint="@color/white"
                 app:iconGravity="textStart" />
 
         </LinearLayout>

@@ -117,10 +117,8 @@ class NotificationScheduler(private val context: Context) {
     // =========================================================================
 
     private fun calculateAlarmTime(dateStr: String, timeStr: String, minutesBefore: Int): Long {
-        // Format Consultasi: yyyy-MM-dd dan HH:mm
-        // Jika format date di DB kamu dd/MM/yyyy, sesuaikan format di bawah ini
-        // Asumsi format di Entity baru: yyyy-MM-dd (sesuai DateHelper yg kita buat)
-        val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        // --- [PERBAIKAN BUG] FORMAT TANGGAL DISERAGAMKAN MENJADI dd/MM/yyyy ---
+        val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         return try {
             val date = format.parse("$dateStr $timeStr")
             val triggerTime = date?.time ?: return 0L

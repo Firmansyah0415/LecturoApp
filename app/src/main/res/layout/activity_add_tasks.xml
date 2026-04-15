@@ -9,15 +9,18 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbarAdd"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:titleTextColor="@android:color/white" />
+            android:background="@android:color/transparent"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:titleTextColor="?attr/colorOnSurface" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -33,14 +36,11 @@
             android:padding="16dp">
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Task"
                 android:hint="@string/schedule_title_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -51,14 +51,11 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Task"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_date_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -67,20 +64,17 @@
                     android:layout_height="wrap_content"
                     android:clickable="true"
                     android:drawableEnd="@drawable/ic_date"
-                    android:drawableTint="@color/primary_color"
+                    android:drawableTint="@color/task_color"
                     android:focusable="false"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Task"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_time_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -89,20 +83,17 @@
                     android:layout_height="wrap_content"
                     android:clickable="true"
                     android:drawableEnd="@drawable/ic_time"
-                    android:drawableTint="@color/primary_color"
+                    android:drawableTint="@color/task_color"
                     android:focusable="false"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Task"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_location_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -110,19 +101,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:drawableEnd="@drawable/ic_location"
-                    android:drawableTint="@color/colorPrimary"
+                    android:drawableTint="@color/task_color"
                     android:inputType="textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Task"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
                 android:hint="@string/schedule_description_hint">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -142,16 +130,17 @@
                 app:boxCornerRadiusTopEnd="16dp"
                 app:boxCornerRadiusBottomStart="16dp"
                 app:boxCornerRadiusBottomEnd="16dp"
+                android:theme="@style/ThemeOverlay.App.TextInput.Task"
                 android:hint="Prioritas Tugas"
                 app:startIconDrawable="@drawable/ic_timeline"
-                app:startIconTint="@color/primary_color"
+                app:startIconTint="@color/task_color"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
                 <AutoCompleteTextView
                     android:id="@+id/autoCompletePriority"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="none"
-                    android:textColor="@color/colorPrimary"
                     android:text="Sedang" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -164,31 +153,33 @@
                 app:boxCornerRadiusTopEnd="16dp"
                 app:boxCornerRadiusBottomStart="16dp"
                 app:boxCornerRadiusBottomEnd="16dp"
+                android:theme="@style/ThemeOverlay.App.TextInput.Task"
                 android:hint="Pengingat Notifikasi"
                 app:startIconDrawable="@drawable/ic_notification"
-                app:startIconTint="@color/primary_color"
+                app:startIconTint="@color/task_color"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
                     android:id="@+id/autoCompleteNotification"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none" />
+                    android:inputType="none"
+                    android:text="Tepat Waktu" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSave"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height_large"
+                android:backgroundTint="@color/task_color"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:paddingVertical="12dp"
                 android:layout_gravity="bottom"
                 app:cornerRadius="@dimen/button_corner_radius_large"
                 android:text="@string/button_save"
-                android:textSize="16sp"
-                app:icon="@drawable/ic_save"
-                app:iconGravity="textStart"/>
+                android:textColor="@color/white"
+                android:textSize="16sp" />
 
         </LinearLayout>
 

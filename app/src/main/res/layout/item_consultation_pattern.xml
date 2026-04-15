@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
     android:layout_marginHorizontal="4dp"
-    app:cardBackgroundColor="@android:color/white"
+    app:cardBackgroundColor="@color/card_background"
     app:cardCornerRadius="@dimen/card_corner_radius"
     app:strokeWidth="0dp">
 
@@ -21,12 +21,14 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_repeat"
-            app:tint="#424242"
+            app:tint="@color/consultation_color_light"
             android:background="@drawable/bg_circle_gray"
+            android:backgroundTint="@color/consultation_color"
             android:padding="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
+
         <TextView
             android:id="@+id/tvPatternTitle"
             android:layout_width="0dp"
@@ -36,7 +38,7 @@
             tools:text="Bimbingan Skripsi"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="@color/text_primary"
             app:layout_constraintStart_toEndOf="@+id/ivIcon"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/switchActive"/>
@@ -58,6 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
+            android:theme="@style/ThemeOverlay.App.Switch.Consultation"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>

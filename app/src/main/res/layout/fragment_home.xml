@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/neutral_background"
+    android:background="@color/colorBackground"
     tools:context=".ui.main.HomeFragment">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -134,14 +134,14 @@
                         android:layout_rowWeight="1"
                         android:layout_columnWeight="1"
                         android:layout_margin="6dp"
-                        app:strokeWidth="2dp"
-                        app:strokeColor="@color/primary_color"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="0dp"
                         app:cardCornerRadius="16dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@color/card_background"
+                            android:background="@color/teaching_color"
                             android:padding="12dp">
 
                             <ImageView
@@ -150,15 +150,15 @@
                                 android:src="@drawable/ic_class"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
-                                app:tint="@color/teaching_color" />
+                                app:tint="@color/white" />
 
                             <TextView
                                 android:id="@+id/teachingCountTextView"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="5"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="@color/teaching_color"
+                                android:textAppearance="?attr/textAppearanceTitleLarge"
+                                android:textColor="@color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintStart_toStartOf="parent" />
 
@@ -169,7 +169,7 @@
                                 android:layout_marginStart="5dp"
                                 android:text="@string/class_title_home_id"
                                 android:textAppearance="?attr/textAppearanceLabelLarge"
-                                android:textColor="?attr/colorOnSurface"
+                                android:textColor="@color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintStart_toEndOf="@+id/teachingCountTextView"
                                 app:layout_constraintTop_toTopOf="@+id/teachingCountTextView" />
@@ -184,14 +184,14 @@
                         android:layout_rowWeight="1"
                         android:layout_columnWeight="1"
                         android:layout_margin="6dp"
-                        app:strokeWidth="2dp"
-                        app:strokeColor="@color/task_color"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="0dp"
                         app:cardCornerRadius="16dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@color/card_background"
+                            android:background="@color/task_color"
                             android:padding="12dp">
 
                             <ImageView
@@ -201,15 +201,15 @@
                                 android:src="@drawable/ic_task"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
-                                app:tint="@color/task_color" />
+                                app:tint="@color/white" />
 
                             <TextView
                                 android:id="@+id/tasksCountTextView"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="12"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="@color/task_color"
+                                android:textAppearance="?attr/textAppearanceTitleLarge"
+                                android:textColor="@color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintStart_toStartOf="parent" />
 
@@ -219,7 +219,7 @@
                                 android:layout_marginStart="5dp"
                                 android:text="@string/task_title_home_id"
                                 android:textAppearance="?attr/textAppearanceLabelLarge"
-                                android:textColor="?attr/colorOnSurface"
+                                android:textColor="@color/white"
                                 app:layout_constraintBottom_toBottomOf="@+id/tasksCountTextView"
                                 app:layout_constraintStart_toEndOf="@+id/tasksCountTextView"
                                 app:layout_constraintTop_toTopOf="@+id/tasksCountTextView" />
@@ -233,14 +233,14 @@
                         android:layout_rowWeight="1"
                         android:layout_columnWeight="1"
                         android:layout_margin="6dp"
-                        app:strokeWidth="2dp"
-                        app:strokeColor="@color/event_color"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="0dp"
                         app:cardCornerRadius="16dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@color/card_background"
+                            android:background="@color/event_color"
                             android:padding="12dp">
 
                             <ImageView
@@ -249,15 +249,15 @@
                                 android:src="@drawable/ic_event"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
-                                app:tint="@color/event_color" />
+                                app:tint="@color/white" />
 
                             <TextView
                                 android:id="@+id/eventCountTextView"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="8"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="@color/event_color"
+                                android:textAppearance="?attr/textAppearanceTitleLarge"
+                                android:textColor="@color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintStart_toStartOf="parent" />
 
@@ -268,7 +268,7 @@
                                 android:layout_marginStart="5dp"
                                 android:text="@string/event_title_home_id"
                                 android:textAppearance="?attr/textAppearanceLabelLarge"
-                                android:textColor="?attr/colorOnSurface"
+                                android:textColor="@color/white"
                                 app:layout_constraintBottom_toBottomOf="@+id/eventCountTextView"
                                 app:layout_constraintStart_toEndOf="@+id/eventCountTextView"
                                 app:layout_constraintTop_toTopOf="@+id/eventCountTextView" />
@@ -282,14 +282,14 @@
                         android:layout_rowWeight="1"
                         android:layout_columnWeight="1"
                         android:layout_margin="6dp"
-                        app:strokeWidth="2dp"
-                        app:strokeColor="@color/consultation_color"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="1dp"
                         app:cardCornerRadius="16dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@color/card_background"
+                            android:background="@color/consultation_color"
                             android:padding="12dp">
 
                             <ImageView
@@ -299,15 +299,15 @@
                                 android:src="@drawable/ic_consultant"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
-                                app:tint="@color/consultation_color" />
+                                app:tint="@color/white" />
 
                             <TextView
                                 android:id="@+id/consultationCountTextView"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="3"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="@color/consultation_color"
+                                android:textAppearance="?attr/textAppearanceTitleLarge"
+                                android:textColor="@color/white"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintStart_toStartOf="parent" />
 
@@ -317,7 +317,7 @@
                                 android:layout_marginStart="5dp"
                                 android:text="@string/consultation_title_home_id"
                                 android:textAppearance="?attr/textAppearanceLabelLarge"
-                                android:textColor="?attr/colorOnSurface"
+                                android:textColor="@color/white"
                                 app:layout_constraintBottom_toBottomOf="@+id/consultationCountTextView"
                                 app:layout_constraintStart_toEndOf="@+id/consultationCountTextView"
                                 app:layout_constraintTop_toTopOf="@+id/consultationCountTextView" />
@@ -358,7 +358,7 @@
                             android:id="@+id/agendaRecyclerView"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="@color/neutral_background"
+                            android:background="@color/colorBackground"
                             android:paddingBottom="@dimen/padding_small"
                             android:nestedScrollingEnabled="false"
                             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"

@@ -7,8 +7,8 @@
     android:layout_marginHorizontal="8dp"
     android:layout_marginTop="8dp"
     app:cardCornerRadius="@dimen/card_corner_radius"
-    android:backgroundTint="@color/card_background"
-    app:strokeWidth="0dp"
+    android:backgroundTint="@color/colorBackground"
+    app:strokeWidth="1dp"
     app:cardElevation="0dp">
 
     <!-- Gunakan ConstraintLayout untuk fleksibilitas posisi -->
@@ -23,6 +23,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@drawable/bg_number_circle"
+            android:backgroundTint="@color/teaching_color"
             android:gravity="center"
             android:textColor="@color/white"
             android:textSize="12sp"
@@ -50,9 +51,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_category_chip"
+            android:backgroundTint="@color/teaching_color_light"
             android:paddingHorizontal="8dp"
             android:paddingVertical="2dp"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"

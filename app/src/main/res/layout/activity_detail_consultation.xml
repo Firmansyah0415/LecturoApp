@@ -2,24 +2,27 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@color/colorBackground">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="@color/white"
+            android:background="@android:color/transparent"
             app:title="Buat Konsultasi"
-            app:titleTextColor="@android:color/white"
-            android:background="@color/primary_color" />
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:titleTextColor="?attr/colorOnSurface" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -34,13 +37,10 @@
             android:padding="16dp">
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                 android:hint="Judul *">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -51,14 +51,11 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                 android:hint="Tanggal *">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -67,7 +64,8 @@
                     android:layout_height="wrap_content"
                     android:focusable="false"
                     android:clickable="true"
-                    android:drawableEnd="@drawable/ic_calendar" />
+                    android:drawableEnd="@drawable/ic_calendar"
+                    android:drawableTint="@color/consultation_color"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
@@ -77,15 +75,12 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                     android:hint="Waktu Mulai *">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -94,19 +89,17 @@
                         android:layout_height="wrap_content"
                         android:focusable="false"
                         android:clickable="true"
-                        android:drawableEnd="@drawable/ic_time_small" />
+                        android:drawableEnd="@drawable/ic_time"
+                        android:drawableTint="@color/consultation_color"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                     android:hint="Waktu Selesai *">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -115,19 +108,17 @@
                         android:layout_height="wrap_content"
                         android:focusable="false"
                         android:clickable="true"
-                        android:drawableEnd="@drawable/ic_time_small" />
+                        android:drawableEnd="@drawable/ic_time"
+                        android:drawableTint="@color/consultation_color"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                 android:hint="Lokasi / Link Online *">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -135,18 +126,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPostalAddress"
-                    android:drawableEnd="@drawable/ic_location_small" />
+                    android:drawableEnd="@drawable/ic_location"
+                    android:drawableTint="@color/consultation_color"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Consultation"
                 android:hint="Deskripsi (optional)">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -158,24 +147,90 @@
                     android:gravity="top" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
-                android:hint="Pengingat Notifikasi">
+                android:text="Ingatkan Saya"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
 
-                <AutoCompleteTextView
-                    android:id="@+id/actNotification"
-                    android:layout_width="match_parent"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupNotification"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNotifNone"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeWidth="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:inputType="none"
-                    android:text="15 minutes before" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:text="Mati"
+                    app:checkedIconVisible="false" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNotifOnTime"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeWidth="0dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Tepat Waktu"
+                    app:checkedIconVisible="false" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNotif5m"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeWidth="0dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5 mnt"
+                    app:checkedIconVisible="false" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNotif15m"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeWidth="0dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:text="15 mnt"
+                    app:checkedIconVisible="false" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNotif30m"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeWidth="0dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="30 mnt"
+                    app:checkedIconVisible="false" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNotif1h"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    app:chipBackgroundColor="@color/chip_consultation_bg_color"
+                    android:textColor="@color/chip_consultation_text_color"
+                    app:chipStrokeWidth="0dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1 jam"
+                    app:checkedIconVisible="false" />
+            </com.google.android.material.chip.ChipGroup>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -183,36 +238,52 @@
                 android:layout_marginTop="16dp"
                 android:text="Prioritas"
                 android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:textColor="@color/text_primary" />
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupPriority"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:singleSelection="true">
+                app:singleSelection="true"
+                app:selectionRequired="true">
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipHigh"
-                    style="@style/MyCustomChip"
+                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tinggi" />
+                    android:textColor="@color/high_priority"
+                    android:text="Tinggi"
+                    app:chipStrokeColor="@color/high_priority"
+                    app:chipBackgroundColor="@color/high_priority_bg"
+                    app:checkedIconVisible="true"
+                    app:checkedIconTint="@color/high_priority"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipMedium"
-                    style="@style/MyCustomChip"
+                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="Sedang" />
+                    android:text="Sedang"
+                    android:textColor="@color/medium_priority"
+                    app:chipStrokeColor="@color/medium_priority"
+                    app:chipBackgroundColor="@color/medium_priority_bg"
+                    app:checkedIconVisible="true"
+                    app:checkedIconTint="@color/medium_priority"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipLow"
-                    style="@style/MyCustomChip"
+                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Rendah" />
+                    android:textColor="@color/low_priority"
+                    android:text="Rendah"
+                    app:chipStrokeColor="@color/low_priority"
+                    app:chipBackgroundColor="@color/low_priority_bg"
+                    app:checkedIconVisible="true"
+                    app:checkedIconTint="@color/low_priority"/>
             </com.google.android.material.chip.ChipGroup>
 
             <com.google.android.material.button.MaterialButton
@@ -224,10 +295,11 @@
                 android:layout_marginTop="@dimen/margin_medium"
                 android:layout_marginBottom="16dp"
                 android:text="Simpan"
+                android:textColor="@color/white"
                 android:textAllCaps="false"
                 android:textSize="16sp"
-                app:cornerRadius="24dp"
-                android:backgroundTint="@color/primary_color" />
+                app:cornerRadius="16dp"
+                android:backgroundTint="@color/consultation_color" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

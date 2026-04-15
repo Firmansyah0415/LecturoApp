@@ -82,20 +82,21 @@ class ConsultationRepository(
                             scheduler.cancelConsultation(existing.id)
                             calendarDao.deleteEntriesForSource("CONSULTATION", existing.id)
 
-                            if (updated.status != "CANCELLED") {
+                            // --- [PERBAIKAN LOGIKA AGENDA HOME] ---
+                            // HANYA MASUKKAN KE AGENDA HOME JIKA STATUSNYA SCHEDULED
+                            if (updated.status == "SCHEDULED") {
                                 val entry = CalendarEntry(
                                     title = updated.title,
                                     date = updated.date,
                                     time = updated.startTime,
                                     category = "Konsultasi",
-                                    priority = mapPriorityToIndo(updated.priority), // <--- DITERJEMAHKAN!
+                                    priority = mapPriorityToIndo(updated.priority),
                                     sourceFeatureType = "CONSULTATION",
                                     sourceFeatureId = existing.id,
                                     notificationMinutesBefore = updated.notificationMinutesBefore
                                 )
                                 calendarDao.insertEntry(entry)
-
-                                if (updated.status == "SCHEDULED") scheduler.scheduleConsultation(updated)
+                                scheduler.scheduleConsultation(updated)
                             }
                         }
                     } else {
@@ -118,20 +119,20 @@ class ConsultationRepository(
                         val newId = consultationDao.insertScheduleRaw(newSchedule)
                         val finalSchedule = newSchedule.copy(id = newId)
 
-                        if (finalSchedule.status != "CANCELLED") {
+                        // --- [PERBAIKAN LOGIKA AGENDA HOME] ---
+                        if (finalSchedule.status == "SCHEDULED") {
                             val entry = CalendarEntry(
                                 title = finalSchedule.title,
                                 date = finalSchedule.date,
                                 time = finalSchedule.startTime,
                                 category = "Konsultasi",
-                                priority = mapPriorityToIndo(finalSchedule.priority), // <--- DITERJEMAHKAN!
+                                priority = mapPriorityToIndo(finalSchedule.priority),
                                 sourceFeatureType = "CONSULTATION",
                                 sourceFeatureId = newId,
                                 notificationMinutesBefore = finalSchedule.notificationMinutesBefore
                             )
                             calendarDao.insertEntry(entry)
-
-                            if (finalSchedule.status == "SCHEDULED") scheduler.scheduleConsultation(finalSchedule)
+                            scheduler.scheduleConsultation(finalSchedule)
                         }
                     }
                 } catch (e: Exception) { e.printStackTrace() }
@@ -150,19 +151,20 @@ class ConsultationRepository(
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
 
-        if (schedule.status != "CANCELLED") {
+        // --- [PERBAIKAN LOGIKA AGENDA HOME] ---
+        if (schedule.status == "SCHEDULED") {
             val entry = CalendarEntry(
                 title = schedule.title,
                 date = schedule.date,
                 time = schedule.startTime,
                 category = "Konsultasi",
-                priority = mapPriorityToIndo(schedule.priority), // <--- DITERJEMAHKAN!
+                priority = mapPriorityToIndo(schedule.priority),
                 sourceFeatureType = "CONSULTATION",
                 sourceFeatureId = id,
                 notificationMinutesBefore = schedule.notificationMinutesBefore
             )
             calendarDao.insertEntry(entry)
-            if (schedule.status == "SCHEDULED") scheduler.scheduleConsultation(schedule.copy(id = id))
+            scheduler.scheduleConsultation(schedule.copy(id = id))
         }
 
         scheduleSync()
@@ -177,22 +179,25 @@ class ConsultationRepository(
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
 
+        // Bersihkan entri kalender dan alarm lama dulu
         scheduler.cancelConsultation(schedule.id)
         calendarDao.deleteEntriesForSource("CONSULTATION", schedule.id)
 
-        if (schedule.status != "CANCELLED") {
+        // --- [PERBAIKAN LOGIKA AGENDA HOME] ---
+        // Buat entri baru HANYA JIKA statusnya masih SCHEDULED
+        if (schedule.status == "SCHEDULED") {
             val entry = CalendarEntry(
                 title = schedule.title,
                 date = schedule.date,
                 time = schedule.startTime,
                 category = "Konsultasi",
-                priority = mapPriorityToIndo(schedule.priority), // <--- DITERJEMAHKAN!
+                priority = mapPriorityToIndo(schedule.priority),
                 sourceFeatureType = "CONSULTATION",
                 sourceFeatureId = schedule.id,
                 notificationMinutesBefore = schedule.notificationMinutesBefore
             )
             calendarDao.insertEntry(entry)
-            if (schedule.status == "SCHEDULED") scheduler.scheduleConsultation(schedule)
+            scheduler.scheduleConsultation(schedule)
         }
 
         scheduleSync()
@@ -241,12 +246,13 @@ class ConsultationRepository(
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "SyncConsultationWork",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             syncRequest
         )
     }
 
     suspend fun getScheduleById(id: Long) = consultationDao.getScheduleById(id)
+    fun getAllSchedules() = consultationDao.getAllSchedules()
     fun getUpcomingSchedules(date: String) = consultationDao.getUpcomingSchedules(date)
     fun getHistorySchedules(date: String) = consultationDao.getHistorySchedules(date)
     fun getSchedulesByDate(date: String) = consultationDao.getSchedulesByDate(date)

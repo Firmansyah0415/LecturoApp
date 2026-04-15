@@ -1,7 +1,5 @@
 package com.lecturo.lecturo.ui.focus
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.media.RingtoneManager
 import android.content.Intent
@@ -18,7 +16,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.app.NotificationCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase

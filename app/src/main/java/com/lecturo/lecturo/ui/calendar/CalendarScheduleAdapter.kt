@@ -52,7 +52,7 @@ class CalendarScheduleAdapter(
                     cleanCategory == "mengajar" -> R.color.teaching_color
                     cleanCategory == "konsultasi" -> R.color.consultation_color
                     EventCategories.list.contains(cleanCategory) -> R.color.event_color
-                    else -> R.color.primary_color
+                    else -> R.color.colorPrimary
                 }
 
                 viewCategoryIndicator.setBackgroundColor(

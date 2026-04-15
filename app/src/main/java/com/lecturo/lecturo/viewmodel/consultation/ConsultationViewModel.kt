@@ -23,17 +23,17 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
     private val calendarRepository: CalendarRepository
     private val notificationScheduler = NotificationScheduler(application)
 
-    // Filter Trigger
-    private val _filterType = MutableLiveData<FilterType>(FilterType.UPCOMING)
+    // [PERBAIKAN] Default awal sekarang adalah ALL
+    private val _filterType = MutableLiveData<FilterType>(FilterType.ALL)
     private val _searchQuery = MutableLiveData<String>("")
 
     init {
         val db = AppDatabase.getDatabase(application)
         val consultationDao = db.consultationDao()
-        val calendarDao = db.calendarEntryDao() // <-- Ambil DAO lama
+        val calendarDao = db.calendarEntryDao()
 
         repository = ConsultationRepository(consultationDao, application.applicationContext)
-        calendarRepository = CalendarRepository(calendarDao) // <-- Init Repo lama
+        calendarRepository = CalendarRepository(calendarDao)
     }
 
     // ================= DATA STREAMS =================
@@ -43,6 +43,7 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
 
     val schedules: LiveData<List<ConsultationSchedule>> = _filterType.switchMap { filter ->
         when (filter) {
+            FilterType.ALL -> repository.getAllSchedules() // [TAMBAHAN BARU]
             FilterType.UPCOMING -> repository.getUpcomingSchedules(todayDate)
             FilterType.TODAY -> repository.getSchedulesByDate(todayDate)
             FilterType.HISTORY -> repository.getHistorySchedules(todayDate)
@@ -52,7 +53,7 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
 
     val activePatterns: LiveData<List<ConsultationPattern>> = repository.getActivePatterns()
 
-    // ================= ACTIONS (YANG SUDAH DIPERBAIKI) =================
+    // ================= ACTIONS =================
 
     fun setFilter(type: FilterType) {
         _filterType.value = type
@@ -63,11 +64,12 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
         if (query.isNotEmpty()) {
             _filterType.value = FilterType.SEARCH
         } else {
-            _filterType.value = FilterType.UPCOMING
+            // [PERBAIKAN] Jika pencarian dikosongkan, kembali ke ALL
+            _filterType.value = FilterType.ALL
         }
     }
 
-// --- FUNGSI CRUD + NOTIFIKASI + SYNC ---
+    // --- FUNGSI CRUD + NOTIFIKASI + SYNC ---
     fun insertSchedule(schedule: ConsultationSchedule) = viewModelScope.launch {
         repository.insertSchedule(schedule)
     }
@@ -80,15 +82,13 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
         repository.deleteSchedule(schedule)
     }
 
-    // Helper untuk mengambil satu data
     fun getScheduleById(id: Long, onResult: (ConsultationSchedule?) -> Unit) = viewModelScope.launch {
         val schedule = repository.getScheduleById(id)
         onResult(schedule)
     }
 
-    // ================= LOGIC MANAJEMEN POLA (PATTERN) =================
+    // ================= LOGIC MANAJEMEN POLA =================
 
-    // LiveData untuk list di halaman pengaturan
     val allPatterns: LiveData<List<ConsultationPattern>> = repository.getAllPatterns()
 
     fun savePattern(pattern: ConsultationPattern) = viewModelScope.launch {
@@ -103,13 +103,13 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
         repository.deletePattern(pattern)
     }
 
-    // Update status aktif/nonaktif via Switch
     fun togglePatternStatus(pattern: ConsultationPattern, isActive: Boolean) = viewModelScope.launch {
         val updatedPattern = pattern.copy(isActive = isActive)
         repository.updatePattern(updatedPattern)
     }
 }
 
+// [PERBAIKAN] Tambahkan ALL ke dalam Enum
 enum class FilterType {
-    UPCOMING, TODAY, HISTORY, SEARCH
+    ALL, UPCOMING, TODAY, HISTORY, SEARCH
 }

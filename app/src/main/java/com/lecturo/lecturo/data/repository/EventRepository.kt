@@ -194,7 +194,7 @@ class EventRepository(
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "SyncEventWork", // Nama Unik
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             syncRequest
         )
     }

@@ -9,15 +9,19 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:liftOnScroll="false"
+        android:stateListAnimator="@null">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/addEventToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:title="Tambah Event" />
+            android:background="@android:color/transparent"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="Tambah Event"
+            app:titleTextColor="?attr/colorOnSurface"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -37,12 +41,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
-                android:hint="Judul Event *"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Event"
+                android:hint="Judul Event *">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextTitle"
@@ -63,6 +64,7 @@
                 app:boxCornerRadiusTopEnd="16dp"
                 app:boxCornerRadiusBottomStart="16dp"
                 app:boxCornerRadiusBottomEnd="16dp"
+                android:theme="@style/ThemeOverlay.App.TextInput.Event"
                 android:hint="Kategori *"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
@@ -71,7 +73,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="none" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -83,9 +84,12 @@
                 app:boxCornerRadiusTopEnd="16dp"
                 app:boxCornerRadiusBottomStart="16dp"
                 app:boxCornerRadiusBottomEnd="16dp"
+                android:theme="@style/ThemeOverlay.App.TextInput.Event"
                 android:hint="Prioritas"
                 app:startIconDrawable="@drawable/ic_timeline"
+                app:startIconTint="@color/event_color"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
                 <AutoCompleteTextView
                     android:id="@+id/autoCompleteTextViewPriority"
                     android:layout_width="match_parent"
@@ -107,13 +111,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    style="@style/Widget.App.TextInputLayout.Rounded"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Event"
                     android:hint="Tanggal *"
                     app:startIconDrawable="@drawable/ic_date"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    app:startIconTint="@color/event_color">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextDate"
@@ -130,13 +132,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
-                    app:boxCornerRadiusBottomEnd="16dp"
+                    android:theme="@style/ThemeOverlay.App.TextInput.Event"
                     android:hint="Waktu *"
                     app:startIconDrawable="@drawable/ic_time"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    app:startIconTint="@color/event_color"
+                    style="@style/Widget.App.TextInputLayout.Rounded">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextTime"
@@ -153,13 +153,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Event"
                 android:hint="Lokasi / Tautan Online *"
                 app:startIconDrawable="@drawable/ic_location"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                app:startIconTint="@color/event_color">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextLocation"
@@ -173,12 +171,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
-                android:hint="Deskripsi (Opsional)"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Event"
+                android:hint="Deskripsi (Opsional)">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextDescription"
@@ -198,8 +193,10 @@
                 app:boxCornerRadiusTopEnd="16dp"
                 app:boxCornerRadiusBottomStart="16dp"
                 app:boxCornerRadiusBottomEnd="16dp"
+                android:theme="@style/ThemeOverlay.App.TextInput.Event"
                 android:hint="Pengingat Notifikasi"
                 app:startIconDrawable="@drawable/ic_notification"
+                app:startIconTint="@color/event_color"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <AutoCompleteTextView
@@ -213,14 +210,17 @@
                 android:id="@+id/buttonSave"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height_large"
+                android:backgroundTint="@color/event_color"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:layout_gravity="bottom"
-                app:cornerRadius="16dp"
                 android:paddingVertical="12dp"
                 android:text="Simpan"
                 android:textSize="16sp"
+                android:textColor="@color/white"
+                app:cornerRadius="16dp"
                 app:icon="@drawable/ic_save"
+                app:iconTint="@color/white"
                 app:iconGravity="textStart" />
 
         </LinearLayout>
