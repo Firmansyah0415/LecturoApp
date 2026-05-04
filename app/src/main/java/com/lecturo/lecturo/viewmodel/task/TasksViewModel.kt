@@ -51,20 +51,10 @@ class TasksViewModel(
         searchQuery.value = query
     }
 
-    // ==============================================================================
-    // PERBAIKAN 1: Fungsi insertOrUpdate sekarang sangat bersih!
-    // Semua logika pembuatan CalendarEntry, Set Notifikasi, dan Prioritas
-    // SUDAH ditangani dengan sempurna oleh TasksRepository.
-    // Jadi di sini kita cukup memanggil Repository-nya saja.
-    // ==============================================================================
     fun insertOrUpdate(tasks: Tasks) = viewModelScope.launch {
         tasksRepository.insertOrUpdate(tasks)
     }
 
-    // ==============================================================================
-    // PERBAIKAN 2: Fungsi Delete tetap butuh mematikan notifikasi dan menghapus kalender
-    // Karena TasksRepository.deleteTasks() hanya menghapus Tugas & Sesi Pomodoro.
-    // ==============================================================================
     fun deleteTasks(id: Long) = viewModelScope.launch {
         val scheduler = NotificationScheduler(getApplication())
         val entriesToDelete = calendarRepository.getEntriesForSource("TASK", id)
@@ -76,27 +66,6 @@ class TasksViewModel(
         tasksRepository.deleteTasks(id)
         calendarRepository.deleteEntriesForSource("TASK", id)
     }
-
-    // ==============================================================================
-    // PERBAIKAN 3: Memanfaatkan insertOrUpdate yang baru
-    // ==============================================================================
-//    fun updateTasksCompletedStatus(id: Long, completed: Boolean) = viewModelScope.launch {
-//        val currentTask = tasksRepository.getTaskByIdSuspend(id)
-//        currentTask?.let { task ->
-//            val updatedTask = task.copy(isCompleted = completed)
-//            // Memanggil ini akan otomatis memicu Repository untuk mengurus sisa logikanya
-//            insertOrUpdate(updatedTask)
-//        }
-//
-//        // Jaring pengaman: Jika tugas dicentang selesai, matikan alarmnya
-//        if (completed) {
-//            val scheduler = NotificationScheduler(getApplication())
-//            val entriesToCancel = calendarRepository.getEntriesForSource("TASK", id)
-//            entriesToCancel.forEach { entry ->
-//                scheduler.cancelNotification(entry.notificationId)
-//            }
-//        }
-//    }
 
     fun updateTasksCompletedStatus(id: Long, completed: Boolean) = viewModelScope.launch {
         val currentTask = tasksRepository.getTaskByIdSuspend(id)

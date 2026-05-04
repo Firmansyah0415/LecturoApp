@@ -57,8 +57,12 @@ class AddTasksActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
         window.statusBarColor = getColor(R.color.colorPrimary)
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = !isNightMode
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
@@ -108,11 +112,12 @@ class AddTasksActivity : AppCompatActivity() {
         return if (index != -1) notificationValues[index] else 15
     }
 
-    // --- FUNGSI INI YANG SAYA PERBAIKI ---
+    // --- PERBAIKAN: Menambahkan endTime ke Database ---
     private fun saveTasks() {
         val title = binding.editTitle.text.toString().trim()
         val date = binding.editDate.text.toString().trim()
         val time = binding.editTime.text.toString().trim()
+        val endTime = binding.editEndTime.text.toString().trim() // Ambil nilai End Time
         val location = binding.editLocation.text.toString().trim()
         val description = binding.editDescription.text.toString().trim()
         val priority = binding.autoCompletePriority.text.toString()
@@ -123,7 +128,13 @@ class AddTasksActivity : AppCompatActivity() {
             return
         }
 
-        // 1. AMBIL USER ID DARI FIREBASE
+        // Logika Fallback (Jika end_time dibiarkan kosong oleh dosen)
+        val finalEndTime = if (endTime.isEmpty()) {
+            calculateEndTimeFallback(time)
+        } else {
+            endTime
+        }
+
         val currentUser = FirebaseAuth.getInstance().currentUser
         val currentUid = currentUser?.uid
 
@@ -134,18 +145,13 @@ class AddTasksActivity : AppCompatActivity() {
 
         val tasksToSave = Tasks(
             id = if (isEditMode) tasksId else 0,
-
-            // 2. MASUKKAN USER ID KE SINI
             userId = currentUid,
-
             firestoreId = currentTasks?.firestoreId,
-
-            // 3. SET isSynced = false (Agar Worker tahu ini data baru yang perlu diupload)
             isSynced = false,
-
             title = title,
             date = date,
             time = time,
+            endTime = finalEndTime, // Simpan End Time
             location = location,
             description = description,
             priority = priority,
@@ -160,6 +166,22 @@ class AddTasksActivity : AppCompatActivity() {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
         finish()
+    }
+
+    // Helper: Tambah 1 Jam jika End Time kosong
+    private fun calculateEndTimeFallback(startTime: String): String {
+        try {
+            val parts = startTime.split(":")
+            if (parts.size == 2) {
+                var h = parts[0].toInt()
+                val m = parts[1]
+                h = (h + 1) % 24
+                return String.format("%02d:%s", h, m)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return ""
     }
 
     private fun setupToolbar() {
@@ -178,6 +200,7 @@ class AddTasksActivity : AppCompatActivity() {
                     binding.editTitle.setText(it.title)
                     binding.editDate.setText(it.date)
                     binding.editTime.setText(it.time)
+                    binding.editEndTime.setText(it.endTime) // Tampilkan End Time saat edit
                     binding.editLocation.setText(it.location)
                     binding.editDescription.setText(it.description)
                     binding.autoCompletePriority.setText(it.priority, false)
@@ -190,7 +213,8 @@ class AddTasksActivity : AppCompatActivity() {
 
     private fun setupDateTimePickers() {
         binding.editDate.setOnClickListener { showDatePicker() }
-        binding.editTime.setOnClickListener { showTimePicker() }
+        binding.editTime.setOnClickListener { showTimePicker(true) }
+        binding.editEndTime.setOnClickListener { showTimePicker(false) } // Listener untuk End Time
     }
 
     private fun showDatePicker() {
@@ -208,7 +232,7 @@ class AddTasksActivity : AppCompatActivity() {
         ).show()
     }
 
-    private fun showTimePicker() {
+    private fun showTimePicker(isStartTime: Boolean) {
         val calendar = Calendar.getInstance()
         TimePickerDialog(
             this,
@@ -218,7 +242,13 @@ class AddTasksActivity : AppCompatActivity() {
                     set(Calendar.MINUTE, minute)
                 }
                 val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-                binding.editTime.setText(timeFormat.format(selectedTime.time))
+                val formattedTime = timeFormat.format(selectedTime.time)
+
+                if (isStartTime) {
+                    binding.editTime.setText(formattedTime)
+                } else {
+                    binding.editEndTime.setText(formattedTime)
+                }
             },
             calendar.get(Calendar.HOUR_OF_DAY),
             calendar.get(Calendar.MINUTE),

@@ -6,15 +6,41 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
-import com.lecturo.lecturo.data.remote.RetrofitClient
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.EventRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
 import com.lecturo.lecturo.databinding.FragmentCalendarBinding
+
+// Import Compose
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.lecturo.lecturo.R
+import com.lecturo.lecturo.data.model.CalendarDay
+import com.lecturo.lecturo.data.model.CalendarEntry
 import com.lecturo.lecturo.utils.EventCategories
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,28 +53,15 @@ class CalendarFragment : Fragment() {
     private val viewModel: CalendarViewModel by viewModels {
         val context = requireContext()
         val database = AppDatabase.getDatabase(context)
-
-        // 2. Panggil Retrofit Client
-        val apiService = RetrofitClient.instance
-
-        // 3. Masukkan apiService ke Repository yang membutuhkannya
         CalendarViewModelFactory(
-            CalendarRepository(database.calendarEntryDao()), // CalendarRepo biasanya lokal saja
+            CalendarRepository(database.calendarEntryDao()),
             EventRepository(database.eventDao(), context.applicationContext),
-            TasksRepository(database.tasksDao(), database.focusSessionDao(), context.applicationContext)  // Butuh apiService
+            TasksRepository(database.tasksDao(), database.focusSessionDao(), context.applicationContext)
         )
     }
 
-    private lateinit var calendarAdapter: CalendarDayAdapter
-    private lateinit var scheduleAdapter: CalendarScheduleAdapter
-
-    private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    private val monthYearFormat = SimpleDateFormat("MMMM yyyy", Locale("id", "ID"))
-
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCalendarBinding.inflate(inflater, container, false)
         return binding.root
@@ -57,114 +70,261 @@ class CalendarFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupCalendarRecyclerView()
-        setupScheduleRecyclerView()
-        setupFilters()
-        setupClickListeners()
-        observeViewModel()
-    }
-
-    private fun setupCalendarRecyclerView() {
-        calendarAdapter = CalendarDayAdapter { calendarDay ->
-            if (calendarDay.isCurrentMonth) {
-                viewModel.selectDate(calendarDay.date)
+        binding.composeViewCalendar.setContent {
+            MaterialTheme {
+                CalendarScreen(viewModel = viewModel)
             }
-        }
-
-        binding.recyclerViewCalendar.apply {
-            layoutManager = GridLayoutManager(requireContext(), 7)
-            adapter = calendarAdapter
-            isNestedScrollingEnabled = false
-        }
-    }
-
-    private fun setupScheduleRecyclerView() {
-        scheduleAdapter = CalendarScheduleAdapter { schedule ->
-            // Handle klik item jadwal
-        }
-
-        binding.recyclerViewSchedules.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = scheduleAdapter
-        }
-    }
-
-    private fun setupFilters() {
-        // Filter Waktu
-        binding.chipGroupTimeFilter.setOnCheckedStateChangeListener { group, checkedIds ->
-            val selectedChipId = checkedIds.firstOrNull() ?: R.id.chipDaily
-            val timeFilter = when (selectedChipId) {
-                R.id.chipDaily -> CalendarViewModel.TimeFilter.DAILY
-                R.id.chipWeekly -> CalendarViewModel.TimeFilter.WEEKLY
-                R.id.chipMonthly -> CalendarViewModel.TimeFilter.MONTHLY
-                else -> CalendarViewModel.TimeFilter.DAILY
-            }
-            viewModel.setTimeFilter(timeFilter)
-        }
-
-        // --- LANGKAH 2: PERBAIKI LOGIKA FILTER KATEGORI ---
-        binding.chipGroupCategoryFilter.setOnCheckedStateChangeListener { _, _ ->
-            val selectedCategories = mutableSetOf<String>()
-
-            if (binding.chipTask.isChecked) selectedCategories.add("Tugas")
-            if (binding.chipTeaching.isChecked) selectedCategories.add("Mengajar")
-            if (binding.chipConsultation.isChecked) selectedCategories.add("Konsultasi")
-
-            // Jika chip "Event" dicentang, tambahkan semua sub-kategorinya ke dalam set filter
-            if (binding.chipEvent.isChecked) {
-                // Konversi kategori dari lowercase (di list) menjadi Proper Case
-                // agar cocok dengan data yang tersimpan di database ("Rapat", "Seminar", dll.)
-                val eventSubCategories = EventCategories.list.map {
-                    it.replaceFirstChar { char ->
-                        if (char.isLowerCase()) char.titlecase(Locale.getDefault()) else char.toString()
-                    }
-                }
-                selectedCategories.addAll(eventSubCategories)
-            }
-
-            viewModel.setCategoryFilter(selectedCategories)
-        }
-    }
-
-    private fun setupClickListeners() {
-        binding.btnPreviousMonth.setOnClickListener {
-            viewModel.navigateToPreviousMonth()
-        }
-
-        binding.btnNextMonth.setOnClickListener {
-            viewModel.navigateToNextMonth()
-        }
-    }
-
-    private fun observeViewModel() {
-        viewModel.currentMonth.observe(viewLifecycleOwner) { calendar ->
-            binding.tvCurrentMonth.text = monthYearFormat.format(calendar.time)
-        }
-
-        viewModel.calendarDays.observe(viewLifecycleOwner) { days ->
-            calendarAdapter.submitList(days)
-        }
-
-        viewModel.selectedDateSchedules.observe(viewLifecycleOwner) { schedules ->
-            scheduleAdapter.submitList(schedules)
-            binding.tvScheduleCount.text = schedules.size.toString()
-            binding.recyclerViewSchedules.visibility = if (schedules.isEmpty()) View.GONE else View.VISIBLE
-            binding.layoutEmptyState.visibility = if (schedules.isEmpty()) View.VISIBLE else View.GONE
-        }
-
-        viewModel.selectedDate.observe(viewLifecycleOwner) { date ->
-            val formattedDate = dateFormat.format(date.time)
-            binding.tvScheduleListTitle.text = "Jadwal $formattedDate"
-            calendarAdapter.setSelectedDate(formattedDate)
-        }
-
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            // Handle loading state
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+}
+
+// ==========================================
+// 🚀 JETPACK COMPOSE UI COMPONENTS
+// ==========================================
+
+
+@Composable
+fun CalendarScreen(viewModel: CalendarViewModel) {
+    val currentMonth by viewModel.currentMonth.observeAsState(Calendar.getInstance())
+    val selectedDate by viewModel.selectedDate.observeAsState(Calendar.getInstance())
+    val calendarDays by viewModel.calendarDays.observeAsState(emptyList())
+    val schedules by viewModel.selectedDateSchedules.observeAsState(emptyList())
+
+    val monthFormat = remember { SimpleDateFormat("MMMM yyyy", Locale("id", "ID")) }
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        // --- KARTU KALENDER ---
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = colorResource(R.color.card_background)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Header (Panah Kiri - Bulan - Panah Kanan)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(onClick = { viewModel.navigateToPreviousMonth() }) {
+                        Icon(painterResource(R.drawable.ic_chevron_left), contentDescription = "Prev", tint = colorResource(R.color.colorPrimary))
+                    }
+                    Text(
+                        text = monthFormat.format(currentMonth.time),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(R.color.text_primary)
+                    )
+                    IconButton(onClick = { viewModel.navigateToNextMonth() }) {
+                        Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = "Next", tint = colorResource(R.color.colorPrimary))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Label Hari (SEN, SEL, dll)
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    listOf("MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB").forEach { day ->
+                        Text(
+                            text = day,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorResource(R.color.colorPrimary)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // GRID KALENDER 42 HARI
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(7),
+                    modifier = Modifier.heightIn(max = 300.dp),
+                    userScrollEnabled = false // Matikan scroll agar pas di card
+                ) {
+                    items(calendarDays) { day ->
+                        val isSelected = dateFormat.format(selectedDate.time) == day.getFormattedDate()
+                        DayCell(day, isSelected) { viewModel.selectDate(day.date) }
+                    }
+                }
+            }
+        }
+
+        // --- DAFTAR JADWAL (RECYCLERVIEW PENGGANTI) ---
+        Text(
+            text = "Jadwal ${dateFormat.format(selectedDate.time)}",
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = colorResource(R.color.text_primary),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        if (schedules.isEmpty()) {
+            // Empty State
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_calendar_empty), // Pastikan ada icon ini
+                    contentDescription = null,
+                    tint = Color.LightGray,
+                    modifier = Modifier.size(80.dp).padding(bottom = 16.dp)
+                )
+                Text("Tidak ada jadwal", color = Color.Gray, fontWeight = FontWeight.Bold)
+            }
+        } else {
+            // List Jadwal
+            LazyColumn(
+                contentPadding = PaddingValues(bottom = 80.dp), // Jarak untuk BottomNav
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(schedules) { schedule ->
+                    ScheduleItemCard(schedule)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DayCell(day: CalendarDay, isSelected: Boolean, onClick: () -> Unit) {
+    // 1. LOGIKA WARNA BACKGROUND (Latar Belakang)
+    val bgColor = when {
+        // Prioritas 1: Jika sedang diklik, warnanya colorPrimaryContainer
+        isSelected -> colorResource(R.color.colorPrimaryContainer)
+
+        // Prioritas 2: Jika BUKAN yang diklik, tapi dia adalah "Hari Ini", warnanya colorOnPrimaryContainer
+        day.isToday -> colorResource(R.color.colorOnPrimaryContainer)
+
+        // Prioritas 3: Tanggal biasa (Mati/Transparan)
+        else -> Color.Transparent
+    }
+
+    // 2. LOGIKA WARNA TEKS (Angka)
+    val textColor = when {
+        // Jika sedang diklik
+        isSelected -> colorResource(R.color.text_primary)
+
+        // Jika hari ini
+        day.isToday -> colorResource(R.color.text_tertiary)
+
+        // Jika tanggalnya redup (bulan lalu/depan)
+        !day.isCurrentMonth -> colorResource(R.color.text_secondary)
+
+        // Tanggal biasa di bulan ini
+        else -> colorResource(R.color.text_primary)
+    }
+
+    Column(
+        modifier = Modifier
+            .aspectRatio(1f) // Buat kotak sempurna
+            .clip(RoundedCornerShape(8.dp))
+            .background(bgColor)
+            .clickable(enabled = day.isCurrentMonth, onClick = onClick)
+            .padding(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = day.dayNumber, color = textColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
+        // --- LOGIKA 4 TITIK WARNA ---
+        if (day.hasSchedules() && day.isCurrentMonth) {
+            Spacer(modifier = Modifier.height(2.dp))
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth() // Memastikan barisan titik selalu rata tengah
+            ) {
+                day.scheduleCategories.map { it.trim().lowercase(Locale.getDefault()) }.distinct().forEach { category ->
+                    val dotColor = when {
+                        category == "tugas" -> colorResource(R.color.task_color)
+                        category == "mengajar" -> colorResource(R.color.teaching_color)
+                        category == "konsultasi" -> colorResource(R.color.consultation_color)
+                        EventCategories.list.contains(category) -> colorResource(R.color.event_color)
+                        else -> Color.Transparent
+                    }
+                    if (dotColor != Color.Transparent) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp) // 1. Diperbesar menjadi 6dp
+                                .background(color = dotColor, shape = CircleShape) // 2. Warna dasar
+                                .border( // 3. Garis tepi (stroke) putih untuk kontras
+                                    width = 1.dp,
+                                    color = Color.White,
+                                    shape = CircleShape
+                                )
+                        )
+                        Spacer(modifier = Modifier.width(2.dp)) // Jarak antar titik
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ScheduleItemCard(schedule: CalendarEntry) {
+    val cleanCategory = schedule.category.trim().lowercase(Locale.getDefault())
+    val categoryColor = when {
+        cleanCategory == "tugas" -> colorResource(R.color.task_color)
+        cleanCategory == "mengajar" -> colorResource(R.color.teaching_color)
+        cleanCategory == "konsultasi" -> colorResource(R.color.consultation_color)
+        EventCategories.list.contains(cleanCategory) -> colorResource(R.color.event_color)
+        else -> colorResource(R.color.colorPrimary)
+    }
+
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = colorResource(R.color.card_background)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            // Garis indikator warna di sebelah kiri
+            Box(modifier = Modifier.width(4.dp).fillMaxHeight().background(categoryColor))
+
+            Column(modifier = Modifier.padding(16.dp).weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = schedule.title,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(R.color.colorPrimary),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = schedule.time,
+                        fontSize = 12.sp,
+                        color = colorResource(R.color.text_secondary),
+                        modifier = Modifier
+                            .background(colorResource(R.color.colorBackground), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+                Text(
+                    text = schedule.category.uppercase(Locale.getDefault()),
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+//            IconButton(onClick = { /* Handle Klik Aksi */ }, modifier = Modifier.align(Alignment.CenterVertically)) {
+//                Icon(painterResource(R.drawable.ic_more_vert), contentDescription = "Aksi", tint = Color.Gray)
+//            }
+        }
     }
 }

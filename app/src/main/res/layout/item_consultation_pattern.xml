@@ -50,7 +50,7 @@
             android:layout_marginTop="4dp"
             tools:text="Setiap Selasa • 09:00 - 11:00"
             android:textSize="14sp"
-            android:textColor="#757575"
+            android:textColor="@color/text_secondary"
             app:layout_constraintStart_toStartOf="@+id/tvPatternTitle"
             app:layout_constraintTop_toBottomOf="@+id/tvPatternTitle"
             app:layout_constraintEnd_toEndOf="@+id/tvPatternTitle"/>

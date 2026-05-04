@@ -58,6 +58,7 @@ class TasksRepository(
                     val title = document.getString("title") ?: continue
                     val date = document.getString("date") ?: continue
                     val time = document.getString("time") ?: continue
+                    val endTime = document.getString("end_time") ?: ""
                     val location = document.getString("location") ?: ""
                     val description = document.getString("description") ?: ""
                     val priority = document.getString("priority") ?: "Sedang"
@@ -74,6 +75,7 @@ class TasksRepository(
                                 title = title,
                                 date = date,
                                 time = time,
+                                endTime = endTime,
                                 location = location,
                                 description = description,
                                 priority = priority,
@@ -96,6 +98,7 @@ class TasksRepository(
                                     title = updatedTask.title,
                                     date = updatedTask.date,
                                     time = updatedTask.time,
+                                    endTime = updatedTask.endTime,
                                     category = "Tugas",
                                     priority = updatedTask.priority ?: "Sedang",
                                     sourceFeatureType = "TASK",
@@ -112,6 +115,7 @@ class TasksRepository(
                             title = title,
                             date = date,
                             time = time,
+                            endTime = endTime,
                             location = location,
                             description = description,
                             priority = priority,
@@ -130,6 +134,7 @@ class TasksRepository(
                                 title = newTask.title,
                                 date = newTask.date,
                                 time = newTask.time,
+                                endTime = newTask.endTime,
                                 category = "Tugas",
                                 priority = newTask.priority ?: "Sedang",
                                 sourceFeatureType = "TASK",
@@ -169,6 +174,7 @@ class TasksRepository(
                 title = tasks.title,
                 date = tasks.date,
                 time = tasks.time,
+                endTime = tasks.endTime,
                 category = "Tugas",
                 priority = tasks.priority ?: "Sedang",
                 sourceFeatureType = "TASK",

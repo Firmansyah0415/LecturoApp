@@ -216,6 +216,7 @@ class TeachingRepository(
                 title = "${rule.courseName} - ${rule.classCode}",
                 date = dateFormat.format(date),
                 time = rule.startTime,
+                endTime = rule.endTime,
                 category = "Mengajar",
                 priority = rule.priority ?: "Tinggi",
                 sourceFeatureType = "TEACHING_RULE",

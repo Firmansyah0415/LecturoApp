@@ -33,18 +33,14 @@ class AddEventActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddEventBinding
     private var eventId: Long = -1
     private var isEditMode = false
-
-    // 1. Variabel untuk menyimpan data asli (agar firestoreId tidak hilang)
     private var currentEvent: Event? = null
 
-    // 2. Inisialisasi ViewModel
     private val viewModel: EventViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
         val eventRepository = EventRepository(database.eventDao(), applicationContext)
         val calendarRepository = CalendarRepository(database.calendarEntryDao())
-
         EventViewModelFactory(eventRepository, calendarRepository, application)
-    } // <--- KURUNG TUTUP INI YANG TADI HILANG
+    }
 
     private val categories = arrayOf(
         "Rapat", "Seminar", "Webinar", "Workshop",
@@ -56,7 +52,6 @@ class AddEventActivity : AppCompatActivity() {
         "15 menit sebelumnya", "30 menit sebelumnya", "1 jam sebelumnya"
     )
     private val notificationValues = arrayOf(-1, 0, 5, 15, 30, 60)
-
     private val priorityOptions = arrayOf("Tinggi", "Sedang", "Rendah")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,28 +59,24 @@ class AddEventActivity : AppCompatActivity() {
         binding = ActivityAddEventBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // UI System Bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
         window.statusBarColor = getColor(R.color.colorPrimary)
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
             view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
             insets
         }
 
-        // [SOLUSI PRO: Mendorong btnSave ke atas Navigasi Sistem]
         ViewCompat.setOnApplyWindowInsetsListener(binding.buttonSave) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-
-            // Konversi margin dasar 16dp dari XML ke satuan Pixel
             val baseMarginPx = (16 * resources.displayMetrics.density).toInt()
-
-            // Update HANYA margin bawahnya, margin lain biarkan sesuai XML
             view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = systemBars.bottom + baseMarginPx
             }
-
             insets
         }
 
@@ -115,13 +106,10 @@ class AddEventActivity : AppCompatActivity() {
         eventFromAi?.let {
             binding.editTextTitle.setText(it.title)
             binding.autoCompleteTextViewCategory.setText(it.category, false)
-
-            // Logic Priority dari AI
-            val priority = it.priority ?: "Sedang"
-            binding.autoCompleteTextViewPriority.setText(priority, false)
-
+            binding.autoCompleteTextViewPriority.setText(it.priority ?: "Sedang", false)
             binding.editTextDate.setText(it.date)
             binding.editTextTime.setText(it.time)
+            binding.editTextEndTime.setText(it.endTime) // 🔴 TAMBAHAN: Isi End Time dari AI
             binding.editTextLocation.setText(it.location)
             binding.editTextDescription.setText(it.description)
             Toast.makeText(this, "Data berhasil diisi oleh AI!", Toast.LENGTH_SHORT).show()
@@ -132,15 +120,14 @@ class AddEventActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val event = viewModel.getEventById(eventId)
             event?.let {
-                // Simpan ke variabel global agar ID Cloud tidak hilang
                 currentEvent = it
-
                 binding.apply {
                     editTextTitle.setText(it.title)
                     autoCompleteTextViewCategory.setText(it.category, false)
                     autoCompleteTextViewPriority.setText(it.priority, false)
                     editTextDate.setText(it.date)
                     editTextTime.setText(it.time)
+                    editTextEndTime.setText(it.endTime) // 🔴 TAMBAHAN: Tampilkan End Time saat diedit
                     editTextLocation.setText(it.location)
                     editTextDescription.setText(it.description)
                     val notificationText = getNotificationOptionText(it.notificationMinutesBefore)
@@ -156,6 +143,7 @@ class AddEventActivity : AppCompatActivity() {
         val priority = binding.autoCompleteTextViewPriority.text.toString().trim()
         val date = binding.editTextDate.text.toString().trim()
         val time = binding.editTextTime.text.toString().trim()
+        val endTime = binding.editTextEndTime.text.toString().trim() // 🔴 TAMBAHAN
         val location = binding.editTextLocation.text.toString().trim()
         val description = binding.editTextDescription.text.toString().trim()
         val notificationMinutes = getSelectedNotificationValue()
@@ -165,7 +153,9 @@ class AddEventActivity : AppCompatActivity() {
             return
         }
 
-        // [TAMBAHAN WAJIB] Ambil User ID
+        // 🔴 LOGIKA FALLBACK 1 JAM
+        val finalEndTime = if (endTime.isEmpty()) calculateEndTimeFallback(time) else endTime
+
         val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
         val currentUid = currentUser?.uid
 
@@ -174,7 +164,6 @@ class AddEventActivity : AppCompatActivity() {
             return
         }
 
-        // Gunakan ID dari currentEvent
         val event = Event(
             id = if (isEditMode) eventId else 0,
             firestoreId = currentEvent?.firestoreId,
@@ -186,11 +175,10 @@ class AddEventActivity : AppCompatActivity() {
             priority = priority,
             date = date,
             time = time,
+            endTime = finalEndTime, // 🔴 SIMPAN END TIME
             location = location,
             description = description.ifEmpty { null },
             notificationMinutesBefore = notificationMinutes,
-
-            // Pertahankan input source (misal dari AI) jika edit, atau default MANUAL
             inputSource = currentEvent?.inputSource ?: "MANUAL"
         )
 
@@ -202,7 +190,19 @@ class AddEventActivity : AppCompatActivity() {
         finish()
     }
 
-    // --- Sisa fungsi UI ---
+    // 🔴 HELPER FALLBACK 1 JAM
+    private fun calculateEndTimeFallback(startTime: String): String {
+        try {
+            val parts = startTime.split(":")
+            if (parts.size == 2) {
+                var h = parts[0].toInt()
+                val m = parts[1]
+                h = (h + 1) % 24
+                return String.format("%02d:%s", h, m)
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+        return ""
+    }
 
     private fun setupNotificationDropdown() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, notificationOptions)
@@ -235,7 +235,7 @@ class AddEventActivity : AppCompatActivity() {
     private fun setupToolbar() {
         setSupportActionBar(binding.addEventToolbar)
         supportActionBar?.apply {
-            title = if (isEditMode) "Edit Event" else "Tambah Event"
+            title = if (isEditMode) "Edit Jadwal Acara" else "Tambah Jadwal Acara"
             setDisplayHomeAsUpEnabled(true)
         }
     }
@@ -255,7 +255,8 @@ class AddEventActivity : AppCompatActivity() {
 
     private fun setupDateTimePickers() {
         binding.editTextDate.setOnClickListener { showDatePicker() }
-        binding.editTextTime.setOnClickListener { showTimePicker() }
+        binding.editTextTime.setOnClickListener { showTimePicker(true) }
+        binding.editTextEndTime.setOnClickListener { showTimePicker(false) } // 🔴 LISTENER END TIME
     }
 
     private fun showDatePicker() {
@@ -267,7 +268,7 @@ class AddEventActivity : AppCompatActivity() {
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
     }
 
-    private fun showTimePicker() {
+    private fun showTimePicker(isStartTime: Boolean) {
         val calendar = Calendar.getInstance()
         TimePickerDialog(this, { _, hourOfDay, minute ->
             val selectedTime = Calendar.getInstance().apply {
@@ -275,7 +276,13 @@ class AddEventActivity : AppCompatActivity() {
                 set(Calendar.MINUTE, minute)
             }
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-            binding.editTextTime.setText(timeFormat.format(selectedTime.time))
+            val formattedTime = timeFormat.format(selectedTime.time)
+
+            if (isStartTime) {
+                binding.editTextTime.setText(formattedTime)
+            } else {
+                binding.editTextEndTime.setText(formattedTime)
+            }
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
     }
 

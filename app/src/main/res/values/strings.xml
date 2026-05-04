@@ -21,7 +21,7 @@
     <string name="name">Name</string>
     <string name="message_main_page">Selamat Belajar di Dicoding.</string>
     <string name="greeting">Halo %1$s,</string>
-    <string name="logout">Logout</string>
+    <string name="logout">Log Out</string>
 
     <string name="selamat_datang_dosen">Selamat Datang,</string>
     <string name="nama_user">Dosen!</string>
@@ -233,12 +233,12 @@
     <string name="welcome_image">welcome image</string>
 
     <!-- Settings -->
-    <string name="notification_settings_title">Notification Settings</string>
-    <string name="notification_settings_description">Configure notifications for schedules and reminders</string>
-    <string name="language_settings_title">Language</string>
+    <string name="notification_settings_title">Pengaturan Notifikasi</string>
+    <string name="notification_settings_description">Atur notifikasi untuk jadwal dan pengingat</string>
+    <string name="language_settings_title">Bahasa</string>
     <string name="language_settings_description">Choose app language</string>
-    <string name="theme_settings_title">Dark Mode</string>
-    <string name="theme_settings_description">Enable dark mode for comfortable viewing</string>
+    <string name="theme_settings_title">Mode Malam</string>
+    <string name="theme_settings_description">Aktifkan mode malam untuk pengalaman tampilan yang lebih nyaman</string>
     <string name="select_language">Select Language</string>
     <string name="settings_info_message">Some changes will be applied after app restart</string>
 
@@ -257,14 +257,14 @@
     <string name="notifikasi_konsultasi">Notifikasi Konsultasi</string>
     <string name="pengaturan_ini_akan_menjadi_default_untuk_jadwal_baru_anda_tetap_bisa_mengatur_notifikasi_individual_untuk_setiap_jadwal">Pengaturan ini akan menjadi default untuk jadwal baru. Anda tetap bisa mengatur notifikasi individual untuk setiap jadwal.</string>
     <string name="simpan_pengaturan">Simpan Pengaturan</string>
-    <string name="settings">Settings</string>
+    <string name="settings">Pengaturan</string>
     <string name="jadwal_hari_ini">Jadwal hari ini</string>
     <string name="kalender_mingguan">Kalender mingguan</string>
-    <string name="info_notification_settings">These settings will be the default for your new schedules. You can still set individual notifications for each schedule.</string>
-    <string name="consultation_notification_setting">Consultation Notification</string>
-    <string name="event_meeting_notification_setting">Event / Meeting Notification</string>
-    <string name="task_notification_setting">Task Notification</string>
-    <string name="teaching_notification_setting">Teaching Notification</string>
+    <string name="info_notification_settings">Pengaturan ini akan menjadi pengaturan default untuk jadwal baru Anda. Anda tetap dapat mengatur pemberitahuan secara terpisah untuk setiap jadwal.</string>
+    <string name="consultation_notification_setting">Notifikasi Jadwal Konsultasi</string>
+    <string name="event_meeting_notification_setting">Notifikasi Jadwal Acara</string>
+    <string name="task_notification_setting">Notifikasi Jadwal Tugas</string>
+    <string name="teaching_notification_setting">Notifikasi Jadwal Mengajar</string>
 
     <string name="enable_sound">Enable Sound</string>
     <string name="enable_sound_description">Play a sound with the notification</string>
@@ -282,7 +282,7 @@
     <string name="task_title_home">Task</string>
     <string name="task_title_home_id">Tugas</string>
     <string name="event_title_home">Event</string>
-    <string name="event_title_home_id">Agenda</string>
+    <string name="event_title_home_id">Acara</string>
     <string name="consultation_title_home">Consultation</string>
     <string name="consultation_title_home_id">Konsultasi</string>
 

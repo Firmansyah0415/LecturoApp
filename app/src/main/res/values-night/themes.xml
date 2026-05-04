@@ -16,7 +16,8 @@
         <item name="colorSurface">@color/colorSurface</item>
         <item name="colorOnSurface">@color/text_primary</item>
 
-        <item name="android:statusBarColor">?attr/colorSurface</item> <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/text_primary</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="Theme.LecturoApp" parent="Base.Theme.LecturoApp" />

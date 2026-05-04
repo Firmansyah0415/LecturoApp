@@ -39,7 +39,13 @@ class EventAdapter(
                 textTitle.text = event.title
                 chipCategory.text = event.category
                 textDate.text = event.date.toReadableDate()
-                textTime.text = event.time
+                // 🔴 PERUBAHAN: Menampilkan waktu mulai dan selesai
+                val timeDisplay = if (event.endTime.isNotEmpty()) {
+                    "${event.time} - ${event.endTime}"
+                } else {
+                    event.time
+                }
+                textTime.text = timeDisplay
                 textLocation.text = event.location
 
                 // PERUBAHAN UTAMA: Logika untuk menampilkan atau menyembunyikan deskripsi dan pemisahnya

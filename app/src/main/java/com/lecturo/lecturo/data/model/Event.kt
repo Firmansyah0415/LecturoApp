@@ -37,6 +37,9 @@ data class Event(
     @SerializedName("time")
     val time: String,
 
+    @SerializedName("end_time")
+    val endTime: String = "",
+
     @SerializedName("location")
     val location: String? = null,
 

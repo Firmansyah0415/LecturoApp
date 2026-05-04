@@ -16,8 +16,8 @@
         <item name="colorSurface">@color/colorSurface</item>
         <item name="colorOnSurface">@color/text_primary</item>
 
-        <item name="android:statusBarColor">?attr/colorPrimary</item>
-        <item name="android:windowLightStatusBar">false</item> </style>
+        <item name="android:statusBarColor">@color/text_primary</item>
+        <item name="android:windowLightStatusBar">true</item> </style>
 
     <style name="Theme.LecturoApp" parent="Base.Theme.LecturoApp" />
 
@@ -67,11 +67,21 @@
     </style>
     <!--  End Text Input Layout Style  -->
 
-    <!--  Switch button Style  -->
+    <!--  Switch button Consultation Style  -->
     <style name="ThemeOverlay.App.Switch.Consultation" parent="">
         <item name="colorPrimary">@color/consultation_color</item>
         <item name="colorOnPrimary">@color/white</item>
     </style>
-    <!--  End Switch button Style  -->
+
+    <!--  Switch button Consultation Style  -->
+    <style name="ThemeOverlay.App.Switch.Lecturo" parent="">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <!--  Custom Bottom Nav Indicator  -->
+    <style name="CustomBottomNavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/colorPrimaryContainer</item>
+    </style>
 
 </resources>

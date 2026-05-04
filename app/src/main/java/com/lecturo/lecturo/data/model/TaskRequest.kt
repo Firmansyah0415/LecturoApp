@@ -9,6 +9,7 @@ data class TaskRequest(
     @SerializedName("description") val description: String,
     @SerializedName("date") val date: String,
     @SerializedName("time") val time: String,
+    @SerializedName("end_time") val endTime: String,
     @SerializedName("location") val location: String,
     @SerializedName("priority") val priority: String,
     @SerializedName("input_source") val inputSource: String,

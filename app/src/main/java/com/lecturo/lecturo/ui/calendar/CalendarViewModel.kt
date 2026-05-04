@@ -24,7 +24,8 @@ class CalendarViewModel(
     private val _selectedDate = MutableLiveData<Calendar>()
     val selectedDate: LiveData<Calendar> get() = _selectedDate
 
-    private val _calendarDays = MutableLiveData<List<CalendarDay>>()
+    // 1. UBAH KE MEDIATOR LIVEDATA AGAR REAKTIF
+    private val _calendarDays = MediatorLiveData<List<CalendarDay>>()
     val calendarDays: LiveData<List<CalendarDay>> get() = _calendarDays
 
     private val _isLoading = MutableLiveData<Boolean>()
@@ -39,12 +40,20 @@ class CalendarViewModel(
     val selectedDateSchedules: LiveData<List<CalendarEntry>> = _selectedDateSchedules
 
     init {
+        // Pantau filter untuk daftar jadwal di bawah
         _selectedDateSchedules.addSource(allEntries) { updateSchedules() }
         _selectedDateSchedules.addSource(_selectedDate) { updateSchedules() }
         _selectedDateSchedules.addSource(timeFilter) { updateSchedules() }
         _selectedDateSchedules.addSource(categoryFilter) { updateSchedules() }
 
-        selectDate(Calendar.getInstance())
+        // 2. KUNCI PERBAIKAN: Pantau data bulan & database untuk kalender grid!
+        _calendarDays.addSource(_currentMonth) { generateCalendarDays() }
+        _calendarDays.addSource(allEntries) { generateCalendarDays() }
+
+        // Set awal bulan dan tanggal hari ini
+        val today = Calendar.getInstance()
+        _currentMonth.value = today.clone() as Calendar
+        selectDate(today)
     }
 
     private fun updateSchedules() {
@@ -70,17 +79,17 @@ class CalendarViewModel(
     }
 
     fun setCurrentMonth(calendar: Calendar) {
-        val newMonth = calendar.clone() as Calendar
-        _currentMonth.value = newMonth
-        generateCalendarDays(newMonth)
+        // Fungsi ini sekarang HANYA mengubah bulan,
+        // generateCalendarDays() akan otomatis terpanggil berkat MediatorLiveData
+        _currentMonth.value = calendar.clone() as Calendar
     }
 
     fun selectDate(calendar: Calendar) {
         _selectedDate.value = calendar
-        if (_currentMonth.value?.get(Calendar.MONTH) != calendar.get(Calendar.MONTH)) {
+        val current = _currentMonth.value
+        // Pindah bulan jika tanggal yang diklik berbeda bulan
+        if (current == null || current.get(Calendar.MONTH) != calendar.get(Calendar.MONTH)) {
             setCurrentMonth(calendar)
-        } else {
-            _currentMonth.value?.let { generateCalendarDays(it) }
         }
     }
 
@@ -108,32 +117,33 @@ class CalendarViewModel(
         categoryFilter.value = categories
     }
 
-    private fun generateCalendarDays(targetMonthCalendar: Calendar) {
+    // 3. FUNGSI YANG DIPERBARUI: Tidak perlu menerima parameter targetMonth lagi
+    private fun generateCalendarDays() {
+        val targetMonthCalendar = _currentMonth.value ?: return
+        val entries = allEntries.value // Akan mengambil data yang sudah siap dari LiveData
+
         viewModelScope.launch {
             val days = mutableListOf<CalendarDay>()
             val today = Calendar.getInstance()
 
-            // Buat salinan agar tidak mengubah kalender asli
             val cal = targetMonthCalendar.clone() as Calendar
-            cal.set(Calendar.DAY_OF_MONTH, 1) // Mulai dari tanggal 1 bulan target
+            cal.set(Calendar.DAY_OF_MONTH, 1)
 
-            // **LOGIKA BARU YANG LEBIH ROBUST**
-            // Mundur ke hari pertama dalam minggu dari tanggal 1 tersebut
             val firstDayOfWeekInMonth = cal.get(Calendar.DAY_OF_WEEK)
             val daysToMoveBack = firstDayOfWeekInMonth - cal.firstDayOfWeek
             if (daysToMoveBack < 0) {
-                cal.add(Calendar.DAY_OF_MONTH, - (daysToMoveBack + 7))
+                cal.add(Calendar.DAY_OF_MONTH, -(daysToMoveBack + 7))
             } else {
                 cal.add(Calendar.DAY_OF_MONTH, -daysToMoveBack)
             }
 
-            // Buat 42 hari (6 minggu) untuk mengisi grid
             while (days.size < 42) {
                 val isCurrentMonth = cal.get(Calendar.MONTH) == targetMonthCalendar.get(Calendar.MONTH)
                 val isToday = isSameDay(cal, today)
-
                 val dateString = getFormattedDate(cal)
-                val categoriesForDay = allEntries.value
+
+                // Karena kita mengamati allEntries, variabel 'entries' dijamin update
+                val categoriesForDay = entries
                     ?.filter { it.date == dateString }
                     ?.map { it.category }
                     ?.toSet() ?: emptySet()
@@ -143,7 +153,6 @@ class CalendarViewModel(
                         date = cal.clone() as Calendar,
                         dayNumber = cal.get(Calendar.DAY_OF_MONTH).toString(),
                         isToday = isToday,
-                        // isSelected tidak lagi dikelola di sini, tapi di adapter
                         isCurrentMonth = isCurrentMonth,
                         scheduleCategories = categoriesForDay
                     )

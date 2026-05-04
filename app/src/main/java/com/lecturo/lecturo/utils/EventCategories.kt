@@ -1,4 +1,4 @@
-package com.lecturo.lecturo.utils // Pastikan package ini sesuai dengan struktur proyek Anda
+package com.lecturo.lecturo.utils
 
 object EventCategories {
     val list = setOf(

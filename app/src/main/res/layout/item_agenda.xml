@@ -7,13 +7,12 @@
     android:layout_height="wrap_content"
     android:layout_marginVertical="6dp"
     android:layout_marginHorizontal="2dp"
-    app:cardCornerRadius="20dp"
+    app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/divider_color"
+    app:strokeWidth="0dp"
     android:clickable="true"
     android:focusable="true"
-    app:cardBackgroundColor="@color/colorBackground">
+    app:cardBackgroundColor="@color/card_background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -34,8 +33,8 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_gravity="center"
-                tools:src="@drawable/ic_event"
-                tools:tint="#FFFFFF"/>
+                tools:src="@drawable/ic_event_2"
+                tools:tint="@color/white"/>
         </FrameLayout>
 
         <TextView

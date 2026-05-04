@@ -15,12 +15,14 @@
     <color name="colorOnSecondary">#00390A</color>
     <color name="colorSecondaryContainer">#005313</color>
     <color name="colorOnSecondaryContainer">#A8F5A6</color>
-
-    <color name="colorBackground">#121212</color>
     <color name="colorSurface">#1E1E1E</color>
+
     <color name="text_primary">#E3E3E3</color>
     <color name="text_secondary">#AAAAAA</color>
     <color name="text_tertiary">#616161</color>
+
+    <color name="colorBackground">#121212</color>
+    <color name="card_background">#1E1E1E</color>
 
     <color name="task_color">#EF5350</color>
     <color name="task_color_light">#FFEBEE</color>
@@ -29,7 +31,7 @@
     <color name="teaching_color_light">#311B92</color>
 
     <color name="event_color">#FFB74D</color>
-    <color name="event_color_light">#FFF3E0</color>
+    <color name="event_color_light">#AD6A00</color>
 
     <color name="consultation_color">#4DB6AC</color>
     <color name="consultation_color_light">#004D40</color>
@@ -42,9 +44,6 @@
 
     <color name="low_priority">#A5D6A7</color>
     <color name="low_priority_bg">#0F3811</color>
-
-    <!-- Card colors -->
-    <color name="card_background">#1E1E1E</color>
 
     <!-- Indicator Active Nav Colors -->
     <color name="bottom_nav_selected">#90CAF9</color>

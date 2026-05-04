@@ -11,6 +11,7 @@ data class CalendarEntry(
     val title: String,
     val date: String,
     val time: String,
+    val endTime: String = "",
     val category: String,
     val priority: String = "Sedang",
     val sourceFeatureType: String,

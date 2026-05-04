@@ -64,7 +64,7 @@ class AgendaAdapter(
                     categoryColorRes = R.color.consultation_color
                 }
                 else -> { // Event & Lainya
-                    iconRes = R.drawable.ic_event
+                    iconRes = R.drawable.ic_event_2
                     categoryColorRes = R.color.event_color
                 }
             }

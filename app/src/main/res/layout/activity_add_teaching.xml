@@ -192,7 +192,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Ulangi Jadwal"
-                android:textColor="@color/black"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold" />
 
             <RadioGroup
@@ -304,16 +304,13 @@
                 android:layout_height="@dimen/button_height_large"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
+                android:layout_gravity="bottom"
                 android:paddingVertical="12dp"
-                app:cornerRadius="16dp"
                 android:text="Simpan Jadwal Mengajar"
                 android:textSize="16sp"
                 android:textColor="@color/white"
-                android:backgroundTint="@color/teaching_color"
-                app:icon="@drawable/ic_save"
-                app:iconTint="@color/white"
-                app:iconGravity="textStart" />
+                android:backgroundTint="@color/teaching_color"/>
 
         </LinearLayout>
 

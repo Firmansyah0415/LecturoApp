@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@android:color/transparent"
-            app:title="Agenda"
+            app:title="Jadwal Acara"
             app:titleTextColor="?attr/colorOnSurface"
             app:navigationIcon="@drawable/ic_arrow_back"/>
 
@@ -93,7 +93,7 @@
             <ImageView
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:src="@drawable/ic_event_empty"
+                android:src="@drawable/ic_event_2"
                 android:alpha="0.5"
                 android:contentDescription="No events" />
 

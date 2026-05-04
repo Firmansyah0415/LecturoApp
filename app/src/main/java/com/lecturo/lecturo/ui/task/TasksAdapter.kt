@@ -9,14 +9,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.lecturo.lecturo.R
-import com.lecturo.lecturo.data.model.TaskWithFocusStats // <--- Import ini
+import com.lecturo.lecturo.data.model.TaskWithFocusStats
 import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.databinding.ItemTasksBinding
 import com.lecturo.lecturo.utils.FocusPreferences
 import com.lecturo.lecturo.utils.toReadableDate
 
 class TasksAdapter(
-    // Tetap kirimkan 'Tasks' ke atas agar Activity tidak perlu ikut dirombak total
     private val onActionClick: (Tasks, String) -> Unit
 ) : ListAdapter<TaskWithFocusStats, TasksAdapter.TasksViewHolder>(TasksDiffCallback()) {
 
@@ -32,12 +31,18 @@ class TasksAdapter(
 
     inner class TasksViewHolder(private val binding: ItemTasksBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: TaskWithFocusStats) {
-            val tasks = item.task // Ambil objek Tugas aslinya
+            val tasks = item.task
 
             binding.textTitle.text = tasks.title
 
-            // Gabungkan Tanggal dan Waktu
-            binding.textDateTime.text = "${tasks.date.toReadableDate()} • ${tasks.time}"
+            val timeDisplay = if (tasks.endTime.isNotEmpty()) {
+                "${tasks.time} - ${tasks.endTime}"
+            } else {
+                tasks.time
+            }
+            binding.textDateTime.text = "${tasks.date.toReadableDate()} • $timeDisplay"
+            // ----------------------------------------------------
+
             binding.textLocation.text = tasks.location ?: "Tidak ada lokasi"
 
             if (tasks.description.isNullOrEmpty()) {
@@ -56,7 +61,6 @@ class TasksAdapter(
             val priorityTextColorRes: Int
             val priorityBgColorRes: Int
 
-            // Gunakan logika yang sama persis dengan AgendaAdapter
             when (priorityText.lowercase()) {
                 "tinggi", "high", "hight", "urgent" -> {
                     priorityTextColorRes = R.color.high_priority
@@ -66,13 +70,12 @@ class TasksAdapter(
                     priorityTextColorRes = R.color.low_priority
                     priorityBgColorRes = R.color.low_priority_bg
                 }
-                else -> { // Sedang / Medium
+                else -> {
                     priorityTextColorRes = R.color.medium_priority
                     priorityBgColorRes = R.color.medium_priority_bg
                 }
             }
 
-            // Terapkan warna menggunakan ContextCompat agar aman dari crash
             val context = itemView.context
             val resolvedTextColor = ContextCompat.getColor(context, priorityTextColorRes)
             val resolvedBgColor = ContextCompat.getColor(context, priorityBgColorRes)
@@ -80,13 +83,10 @@ class TasksAdapter(
             binding.tvPriorityBadge.setTextColor(resolvedTextColor)
             binding.tvPriorityBadge.backgroundTintList = ColorStateList.valueOf(resolvedBgColor)
 
-            // --- [BARU] STATISTIK POMODORO ---
-            // Hanya tampilkan badge jika ada sesi yang sudah selesai
+            // --- STATISTIK POMODORO ---
             if (item.completedSessionsCount > 0) {
                 binding.tvFocusStatsBadge.visibility = View.VISIBLE
 
-                // [PERBAIKAN] Format Total Menit menjadi Jam & Menit
-                // Gunakan elvis operator (?: 0) untuk jaga-jaga jika null
                 val totalMinutes = item.totalFocusMinutes ?: 0
                 val hours = totalMinutes / 60
                 val minutes = totalMinutes % 60
@@ -111,18 +111,12 @@ class TasksAdapter(
                 val isFocusing = currentPhase == "Fokus"
 
                 binding.indicatorActiveFocus.visibility = View.VISIBLE
-
-                // Set Teks sesuai fase
                 binding.indicatorActiveFocus.text = if (isFocusing) "SEDANG FOKUS" else "SEDANG ISTIRAHAT"
 
-                // Set Warna (Biru Primary untuk Fokus, Oranye untuk Istirahat)
                 val activeColorRes = if (isFocusing) R.color.colorPrimary else android.R.color.holo_orange_dark
                 val resolvedActiveColor = ContextCompat.getColor(context, activeColorRes)
 
-                // Ubah warna background indikator
                 binding.indicatorActiveFocus.backgroundTintList = ColorStateList.valueOf(resolvedActiveColor)
-
-                // Ubah warna garis bingkai CardView
                 (binding.root as com.google.android.material.card.MaterialCardView).strokeColor = resolvedActiveColor
                 (binding.root as com.google.android.material.card.MaterialCardView).strokeWidth = 4
             } else {

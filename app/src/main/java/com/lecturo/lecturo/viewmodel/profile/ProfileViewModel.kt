@@ -7,39 +7,72 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lecturo.lecturo.data.model.User
+import com.lecturo.lecturo.data.pref.UserModel
 import com.lecturo.lecturo.data.repository.UserRepository
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
 
-    // LiveData untuk menampung data user yang sedang ditampilkan
     private val _currentUser = MutableLiveData<User?>()
     val currentUser: LiveData<User?> = _currentUser
 
-    // LiveData untuk status Loading
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    // LiveData untuk pesan Error/Sukses (Single Event)
     private val _message = MutableLiveData<String>()
     val message: LiveData<String> = _message
 
-    // 1. Load Data User (Dari Database/Backend)
+    // 1. Load Data User (CACHE-FIRST STRATEGY)
     fun loadUserProfile() {
         _isLoading.value = true
         viewModelScope.launch {
 
-            // A. Ambil dari Session Lokal (Cepat)
-            val session = repository.getSession()
-            val uid = session.firstOrNull()?.token
+            // A. Ambil dari DataStore Lokal (Sangat Cepat & Bisa Offline)
+            val session = repository.getSession().firstOrNull()
+            val uid = session?.token
 
+            // B. TAMPILKAN CACHE LOKAL SEGERA (ANTI-KEDIP)
+            if (session != null && session.name.isNotEmpty()) {
+                _currentUser.value = User(
+                    uid = uid ?: "",
+                    phoneNumber = "", // Kosong, hanya butuh nama & foto di Beranda
+                    email = session.email,
+                    fullName = session.name,
+                    university = "",
+                    faculty = "",
+                    major = "",
+                    photoUrl = session.photoUrl
+                )
+            }
+
+            // C. AMBIL DATA TERBARU DARI API DI LATAR BELAKANG
             if (uid != null) {
                 val result = repository.getUserFromBackend(uid)
 
                 if (result.isSuccess) {
-                    _currentUser.value = result.getOrNull()
+                    val user = result.getOrNull()
+
+                    // Hanya update UI jika data dari server BEDA dengan cache lokal
+                    if (_currentUser.value != user) {
+                        _currentUser.value = user
+                    }
+
+                    // D. SIMPAN/UPDATE CACHE LOKAL DENGAN DATA BARU
+                    if (user != null) {
+                        repository.saveSession(
+                            UserModel(
+                                token = uid,
+                                email = user.email,
+                                isLogin = true,
+                                name = user.fullName,     // Simpan ke Cache
+                                photoUrl = user.photoUrl  // Simpan ke Cache
+                            )
+                        )
+                    }
                 } else {
-                    _message.value = "Gagal memuat profil: ${result.exceptionOrNull()?.message}"
+                    // JIKA OFFLINE/ERROR:
+                    // Jangan timpa _currentUser dengan null! Biarkan cache tetap tampil.
+                    _message.value = "Mode Offline: Menampilkan data tersimpan."
                 }
             }
             _isLoading.value = false
@@ -50,7 +83,7 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
     fun updateProfile(
         name: String,
         email: String,
-        phone: String, // Note: Phone biasanya ReadOnly karena ID, tapi kita siapkan saja
+        phone: String,
         university: String,
         faculty: String,
         major: String,
@@ -62,30 +95,21 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
             val currentUid = _currentUser.value?.uid ?: return@launch
             val currentPhone = _currentUser.value?.phoneNumber ?: phone
 
-            // Default: Gunakan foto lama
             var finalPhotoUrl = _currentUser.value?.photoUrl ?: ""
 
-            // Jika User memilih foto baru (photoUri tidak null), Upload dulu!
             if (photoUri != null) {
-                // Beri tahu user sedang upload (Opsional: bisa update pesan loading)
                 _message.value = "Mengupload foto..."
-
                 val uploadResult = repository.uploadProfilePhoto(currentUid, photoUri)
-
                 if (uploadResult.isSuccess) {
-                    // Jika sukses, ganti URL lama dengan URL baru dari Firebase Storage
                     finalPhotoUrl = uploadResult.getOrNull() ?: finalPhotoUrl
                 } else {
-                    // Jika gagal upload, stop proses dan beri pesan error
                     _isLoading.value = false
                     _message.value = "Gagal upload foto: ${uploadResult.exceptionOrNull()?.message}"
                     return@launch
                 }
             }
 
-            // --- LANJUT SIMPAN DATA PROFIL ---
             _message.value = "Menyimpan data..."
-
             val updatedUser = User(
                 uid = currentUid,
                 phoneNumber = currentPhone,
@@ -94,7 +118,7 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
                 university = university,
                 faculty = faculty,
                 major = major,
-                photoUrl = finalPhotoUrl // Gunakan URL hasil upload (atau url lama)
+                photoUrl = finalPhotoUrl
             )
 
             val result = repository.syncUserToBackend(updatedUser)
@@ -102,6 +126,18 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
 
             if (result.isSuccess) {
                 _currentUser.value = result.getOrNull()
+
+                // 🔥 UPDATE CACHE LOKAL SETELAH BERHASIL EDIT PROFIL
+                repository.saveSession(
+                    UserModel(
+                        token = currentUid,
+                        email = email,
+                        isLogin = true,
+                        name = name,
+                        photoUrl = finalPhotoUrl
+                    )
+                )
+
                 _message.value = "Profil berhasil diperbarui"
                 onSuccess()
             } else {

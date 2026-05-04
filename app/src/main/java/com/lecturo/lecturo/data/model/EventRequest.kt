@@ -4,13 +4,14 @@ import com.google.gson.annotations.SerializedName
 
 data class EventRequest(
     @SerializedName("uid") val uid: String,
-    @SerializedName("event_id") val eventId: String?, // Null jika baru
+    @SerializedName("event_id") val eventId: String?,
     @SerializedName("title") val title: String,
-    @SerializedName("category") val category: String, // Contoh: "Rapat", "Seminar"
+    @SerializedName("category") val category: String,
     @SerializedName("priority") val priority: String,
     @SerializedName("input_source") val inputSource: String,
     @SerializedName("date") val date: String,
     @SerializedName("time") val time: String,
+    @SerializedName("end_time") val endTime: String,
     @SerializedName("location") val location: String,
     @SerializedName("description") val description: String,
     @SerializedName("is_completed") val isCompleted: Boolean,

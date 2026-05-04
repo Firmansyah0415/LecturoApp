@@ -47,6 +47,7 @@ class EventRepository(
                     val category = document.getString("category") ?: "Lainnya"
                     val date = document.getString("date") ?: continue
                     val time = document.getString("time") ?: continue
+                    val endTime = document.getString("end_time") ?: ""
                     val location = document.getString("location") ?: ""
                     val description = document.getString("description") ?: ""
                     val priority = document.getString("priority") ?: "Sedang"
@@ -63,6 +64,7 @@ class EventRepository(
                                 category = category,
                                 date = date,
                                 time = time,
+                                endTime = endTime,
                                 location = location,
                                 description = description,
                                 priority = priority,
@@ -83,6 +85,7 @@ class EventRepository(
                                     title = updated.title,
                                     date = updated.date,
                                     time = updated.time,
+                                    endTime = updated.endTime,
                                     category = updated.category,
                                     priority = updated.priority ?: "Sedang",
                                     sourceFeatureType = "EVENT",
@@ -100,6 +103,7 @@ class EventRepository(
                             category = category,
                             date = date,
                             time = time,
+                            endTime = endTime,
                             location = location,
                             description = description,
                             priority = priority,
@@ -117,6 +121,7 @@ class EventRepository(
                                 title = newEvent.title,
                                 date = newEvent.date,
                                 time = newEvent.time,
+                                endTime = newEvent.endTime,
                                 category = newEvent.category,
                                 priority = newEvent.priority ?: "Sedang",
                                 sourceFeatureType = "EVENT",
@@ -151,9 +156,14 @@ class EventRepository(
         // Buat entri baru jika belum selesai
         if (!event.isCompleted) {
             val entry = CalendarEntry(
-                title = event.title, date = event.date, time = event.time,
-                category = event.category, priority = event.priority ?: "Sedang",
-                sourceFeatureType = "EVENT", sourceFeatureId = localId,
+                title = event.title,
+                date = event.date,
+                time = event.time,
+                endTime = event.endTime,
+                category = event.category,
+                priority = event.priority ?: "Sedang",
+                sourceFeatureType = "EVENT",
+                sourceFeatureId = localId,
                 notificationMinutesBefore = event.notificationMinutesBefore
             )
             val entryId = calendarDao.insertEntry(entry)

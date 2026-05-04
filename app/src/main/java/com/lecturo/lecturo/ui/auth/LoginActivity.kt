@@ -13,12 +13,29 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
+import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.ActivityLoginBinding
 import com.lecturo.lecturo.di.ViewModelFactory
 import com.lecturo.lecturo.ui.main.MainActivity
 import com.lecturo.lecturo.utils.DataRestoreManager
 import com.lecturo.lecturo.viewmodel.auth.LoginViewModel
 import kotlinx.coroutines.launch
+
+// --- IMPORT COMPOSE ---
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class LoginActivity : AppCompatActivity() {
 
@@ -29,6 +46,9 @@ class LoginActivity : AppCompatActivity() {
     // Variabel untuk menyimpan nomor HP yang sedang diproses
     private var currentPhoneNumber: String = ""
 
+    // Variabel penampung dialog konfirmasi
+    private var confirmDialog: androidx.appcompat.app.AlertDialog? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -36,20 +56,17 @@ class LoginActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
-        // Cek Session
         if (auth.currentUser != null) {
             navigateToHome()
             return
         }
 
         setupToolbar()
-        setupPhoneFormatting() // Fitur spasi otomatis (UX Baru)
+        setupPhoneFormatting()
         setupListeners()
         setupBackPressHandler()
     }
 
-    // --- UX BARU 1: Auto-Formatting Spasi (Mirip Telegram) ---
-    // --- UX BARU 1: Auto-Formatting Spasi & Koreksi Otomatis (Gaya Telegram) ---
     private fun setupPhoneFormatting() {
         binding.phoneEditText.addTextChangedListener(object : TextWatcher {
             private var isUpdating = false
@@ -61,36 +78,26 @@ class LoginActivity : AppCompatActivity() {
                 if (isUpdating) return
                 isUpdating = true
 
-                // 1. Ambil teks murni (hapus semua spasi dari ketikan sebelumnya)
                 var rawText = s.toString().replace(" ", "")
 
-                // 2. UX AJAIB: Koreksi Kesalahan Ketik Otomatis!
-                // Jika user iseng ketik '0' di awal -> Langsung buang!
-                // Jika user copas '6282...' atau '+6282...' -> Langsung sesuaikan!
                 when {
                     rawText.startsWith("0") -> rawText = rawText.substring(1)
                     rawText.startsWith("62") -> rawText = rawText.substring(2)
                     rawText.startsWith("+62") -> rawText = rawText.substring(3)
                 }
 
-                // 3. Batasi maksimal 12 angka (Panjang maksimal nomor HP di Indonesia setelah +62)
                 if (rawText.length > 12) {
                     rawText = rawText.substring(0, 12)
                 }
 
-                // 4. Format ulang dengan spasi (Pola: 3 - 4 - 4/5)
-                // Pola ini lebih natural untuk orang Indonesia membaca nomor HP
                 val formattedString = java.lang.StringBuilder()
                 for (i in rawText.indices) {
-                    // Beri spasi setelah angka ke-3 dan ke-7
-                    // Contoh: 812 3456 7890 atau 813 1234 56789
                     if (i == 3 || i == 7) {
                         formattedString.append(" ")
                     }
                     formattedString.append(rawText[i])
                 }
 
-                // 5. Perbarui tampilan layar dan paksa kursor selalu berada di posisi paling kanan
                 binding.phoneEditText.setText(formattedString.toString())
                 binding.phoneEditText.setSelection(formattedString.length)
 
@@ -127,9 +134,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        // TOMBOL 1: REQUEST OTP DENGAN DIALOG KONFIRMASI (UX Baru)
         binding.btnSendOtp.setOnClickListener {
-            // Ambil nomor yang diketik user (masih ada spasinya)
             val rawPhoneWithSpaces = binding.phoneEditText.text.toString().trim()
 
             if (rawPhoneWithSpaces.isEmpty()) {
@@ -137,46 +142,56 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            binding.phoneEditTextLayout.error = null // Bersihkan error jika ada
+            binding.phoneEditTextLayout.error = null
 
-            // --- UX BARU 2: Dialog Konfirmasi Telegram-style ---
-            MaterialAlertDialogBuilder(this)
-                .setTitle("Apakah nomor ini sudah benar?")
-                .setMessage("+62 $rawPhoneWithSpaces")
-                .setNegativeButton("Edit") { dialog, _ ->
-                    // Kembali ke halaman untuk diedit (tutup dialog saja)
-                    dialog.dismiss()
-                }
-                .setPositiveButton("Ya") { dialog, _ ->
-                    dialog.dismiss()
-                    // Lanjutkan proses format logic dan kirim ke backend
-                    processAndSendOtp(rawPhoneWithSpaces)
-                }
-                .show()
+            // PANGGIL DIALOG COMPOSE BARU
+            showConfirmPhoneDialog(rawPhoneWithSpaces)
         }
 
-        // TOMBOL 2: VERIFY OTP (Ke Backend Node.js -> Dapat Token -> Login Firebase)
         binding.btnLogin.setOnClickListener {
             val code = binding.otpEditText.text.toString().trim()
-            if (code.isEmpty() || code.length < 4) { // OTP kita 4 digit
+            if (code.isEmpty() || code.length < 4) {
                 binding.otpEditTextLayout.error = "Kode minimal 4 digit"
                 return@setOnClickListener
             }
             verifyOtpToBackend(code)
         }
 
-        // TOMBOL 3: RESEND OTP
         binding.btnResendOtp.setOnClickListener {
             requestOtpToBackend(currentPhoneNumber)
         }
     }
 
-    // --- FUNGSI BARU: Memisahkan Logika Pemrosesan Nomor dari Tombol ---
+    // ==========================================
+    // LOGIKA PEMANGGILAN DIALOG COMPOSE
+    // ==========================================
+    private fun showConfirmPhoneDialog(rawPhoneWithSpaces: String) {
+        val composeView = ComposeView(this).apply {
+            setContent {
+                MaterialTheme {
+                    ConfirmPhoneComposeDialog(
+                        phoneNumber = "+62 $rawPhoneWithSpaces",
+                        onEdit = { confirmDialog?.dismiss() },
+                        onConfirm = {
+                            confirmDialog?.dismiss()
+                            processAndSendOtp(rawPhoneWithSpaces)
+                        }
+                    )
+                }
+            }
+        }
+
+        confirmDialog = MaterialAlertDialogBuilder(this)
+            .setView(composeView)
+            .setBackground(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            .create()
+
+        confirmDialog?.show()
+    }
+
     private fun processAndSendOtp(rawPhoneWithSpaces: String) {
-        // 1. Hapus karakter aneh (spasi dari auto-format, strip, dll)
         val cleanInput = rawPhoneWithSpaces.replace(Regex("[^0-9]"), "")
 
-        // 2. Pastikan formatnya selalu "628..."
         currentPhoneNumber = when {
             cleanInput.startsWith("0") -> "62" + cleanInput.substring(1)
             cleanInput.startsWith("8") -> "62" + cleanInput
@@ -185,12 +200,9 @@ class LoginActivity : AppCompatActivity() {
         }
 
         Log.d("LOGIN_DEBUG", "Input: $rawPhoneWithSpaces -> Formatted: $currentPhoneNumber")
-
-        // 3. Tembak API
         requestOtpToBackend(currentPhoneNumber)
     }
 
-    // --- LOGIKA BARU: Request OTP ke API ---
     private fun requestOtpToBackend(phone: String) {
         setLoading(true)
         binding.phoneEditTextLayout.error = null
@@ -198,7 +210,6 @@ class LoginActivity : AppCompatActivity() {
         viewModel.requestOtp(phone,
             onSuccess = {
                 setLoading(false)
-                // Pindah UI ke Input OTP
                 binding.layoutInputPhone.visibility = View.GONE
                 binding.layoutInputOtp.visibility = View.VISIBLE
                 binding.tvSubtitle.text = "Masukkan kode OTP yang dikirim oleh Bot WhatsApp."
@@ -212,7 +223,6 @@ class LoginActivity : AppCompatActivity() {
         )
     }
 
-    // --- LOGIKA BARU: Verify OTP ke API & Login Firebase ---
     private fun verifyOtpToBackend(code: String) {
         setLoading(true)
         binding.otpEditTextLayout.error = null
@@ -228,16 +238,13 @@ class LoginActivity : AppCompatActivity() {
         )
     }
 
-    // --- FINAL STEP: Login Resmi ke Firebase ---
     private fun signInWithCustomToken(token: String) {
         Log.d("LOGIN", "Mencoba login dengan Custom Token...")
         auth.signInWithCustomToken(token)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Log.d("LOGIN", "Login Firebase Berhasil!")
                     val user = auth.currentUser
                     val uid = user?.uid ?: ""
-
                     val finalPhone = "+$currentPhoneNumber"
 
                     viewModel.handleLoginSuccess(
@@ -290,5 +297,88 @@ class LoginActivity : AppCompatActivity() {
         binding.btnResendOtp.isEnabled = !isLoading
         binding.phoneEditText.isEnabled = !isLoading
         binding.otpEditText.isEnabled = !isLoading
+    }
+}
+
+// ==========================================
+// 🚀 JETPACK COMPOSE UI COMPONENT (DIALOG)
+// ==========================================
+@Composable
+fun ConfirmPhoneComposeDialog(phoneNumber: String, onEdit: () -> Unit, onConfirm: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.card_background)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Konfirmasi Nomor",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 20.sp,
+                color = colorResource(id = R.color.colorPrimary),
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Text(
+                text = "Pastikan nomor WhatsApp ini aktif dan sudah benar untuk menerima OTP.",
+                fontSize = 14.sp,
+                color = colorResource(id = R.color.text_primary),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // KOTAK PENONJOL NOMOR HP (Highlighter)
+            Surface(
+                color = colorResource(id = R.color.colorPrimaryContainer).copy(alpha = 0.4f),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+            ) {
+                Text(
+                    text = phoneNumber,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 22.sp,
+                    letterSpacing = 1.sp, // Memberi jarak antar angka agar lebih mudah dibaca
+                    color = colorResource(id = R.color.colorPrimary),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // Tombol Edit
+                TextButton(
+                    onClick = onEdit,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Edit Nomor",
+                        color = colorResource(id = R.color.text_secondary),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Tombol Lanjut
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.colorPrimary)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Ya, Lanjut",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
     }
 }

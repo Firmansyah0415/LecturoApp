@@ -32,6 +32,7 @@
             android:background="@android:color/transparent"
             app:elevation="0dp"
             app:labelVisibilityMode="unlabeled"
+            app:itemActiveIndicatorStyle="@style/CustomBottomNavIndicator"
             app:itemIconTint="@color/bottom_nav_color"
             app:itemTextColor="@color/bottom_nav_color"
             app:menu="@menu/bottom_nav_menu" />

@@ -70,8 +70,15 @@ class AddTeachingActivity : AppCompatActivity() {
 
         // Setup UI System Bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // 1. Cek apakah aplikasi sedang di Mode Gelap
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+        // 2. atur warna status bar
         window.statusBarColor = getColor(R.color.colorPrimary)
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+
+        // 3. atur warna teks/icon status bar
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = !isNightMode
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
             view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
@@ -206,7 +213,7 @@ class AddTeachingActivity : AppCompatActivity() {
     private fun setupToolbar() {
         setSupportActionBar(binding.addTeachingToolbar)
         supportActionBar?.apply {
-            title = if (isEditMode) "Edit Aturan Mengajar" else "Tambah Aturan Mengajar"
+            title = if (isEditMode) "Edit Jadwal Mengajar" else "Tambah Jadwal Mengajar"
             setDisplayHomeAsUpEnabled(true)
         }
     }

@@ -47,12 +47,15 @@ class ProfileActivity : AppCompatActivity() {
         // bikin status bar transparan sekali untuk semua activity
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // atur warna status bar
+        // 1. Cek apakah aplikasi sedang di Mode Gelap
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+        // 2. atur warna status bar
         window.statusBarColor = getColor(R.color.colorPrimary)
 
-        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
+        // 3. atur warna teks/icon status bar
         WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = true
+            .isAppearanceLightStatusBars = !isNightMode
 
         // otomatis kasih padding top di root view sesuai status bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
@@ -73,8 +76,10 @@ class ProfileActivity : AppCompatActivity() {
         // Mulai dengan Mode View (Baca Saja)
         setEditMode(false)
 
-        // Load data user
-        viewModel.loadUserProfile()
+        // 🔥 UBAH INI: Hanya load jika data masih kosong (karena ini Activity baru, ini biasanya aman)
+        if (viewModel.currentUser.value == null) {
+            viewModel.loadUserProfile()
+        }
     }
 
     private fun setupToolbar() {
@@ -193,12 +198,10 @@ class ProfileActivity : AppCompatActivity() {
             if (!isDestroyed) {
                 Glide.with(this@ProfileActivity)
                     .load(user.photoUrl) // Pastikan field ini ada di Model User
-                    .placeholder(R.drawable.profile_logo)
-                    .error(R.drawable.profile_logo)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
                     .circleCrop()
-                    // Tambahkan ini agar Glide tidak menyimpan cache gambar profil lama
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(ivProfilePhoto)
             }
         }

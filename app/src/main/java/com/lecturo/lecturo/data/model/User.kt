@@ -6,7 +6,6 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class User(
-    // Kunci Utama (Wajib ada)
     @SerializedName("uid")
     val uid: String,
 

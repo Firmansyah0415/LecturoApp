@@ -305,8 +305,12 @@ class FocusActivity : AppCompatActivity() {
 
     private fun setupSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // 1. Cek apakah aplikasi sedang di Mode Gelap
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        // 2. atur warna status bar
         window.statusBarColor = getColor(R.color.colorPrimary)
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = !isNightMode
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
             view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)

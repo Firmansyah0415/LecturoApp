@@ -34,18 +34,27 @@ import com.lecturo.lecturo.viewmodel.event.EventViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 
-// compose
+// --- IMPORT COMPOSE ---
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class EventActivity : AppCompatActivity() {
 
@@ -56,16 +65,18 @@ class EventActivity : AppCompatActivity() {
 
     private var tempImageUri: Uri? = null // Uri untuk Kamera
 
+    // Variabel penampung dialog AI Compose
+    private var aiOptionsDialog: androidx.appcompat.app.AlertDialog? = null
+
     private val viewModel: EventViewModel by viewModels {
         ViewModelFactory.getInstance(this)
     }
 
-    // --- LAUNCHERS (PERBAIKAN TYPE MISMATCH DI SINI) ---
+    // --- LAUNCHERS ---
 
     // 1. Launcher Kamera
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
-            // Kita harus memastikan tempImageUri tidak null sebelum memproses
             tempImageUri?.let { uri ->
                 processSelection(uri, isPdf = false)
             } ?: run {
@@ -76,7 +87,6 @@ class EventActivity : AppCompatActivity() {
 
     // 2. Launcher Galeri
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        // uri di sini bisa null (Uri?), jadi wajib pakai ?.let
         uri?.let { safeUri ->
             processSelection(safeUri, isPdf = false)
         }
@@ -84,7 +94,6 @@ class EventActivity : AppCompatActivity() {
 
     // 3. Launcher PDF
     private val pdfLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        // uri di sini bisa null (Uri?), jadi wajib pakai ?.let
         uri?.let { safeUri ->
             processSelection(safeUri, isPdf = true)
         }
@@ -107,7 +116,6 @@ class EventActivity : AppCompatActivity() {
         binding = ActivityEventBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Setup AI Helper & Loading Dialog
         aiHelper = AiExtractionHelper(this)
         setupLoadingDialog()
 
@@ -119,16 +127,11 @@ class EventActivity : AppCompatActivity() {
         observeViewModel()
     }
 
-    @OptIn(ExperimentalMaterial3Api::class) // Tambahkan ini karena FilterChip masih experimental di beberapa versi M3
+    @OptIn(ExperimentalMaterial3Api::class)
     private fun setupComposeFilters() {
         binding.composeViewFilters.setContent {
-            // 1. Ambil data kategori langsung dari ViewModel
             val categories by viewModel.categories.observeAsState(initial = emptyList())
-
-            // 2. Ambil state filter yang SEDANG AKTIF dari ViewModel!
             val activeFilter by viewModel.categoryFilter.observeAsState(initial = "")
-
-            // 3. Gabungkan "Semua" ke awal daftar
             val allFilters = listOf("Semua") + categories
 
             MaterialTheme {
@@ -137,7 +140,6 @@ class EventActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     items(allFilters) { category ->
-                        // Jika activeFilter kosong (""), berarti "Semua" sedang terpilih
                         val isSelected = if (category == "Semua") activeFilter == "" else activeFilter == category
 
                         FilterChip(
@@ -152,17 +154,16 @@ class EventActivity : AppCompatActivity() {
                             label = { Text(text = category) },
                             leadingIcon = if (isSelected) {
                                 {
-                                    // Tentukan ikon kustom berdasarkan 8 kategori asli
                                     val iconRes = when (category.lowercase(java.util.Locale.getDefault())) {
-                                        "semua" -> R.drawable.ic_event_available // Ikon default kalender/semua
-                                        "rapat" -> R.drawable.ic_meet // Ikon jabat tangan / orang meeting
-                                        "seminar" -> R.drawable.ic_seminar // Ikon mikrofon / panggung
-                                        "webinar" -> R.drawable.ic_webinar // Ikon laptop / video call
-                                        "workshop", "lokakarya" -> R.drawable.ic_workshop // Ikon perkakas / lampu bohlam
-                                        "penelitian" -> R.drawable.ic_research // Ikon mikroskop / buku / kaca pembesar
-                                        "pengabdian masyarakat" -> R.drawable.ic_community // Ikon orang berkumpul / tangan peduli
-                                        "lainnya" -> R.drawable.ic_event_available // Ikon titik tiga / folder campuran
-                                        else -> R.drawable.ic_event_available // Fallback jika tiba-tiba ada kategori aneh
+                                        "semua" -> R.drawable.ic_event_available
+                                        "rapat" -> R.drawable.ic_meet
+                                        "seminar" -> R.drawable.ic_seminar
+                                        "webinar" -> R.drawable.ic_webinar
+                                        "workshop", "lokakarya" -> R.drawable.ic_workshop
+                                        "penelitian" -> R.drawable.ic_research
+                                        "pengabdian masyarakat" -> R.drawable.ic_community
+                                        "lainnya" -> R.drawable.ic_event_available
+                                        else -> R.drawable.ic_event_available
                                     }
                                     Icon(
                                         painter = painterResource(id = iconRes),
@@ -193,8 +194,10 @@ class EventActivity : AppCompatActivity() {
 
     private fun setupStatusBar() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
         window.statusBarColor = getColor(R.color.colorPrimary)
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
             view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
@@ -206,14 +209,12 @@ class EventActivity : AppCompatActivity() {
         binding.fabAddEvent.setOnClickListener {
             startActivity(Intent(this, AddEventActivity::class.java))
         }
-        // FAB AI Click -> Buka Dialog Sumber
+
+        // FAB AI Click -> Buka Dialog Sumber (Tampilan Baru)
         binding.fabAi.setOnClickListener {
             showSourceSelectionDialog()
         }
 
-        // --- [SOLUSI PRO: Mendorong KEDUA FAB ke atas Navigasi Sistem] ---
-
-        // 1. Insets untuk FAB Add (Tombol Bawah)
         ViewCompat.setOnApplyWindowInsetsListener(binding.fabAddEvent) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             val baseMarginBottomPx = (20 * resources.displayMetrics.density).toInt()
@@ -226,10 +227,8 @@ class EventActivity : AppCompatActivity() {
             insets
         }
 
-        // 2. Insets untuk FAB AI (Tombol Atas)
         ViewCompat.setOnApplyWindowInsetsListener(binding.fabAi) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            // Margin bawah 90dp agar selalu memiliki jarak aman di atas FAB Add
             val baseMarginBottomPx = (90 * resources.displayMetrics.density).toInt()
             val baseMarginEndPx = (26 * resources.displayMetrics.density).toInt()
 
@@ -241,18 +240,34 @@ class EventActivity : AppCompatActivity() {
         }
     }
 
+    // ==========================================
+    // LOGIKA PEMANGGILAN DIALOG AI COMPOSE
+    // ==========================================
     private fun showSourceSelectionDialog() {
-        val options = arrayOf("Dokumen PDF", "Galeri Gambar", "Kamera")
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Pilih Sumber Jadwal")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> pdfLauncher.launch("application/pdf")
-                    1 -> galleryLauncher.launch("image/*")
-                    2 -> checkCameraPermission()
+        val composeView = ComposeView(this).apply {
+            setContent {
+                MaterialTheme {
+                    AiOptionsComposeDialog(
+                        onDismiss = { aiOptionsDialog?.dismiss() },
+                        onItemClick = { optionId ->
+                            aiOptionsDialog?.dismiss()
+                            when (optionId) {
+                                0 -> checkCameraPermission()
+                                1 -> galleryLauncher.launch("image/*")
+                                2 -> pdfLauncher.launch("application/pdf")
+                            }
+                        }
+                    )
                 }
             }
-            .show()
+        }
+
+        aiOptionsDialog = MaterialAlertDialogBuilder(this)
+            .setView(composeView)
+            .setBackground(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            .create()
+
+        aiOptionsDialog?.show()
     }
 
     private fun checkCameraPermission() {
@@ -275,12 +290,10 @@ class EventActivity : AppCompatActivity() {
     }
 
     // --- LOGIKA PROSES AI ---
-    // Fungsi ini mewajibkan 'uri' yang TIDAK NULL (Uri, bukan Uri?)
     private fun processSelection(uri: Uri, isPdf: Boolean) {
         showLoading(true)
 
         lifecycleScope.launch {
-            // Panggil Helper
             val result = aiHelper.extractEventFromUri(uri, isPdf)
 
             showLoading(false)
@@ -308,10 +321,9 @@ class EventActivity : AppCompatActivity() {
         if (show) loadingDialog.show() else loadingDialog.dismiss()
     }
 
-    // --- SETUP UI STANDAR ---
     private fun setupToolbar() {
         setSupportActionBar(binding.eventToolbar)
-        supportActionBar?.title = "Agenda"
+        supportActionBar?.title = "Jadwal Acara"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
@@ -336,8 +348,6 @@ class EventActivity : AppCompatActivity() {
         }
     }
 
-    // EventActivity.kt dan ConsultationActivity.kt
-
     private fun setupSearchView() {
         binding.etSearch.addTextChangedListener(object : android.text.TextWatcher {
             override fun afterTextChanged(s: android.text.Editable?) {
@@ -353,11 +363,8 @@ class EventActivity : AppCompatActivity() {
             eventAdapter.submitList(events)
             updateEmptyState(events.isEmpty())
         }
-
         setupComposeFilters()
     }
-
-
 
     private fun updateEmptyState(isEmpty: Boolean) {
         binding.layoutEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
@@ -366,8 +373,8 @@ class EventActivity : AppCompatActivity() {
 
     private fun showDeleteConfirmation(event: Event) {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Hapus Event")
-            .setMessage("Apakah Anda yakin ingin menghapus event \"${event.title}\"?")
+            .setTitle("Hapus Acara")
+            .setMessage("Apakah Anda yakin ingin menghapus acara \"${event.title}\"?")
             .setPositiveButton("Hapus") { _, _ ->
                 viewModel.delete(event.id)
             }
@@ -393,5 +400,104 @@ class EventActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+}
+
+// ==========================================
+// 🚀 JETPACK COMPOSE UI COMPONENT (DIALOG AI)
+// ==========================================
+
+@Composable
+fun AiOptionsComposeDialog(onDismiss: () -> Unit, onItemClick: (Int) -> Unit) {
+    Card(
+        shape = RoundedCornerShape(24.dp), // Membuat ujung membulat khas Material 3
+        colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.card_background)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Text(
+                text = "Pilih Sumber Data (AI)",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 20.sp,
+                color = colorResource(id = R.color.colorPrimary),
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Opsi 1: Kamera
+            AiOptionItem(
+                iconRes = R.drawable.ic_camera,
+                title = "Ambil dari Kamera",
+                colorRes = R.color.task_color // Pakai warna task/oren sebagai highlight
+            ) { onItemClick(0) }
+
+            // Opsi 2: Galeri
+            AiOptionItem(
+                iconRes = R.drawable.ic_gallery,
+                title = "Pilih dari Galeri",
+                colorRes = R.color.event_color // Pakai warna event/hijau
+            ) { onItemClick(1) }
+
+            // Opsi 3: PDF
+            AiOptionItem(
+                iconRes = R.drawable.ic_pdf,
+                title = "Dokumen PDF / File",
+                colorRes = R.color.consultation_color // Pakai warna konsultasi/merah atau lainnya
+            ) { onItemClick(2) }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Tombol Batal
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = "Batal",
+                    color = colorResource(id = R.color.text_secondary),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AiOptionItem(iconRes: Int, title: String, colorRes: Int, onClick: () -> Unit) {
+    val mainColor = colorResource(id = colorRes)
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 8.dp)
+    ) {
+        // Kotak background untuk ikon dengan efek transparansi 15%
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(44.dp)
+                .background(mainColor.copy(alpha = 0.15f), CircleShape)
+        ) {
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = title,
+                tint = mainColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Teks Menu
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = colorResource(id = R.color.text_primary)
+        )
     }
 }

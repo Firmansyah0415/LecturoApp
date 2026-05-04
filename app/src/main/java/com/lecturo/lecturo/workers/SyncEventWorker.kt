@@ -52,6 +52,7 @@ class SyncEventWorker(
                         inputSource = event.inputSource ?: "MANUAL",
                         date = event.date,
                         time = event.time,
+                        endTime = event.endTime,
                         location = event.location ?: "-",
                         description = event.description ?: "",
                         isCompleted = event.isCompleted,

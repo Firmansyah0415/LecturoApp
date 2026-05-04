@@ -15,8 +15,6 @@
     <color name="colorOnSecondary">#FFFFFF</color>
     <color name="colorSecondaryContainer">#E8F5E9</color>
     <color name="colorOnSecondaryContainer">#1B5E20</color>
-
-    <color name="colorBackground">#FAFAFA</color>
     <color name="colorSurface">#FFFFFF</color>
 
     <color name="text_primary">#212121</color>
@@ -44,6 +42,10 @@
     <color name="low_priority">#2E7D32</color>
     <color name="low_priority_bg">#E8F5E9</color>
 
+    <color name="colorBackground">#F4F7F6</color>
+    <color name="card_background">#FFFFFF</color>
+
+
     <!-- Error colors -->
     <color name="error_background">#FFEBEE</color>
     <color name="error_color">#F44336</color>
@@ -59,9 +61,6 @@
     <color name="warning_background">#FFF3E0</color>
     <color name="warning_color">#FF9800</color>
     <color name="warning_text_color">#E65100</color>
-
-    <!-- Card colors -->
-    <color name="card_background">#FFFFFF</color>
 
     <!-- Indicator Active Nav Color -->
     <color name="bottom_nav_selected">#1976D2</color>

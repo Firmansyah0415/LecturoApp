@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
@@ -13,6 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.lecturo.lecturo.R
@@ -27,6 +29,11 @@ import com.lecturo.lecturo.viewmodel.task.TasksViewModelFactory
 
 class TasksActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTasksBinding
+
+    // --- VARIABEL UNTUK EMPTY STATE ---
+    private var currentTab = 0
+    private var pendingCount = 0
+    private var completedCount = 0
 
     private val viewModel: TasksViewModel by viewModels {
         getViewModelFactory()
@@ -45,8 +52,10 @@ class TasksActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
         window.statusBarColor = getColor(R.color.colorPrimary)
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
@@ -54,19 +63,13 @@ class TasksActivity : AppCompatActivity() {
             insets
         }
 
-        // [SOLUSI PRO: Mendorong FAB ke atas Navigasi Sistem]
         ViewCompat.setOnApplyWindowInsetsListener(binding.fabAddTasks) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-
-            // Konversi margin dasar 20dp dari XML ke satuan Pixel
             val baseMarginPx = (20 * resources.displayMetrics.density).toInt()
-
-            // Update HANYA margin bawahnya, ditambahkan dengan tinggi navigasi sistem
             view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = systemBars.bottom + baseMarginPx
-                rightMargin = baseMarginPx // Sesuaikan juga margin kanan agar presisi
+                rightMargin = baseMarginPx
             }
-
             insets
         }
 
@@ -111,22 +114,26 @@ class TasksActivity : AppCompatActivity() {
     }
 
     private fun setupViewPager() {
-        // Pastikan TasksPagerAdapter Anda mengirim 'handleTasksAction' ke Fragment
         val pagerAdapter = TasksPagerAdapter(this)
         binding.viewPager.adapter = pagerAdapter
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = if (position == 0) "Tugas" else "Selesai"
         }.attach()
+
+        // --- LISTENER PERPINDAHAN TAB UNTUK EMPTY STATE ---
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                currentTab = position
+                checkEmptyState()
+            }
+        })
     }
 
-    // --- [UBAH DISINI] Fungsi yang dipanggil dari Adapter/Fragment ---
     fun handleTasksAction(tasks: Tasks, action: String) {
         when (action) {
             "delete" -> showDeleteConfirmation(tasks)
             "complete" -> viewModel.updateTasksCompletedStatus(tasks.id, true)
             "uncomplete" -> viewModel.updateTasksCompletedStatus(tasks.id, false)
-
-            // Saat item diklik (sinyal 'edit' dari adapter), kita munculkan Dialog Pilihan dulu
             "edit" -> showTaskOptions(tasks)
         }
     }
@@ -139,10 +146,34 @@ class TasksActivity : AppCompatActivity() {
 
     private fun observeTabTitles() {
         viewModel.pendingTasks.observe(this) { pending ->
-            binding.tabLayout.getTabAt(0)?.text = "Tugas (${pending.size})"
+            pendingCount = pending.size
+            binding.tabLayout.getTabAt(0)?.text = "Tugas ($pendingCount)"
+            checkEmptyState() // Cek apakah perlu memunculkan Empty State
         }
         viewModel.completedTasks.observe(this) { completed ->
-            binding.tabLayout.getTabAt(1)?.text = "Selesai (${completed.size})"
+            completedCount = completed.size
+            binding.tabLayout.getTabAt(1)?.text = "Selesai ($completedCount)"
+            checkEmptyState() // Cek apakah perlu memunculkan Empty State
+        }
+    }
+
+    // --- LOGIKA UTAMA EMPTY STATE ---
+    private fun checkEmptyState() {
+        // Cek tab mana yang aktif, lalu lihat jumlahnya
+        val isEmpty = if (currentTab == 0) pendingCount == 0 else completedCount == 0
+
+        if (isEmpty) {
+            binding.layoutEmptyState.visibility = View.VISIBLE
+            // Ganti teks secara dinamis berdasarkan tab yang dibuka
+            if (currentTab == 0) {
+                binding.tvEmptyTitle.text = "Belum ada jadwal tugas"
+                binding.tvEmptySubtitle.text = "Tap tombol + untuk tambah jadwal tugas baru"
+            } else {
+                binding.tvEmptyTitle.text = "Belum ada tugas selesai"
+                binding.tvEmptySubtitle.text = "Tugas yang telah selesai akan muncul di sini"
+            }
+        } else {
+            binding.layoutEmptyState.visibility = View.GONE
         }
     }
 
@@ -155,29 +186,21 @@ class TasksActivity : AppCompatActivity() {
             .show()
     }
 
-    // --- [TAMBAHAN BARU] LOGIKA MENU PILIHAN ---
     private fun showTaskOptions(task: Tasks) {
-        // 1. Inisialisasi BottomSheetDialog
         val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
         val view = layoutInflater.inflate(R.layout.bottom_sheet_task_options, null)
         dialog.setContentView(view)
 
-        // 3. Set Judul Tugas di Header Bottom Sheet
         val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvSheetTitle)
         tvTitle.text = task.title
 
-        // =============================================================
-        // [KODE YANG DIPINDAH KE ATAS] Ambil data dari Preferences di sini
-        // =============================================================
         val prefs = com.lecturo.lecturo.utils.FocusPreferences(this)
         val activeTaskId = prefs.getActiveTaskId()
         val currentPhase = prefs.getCurrentPhase()
 
-        // Ambil View TextView-nya
         val tvFocusTitle = view.findViewById<android.widget.TextView>(R.id.tvFocusActionTitle)
         val tvFocusSub = view.findViewById<android.widget.TextView>(R.id.tvFocusActionSubtitle)
 
-        // Ubah teks jika tugas ini adalah tugas yang sedang berjalan di Pomodoro
         if (activeTaskId == task.id) {
             tvFocusTitle.text = if (currentPhase == "Fokus") "Lanjutkan Fokus" else "Lanjutkan Istirahat"
             tvFocusSub.text = "Sesi sedang berjalan"
@@ -185,15 +208,10 @@ class TasksActivity : AppCompatActivity() {
             tvFocusTitle.text = "Mulai Fokus"
             tvFocusSub.text = "Mode Pomodoro"
         }
-        // =============================================================
 
-        // 4. LOGIKA KLIK MENU
-        // A. Menu Fokus (Pomodoro)
         view.findViewById<android.view.View>(R.id.layoutFocus).setOnClickListener {
-            dialog.dismiss() // Tutup dialog
+            dialog.dismiss()
 
-            // --- [PERBAIKAN BUG 1: BLOKIR JIKA ADA TUGAS LAIN JALAN] ---
-            // Kita cukup panggil variabel activeTaskId yang sudah dideklarasikan di atas tadi
             if (activeTaskId != -1L && activeTaskId != task.id) {
                 MaterialAlertDialogBuilder(this)
                     .setTitle("Sesi Lain Sedang Aktif")
@@ -202,7 +220,6 @@ class TasksActivity : AppCompatActivity() {
                     .show()
                 return@setOnClickListener
             }
-            // -----------------------------------------------------------
 
             val intent = Intent(this, FocusActivity::class.java)
             intent.putExtra("TASK_ID", task.id)
@@ -211,7 +228,6 @@ class TasksActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // B. Menu Edit
         view.findViewById<android.view.View>(R.id.layoutEdit).setOnClickListener {
             dialog.dismiss()
             val intent = Intent(this, AddTasksActivity::class.java)
@@ -219,13 +235,11 @@ class TasksActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // C. Menu Hapus
         view.findViewById<android.view.View>(R.id.layoutDelete).setOnClickListener {
             dialog.dismiss()
-            showDeleteConfirmation(task) // Panggil fungsi konfirmasi hapus
+            showDeleteConfirmation(task)
         }
 
-        // 5. Tampilkan Dialog
         dialog.show()
     }
 }

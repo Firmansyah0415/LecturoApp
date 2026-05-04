@@ -26,12 +26,13 @@ class FocusSettingsActivity : AppCompatActivity() {
         // bikin status bar transparan sekali untuk semua activity
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // atur warna status bar
-        window.statusBarColor = getColor(R.color.colorPrimary)
+        // 1. Cek apakah aplikasi sedang di Mode Gelap
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
-        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
+        // 2. atur warna status bar
+        window.statusBarColor = getColor(R.color.colorPrimary)
         WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = true
+            .isAppearanceLightStatusBars = !isNightMode
 
         // otomatis kasih padding top di root view sesuai status bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->

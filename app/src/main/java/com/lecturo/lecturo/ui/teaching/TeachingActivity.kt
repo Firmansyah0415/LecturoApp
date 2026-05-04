@@ -63,12 +63,15 @@ class TeachingActivity : AppCompatActivity() {
         // bikin status bar transparan sekali untuk semua activity
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // atur warna status bar
+        // 1. Cek apakah aplikasi sedang di Mode Gelap
+        val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+        // 2. atur warna status bar
         window.statusBarColor = getColor(R.color.colorPrimary)
 
-        // atur warna teks/icon status bar → true = icon gelap (hitam), false = icon terang (putih)
+        // 3. atur warna teks/icon status bar
         WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = true
+            .isAppearanceLightStatusBars = !isNightMode
 
         // otomatis kasih padding top di root view sesuai status bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
@@ -186,8 +189,8 @@ class TeachingActivity : AppCompatActivity() {
 
     private fun showDeleteConfirmation(rule: TeachingRule) {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Hapus Aturan Jadwal")
-            .setMessage("Yakin ingin menghapus aturan \"${rule.courseName} - ${rule.classCode}\"?\n\nPerhatian: Ini akan menghapus semua jadwal kelas terkait dari kalender.")
+            .setTitle("Hapus Jadwal")
+            .setMessage("Yakin ingin menghapus jadwal \"${rule.courseName} - ${rule.classCode}\"?\n\nPerhatian: Ini akan menghapus semua jadwal kelas terkait dari kalender.")
             .setPositiveButton("Hapus") { _, _ ->
                 viewModel.deleteTeachingRule(rule.localId)
             }

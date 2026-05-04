@@ -22,7 +22,7 @@
             android:background="@android:color/transparent"
             app:titleTextColor="?attr/colorOnSurface"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:title="Notification Settings" />
+            app:title="Pengaturan Notifikasi" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -40,7 +40,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="General Settings"
+                android:text="Pengaturan Umum"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="12dp" />
@@ -51,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="26dp"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -67,27 +67,32 @@
                         android:orientation="horizontal"
                         android:padding="16dp"
                         android:gravity="center_vertical">
+
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Enable Notifications"
+                                android:text="Aktifkan Notifikasi"
                                 android:textAppearance="?attr/textAppearanceTitleMedium" />
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Turn all schedule notifications on/off"
+                                android:text="Aktifkan/nonaktifkan semua notifikasi jadwal"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchGlobalNotification"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:theme="@style/ThemeOverlay.App.Switch.Lecturo" />
                     </LinearLayout>
 
                     <View
@@ -108,22 +113,26 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Enable Alarm Sound"
+                                android:text="Aktifkan Suara Alarm"
                                 android:textAppearance="?attr/textAppearanceTitleMedium" />
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Play a loud alarm sound instead of a default notification"
+                                android:text="Bunyikan alarm dengan volume keras sebagai pengganti notifikasi bawaan"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchSound"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:theme="@style/ThemeOverlay.App.Switch.Lecturo" />
                     </LinearLayout>
 
                     <View
@@ -139,6 +148,7 @@
                         android:orientation="horizontal"
                         android:padding="16dp"
                         android:gravity="center_vertical">
+
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -147,19 +157,21 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Enable Vibration"
+                                android:text="Aktifkan Getaran"
                                 android:textAppearance="?attr/textAppearanceTitleMedium" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Vibrate the device for notifications"
+                                android:text="Getarkan perangkat untuk pemberitahuan"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
                         <com.google.android.material.materialswitch.MaterialSwitch
                             android:id="@+id/switchVibration"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:theme="@style/ThemeOverlay.App.Switch.Lecturo" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -168,7 +180,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Default Settings per Category"
+                android:text="Pengaturan Standar per Kategori"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="12dp" />
@@ -179,7 +191,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/card_background"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="26dp"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -193,6 +205,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
                         android:hint="@string/teaching_notification_setting"
                         app:startIconDrawable="@drawable/ic_class"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
@@ -209,6 +225,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
                         android:hint="@string/task_notification_setting"
                         app:startIconDrawable="@drawable/ic_task"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
@@ -225,8 +245,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
                         android:hint="@string/event_meeting_notification_setting"
-                        app:startIconDrawable="@drawable/ic_event"
+                        app:startIconDrawable="@drawable/ic_event_2"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                         <AutoCompleteTextView
@@ -240,6 +264,10 @@
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
                         android:hint="@string/consultation_notification_setting"
                         app:startIconDrawable="@drawable/ic_consultant"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
@@ -258,17 +286,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_medium"
-                app:strokeColor="@color/colorOnPrimaryContainer"
+                app:strokeColor="@color/colorPrimary"
                 app:strokeWidth="1dp"
-                app:cardBackgroundColor="@color/divider_color"
-                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="@color/colorPrimaryContainer"
+                app:cardCornerRadius="26dp"
                 app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp"
+                    android:padding="10dp"
                     android:gravity="center_vertical">
 
                     <ImageView
@@ -276,9 +304,7 @@
                         android:layout_height="32dp"
                         android:src="@drawable/ic_info"
                         android:layout_marginEnd="12dp"
-                        app:tint="@color/colorOnPrimaryContainer"
-                        android:background="@drawable/bg_circle_white"
-                        android:backgroundTint="@color/divider_color"
+                        app:tint="@color/colorPrimary"
                         android:padding="6dp"
                         android:contentDescription="Info" />
 
@@ -302,10 +328,10 @@
                 android:insetBottom="0dp"
                 android:textSize="16sp"
                 android:textColor="@color/white"
-                android:text="Simpan Perubahan"
+                android:text="Simpan Pengaturan"
+                android:layout_marginBottom="16dp"
                 android:paddingVertical="12dp"
-                app:cornerRadius="16dp" />
-
+                app:cornerRadius="50dp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -19,6 +19,9 @@ data class EventDto(
     @SerializedName("category") val category: String?,
     @SerializedName("date") val date: String?,
     @SerializedName("time") val time: String?,
+
+    @SerializedName("end_time") val endTime: String?,
+
     @SerializedName("location") val location: String?,
     @SerializedName("description") val description: String?
 ) {
@@ -29,12 +32,11 @@ data class EventDto(
             category = category ?: "Lainnya",
             date = date ?: "",
             time = time ?: "",
+            endTime = endTime ?: "",
             location = location ?: "",
             description = description ?: "",
-            // Menandai bahwa data ini hasil scan AI
             inputSource = "AI_SCAN",
             priority = "Sedang",
-            // Default value lainnya
             isCompleted = false,
             notificationMinutesBefore = 15
         )

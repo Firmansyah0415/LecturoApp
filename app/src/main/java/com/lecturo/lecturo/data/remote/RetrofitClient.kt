@@ -13,11 +13,14 @@ object RetrofitClient {
     // 2. Jika pakai HP Fisik colok USB: Gunakan IP Laptop (misal "http://192.168.1.5:3000/")
     //    (Pastikan Laptop & HP di WiFi yang sama, dan Firewall laptop dimatikan sebentar)
 
-    // Production Hsotinger VPS
+    // Production Hostinger VPS KVM 1
     // private const val BASE_URL = "http://76.13.192.59:3000/"
 
+    // Production Sumopod VPS
+     private const val BASE_URL = "http://43.156.232.194:3000/"
+
     // Ngriok
-       private const val BASE_URL = "https://diego-beaky-unappeasably.ngrok-free.dev"
+    // private const val BASE_URL = "https://diego-beaky-unappeasably.ngrok-free.dev"
 
     // Lokal tanpa Ngrok
     // private const val BASE_URL = "http://10.0.2.2:3000/"
