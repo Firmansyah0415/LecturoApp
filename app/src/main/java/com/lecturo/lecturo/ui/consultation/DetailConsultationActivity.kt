@@ -22,6 +22,17 @@ import com.lecturo.lecturo.viewmodel.consultation.ConsultationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+
 class DetailConsultationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDetailConsultationBinding
@@ -37,6 +48,10 @@ class DetailConsultationActivity : AppCompatActivity() {
     // 1. Variabel penampung nilai menit notifikasi
     // Tidak lagi di-hardcode ke 15!
     private var selectedNotifMinutes: Int = 0
+
+    // [TAMBAHAN BARU] STATE UNTUK COMPOSE
+    private var repeatMode by mutableStateOf("NONE") // NONE, COUNT, DATE
+    private var repeatValue by mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +85,19 @@ class DetailConsultationActivity : AppCompatActivity() {
 
         setupNotificationChips()
 
+        // [TAMBAHAN BARU] BINDING COMPOSE VIEW
+        binding.cvRepetition.setContent {
+            MaterialTheme {
+                RepetitionSelector(
+                    mode = repeatMode,
+                    value = repeatValue,
+                    onModeChange = { repeatMode = it },
+                    onValueChange = { repeatValue = it },
+                    onDatePickerClick = { showEndDateDatePicker() }
+                )
+            }
+        }
+
         binding.btnSave.setOnClickListener {
             saveConsultation()
         }
@@ -79,9 +107,28 @@ class DetailConsultationActivity : AppCompatActivity() {
         if (intent.hasExtra("SCHEDULE_ID")) {
             scheduleId = intent.getLongExtra("SCHEDULE_ID", 0)
             loadScheduleData(scheduleId)
+
+            // [LOGIKA PENTING] Sembunyikan perulangan jika sedang Mode Edit jadwal tunggal
+            binding.cvRepetition.visibility = android.view.View.GONE
         } else if (intent.getBooleanExtra("IS_FROM_TEMPLATE", false)) {
             setupFromTemplate()
         }
+    }
+
+    // [TAMBAHAN BARU] FUNGSI DATEPICKER UNTUK TANGGAL AKHIR
+    private fun showEndDateDatePicker() {
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText("Pilih Tanggal Berakhir")
+            .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+            .build()
+
+        datePicker.addOnPositiveButtonClickListener { selection ->
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            calendar.timeInMillis = selection
+            val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            repeatValue = format.format(calendar.time) // Update state Compose
+        }
+        datePicker.show(supportFragmentManager, "END_DATE_PICKER")
     }
 
     // --- FUNGSI BARU: Membaca Default dari Settings ---
@@ -224,6 +271,16 @@ class DetailConsultationActivity : AppCompatActivity() {
             return
         }
 
+        // Validasi Perulangan
+        if (repeatMode == "COUNT" && repeatValue.isEmpty()) {
+            Toast.makeText(this, "Masukkan jumlah pertemuan", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (repeatMode == "DATE" && repeatValue.isEmpty()) {
+            Toast.makeText(this, "Pilih tanggal berakhir", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
         val currentUid = currentUser?.uid
 
@@ -252,8 +309,11 @@ class DetailConsultationActivity : AppCompatActivity() {
             viewModel.updateSchedule(schedule)
             Toast.makeText(this, "Jadwal diperbarui", Toast.LENGTH_SHORT).show()
         } else {
-            viewModel.insertSchedule(schedule)
-            Toast.makeText(this, "Jadwal berhasil dibuat", Toast.LENGTH_SHORT).show()
+            // [PERUBAHAN PENTING] Kirim data ke ViewModel bersama mode perulangannya!
+            viewModel.insertSchedule(schedule, repeatMode, repeatValue)
+
+            val msg = if (repeatMode == "NONE") "Jadwal berhasil dibuat" else "Jadwal perulangan berhasil dicetak!"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
 
         finish()
@@ -265,5 +325,192 @@ class DetailConsultationActivity : AppCompatActivity() {
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+}
+
+// [TAMBAHAN BARU] KOMPONEN JETPACK COMPOSE
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun RepetitionSelector(
+//    mode: String,
+//    value: String,
+//    onModeChange: (String) -> Unit,
+//    onValueChange: (String) -> Unit,
+//    onDatePickerClick: () -> Unit
+//) {
+//    Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+//        Text("Perulangan (Opsional)", fontWeight = FontWeight.Bold, color = colorResource(R.color.text_primary))
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        // Baris Tombol Filter M3
+//        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+//            FilterChip(
+//                selected = mode == "NONE",
+//                onClick = { onModeChange("NONE"); onValueChange("") },
+//                label = { Text("Tidak") }
+//            )
+//            FilterChip(
+//                selected = mode == "COUNT",
+//                onClick = { onModeChange("COUNT"); onValueChange("") },
+//                label = { Text("Jumlah") }
+//            )
+//            FilterChip(
+//                selected = mode == "DATE",
+//                onClick = { onModeChange("DATE"); onValueChange("") },
+//                label = { Text("Tgl Akhir") }
+//            )
+//        }
+//
+//        // Form Input Dinamis
+//        if (mode == "COUNT") {
+//            OutlinedTextField(
+//                value = value,
+//                onValueChange = { if (it.all { char -> char.isDigit() }) onValueChange(it) },
+//                label = { Text("Jumlah Pertemuan") },
+//                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+//                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+//                colors = OutlinedTextFieldDefaults.colors(
+//                    focusedBorderColor = colorResource(R.color.consultation_color),
+//                    focusedLabelColor = colorResource(R.color.consultation_color)
+//                )
+//            )
+//        } else if (mode == "DATE") {
+//            OutlinedTextField(
+//                value = value,
+//                onValueChange = {},
+//                label = { Text("Berakhir pada Tanggal") },
+//                readOnly = true,
+//                enabled = false, // Disable agar tidak bisa diketik manual
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(top = 8.dp)
+//                    .clickable { onDatePickerClick() }, // Klik untuk buka kalender
+//                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+//                colors = OutlinedTextFieldDefaults.colors(
+//                    disabledTextColor = colorResource(R.color.text_primary),
+//                    disabledBorderColor = colorResource(R.color.consultation_color),
+//                    disabledLabelColor = colorResource(R.color.consultation_color)
+//                )
+//            )
+//        }
+//    }
+//}
+
+// [TAMBAHAN BARU] KOMPONEN JETPACK COMPOSE
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RepetitionSelector(
+    mode: String,
+    value: String,
+    onModeChange: (String) -> Unit,
+    onValueChange: (String) -> Unit,
+    onDatePickerClick: () -> Unit
+) {
+    // --- 1. DEKLARASI WARNA ---
+    val primaryColor = colorResource(R.color.consultation_color)
+    val textColor = colorResource(R.color.text_primary)
+    val whiteColor = colorResource(android.R.color.white)
+
+    // --- 2. KONFIGURASI WARNA TOMBOL (CHIP) ---
+    val customChipColors = FilterChipDefaults.filterChipColors(
+        selectedContainerColor = primaryColor,
+        selectedLabelColor = whiteColor,
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        labelColor = textColor
+    )
+
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+        Text("Perulangan (Opsional)", fontWeight = FontWeight.Bold, color = textColor)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Baris Tombol Filter M3
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // TOMBOL 1: TIDAK BERULANG
+            FilterChip(
+                selected = mode == "NONE",
+                onClick = { onModeChange("NONE"); onValueChange("") },
+                label = { Text("Tidak") },
+                colors = customChipColors,
+                // PERBAIKAN: Masukkan border langsung di sini!
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = mode == "NONE", // <-- Beritahu statusnya
+                    borderColor = primaryColor,
+                    selectedBorderColor = primaryColor,
+                    borderWidth = 1.dp,
+                    selectedBorderWidth = 1.dp
+                )
+            )
+
+            // TOMBOL 2: JUMLAH
+            FilterChip(
+                selected = mode == "COUNT",
+                onClick = { onModeChange("COUNT"); onValueChange("") },
+                label = { Text("Jumlah") },
+                colors = customChipColors,
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = mode == "COUNT", // <-- Beritahu statusnya
+                    borderColor = primaryColor,
+                    selectedBorderColor = primaryColor,
+                    borderWidth = 1.dp,
+                    selectedBorderWidth = 1.dp
+                )
+            )
+
+            // TOMBOL 3: TANGGAL AKHIR
+            FilterChip(
+                selected = mode == "DATE",
+                onClick = { onModeChange("DATE"); onValueChange("") },
+                label = { Text("Tgl Akhir") },
+                colors = customChipColors,
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = mode == "DATE", // <-- Beritahu statusnya
+                    borderColor = primaryColor,
+                    selectedBorderColor = primaryColor,
+                    borderWidth = 1.dp,
+                    selectedBorderWidth = 1.dp
+                )
+            )
+        }
+
+        // Form Input Dinamis
+        if (mode == "COUNT") {
+            OutlinedTextField(
+                value = value,
+                onValueChange = { if (it.all { char -> char.isDigit() }) onValueChange(it) },
+                label = { Text("Jumlah Pertemuan") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryColor,
+                    focusedLabelColor = primaryColor,
+                    cursorColor = primaryColor,
+                    focusedTextColor = textColor,
+                    unfocusedTextColor = textColor
+                )
+            )
+        } else if (mode == "DATE") {
+            OutlinedTextField(
+                value = value,
+                onValueChange = {},
+                label = { Text("Berakhir pada Tanggal") },
+                readOnly = true,
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clickable { onDatePickerClick() },
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = textColor,
+                    disabledBorderColor = primaryColor,
+                    disabledLabelColor = primaryColor
+                )
+            )
+        }
     }
 }

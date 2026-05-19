@@ -2,6 +2,7 @@ package com.lecturo.lecturo.ui.main
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,9 +40,24 @@ class AgendaAdapter(
 
         fun bind(entry: CalendarEntry) {
             val context = itemView.context
+
+            // Set data dasar
             titleTextView.text = entry.title
             timeTextView.text = entry.time
             categoryTextView.text = entry.category
+
+            // 🔴 [TAMBAHAN BARU OPSI B]: Efek visual riwayat (Coret & Pudar)
+            if (entry.isCompleted) {
+                // Beri efek coret (strikethrough) pada judul
+                titleTextView.paintFlags = titleTextView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                // Buat seluruh item menjadi pudar (transparan 50%)
+                itemView.alpha = 0.5f
+            } else {
+                // Hilangkan efek coret (normal)
+                titleTextView.paintFlags = titleTextView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                // Kembalikan ke warna solid terang (100%)
+                itemView.alpha = 1.0f
+            }
 
             val cleanCategory = entry.category.trim().lowercase(Locale.getDefault())
             val cleanPriority = entry.priority.trim().lowercase(Locale.getDefault())
@@ -77,33 +93,31 @@ class AgendaAdapter(
             val neutralTextColor = ContextCompat.getColor(context, R.color.text_secondary)
             categoryTextView.setTextColor(neutralTextColor)
 
-            // 2. SETUP BADGE PRIORITAS & PENERJEMAH OTOMATIS (PERBAIKAN BUG)
+            // 2. SETUP BADGE PRIORITAS & PENERJEMAH OTOMATIS
             val priorityTextColorRes: Int
             val priorityBgColorRes: Int
-            val displayPriorityText: String // <--- Variabel baru untuk teks UI
+            val displayPriorityText: String
 
             when (cleanPriority) {
                 "tinggi", "high", "hight", "urgent" -> {
                     priorityTextColorRes = R.color.high_priority
                     priorityBgColorRes = R.color.high_priority_bg
-                    displayPriorityText = "TINGGI" // Paksa jadi bahasa Indonesia
+                    displayPriorityText = "TINGGI"
                 }
                 "rendah", "low" -> {
                     priorityTextColorRes = R.color.low_priority
                     priorityBgColorRes = R.color.low_priority_bg
-                    displayPriorityText = "RENDAH" // Paksa jadi bahasa Indonesia
+                    displayPriorityText = "RENDAH"
                 }
                 else -> { // Sedang / Medium
                     priorityTextColorRes = R.color.medium_priority
                     priorityBgColorRes = R.color.medium_priority_bg
-                    displayPriorityText = "SEDANG" // Paksa jadi bahasa Indonesia
+                    displayPriorityText = "SEDANG"
                 }
             }
 
-            // Terapkan Teks yang sudah diterjemahkan
             priorityTextView.text = displayPriorityText
 
-            // Menerapkan warna prioritas
             val resolvedPriorityTextColor = ContextCompat.getColor(context, priorityTextColorRes)
             val resolvedPriorityBgColor = ContextCompat.getColor(context, priorityBgColorRes)
 

@@ -81,4 +81,8 @@ interface TasksDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTaskRaw(task: Tasks): Long
+
+    // [TAMBAHAN BARU] Ambil semua tugas lokal yang pernah tersinkronisasi ke Cloud
+    @Query("SELECT * FROM tasks WHERE is_synced = 1 AND firestoreId IS NOT NULL")
+    suspend fun getSyncedTasksList(): List<Tasks>
 }

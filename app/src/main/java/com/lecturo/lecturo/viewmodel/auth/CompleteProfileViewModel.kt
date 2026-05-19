@@ -13,6 +13,7 @@ class CompleteProfileViewModel(private val repository: UserRepository) : ViewMod
         uid: String,
         phoneNumber: String,
         fullName: String,
+        gender: String,
         email: String,
         university: String,
         faculty: String,
@@ -28,6 +29,7 @@ class CompleteProfileViewModel(private val repository: UserRepository) : ViewMod
                 val user = User(
                     uid = uid,
                     phoneNumber = phoneNumber,
+                    gender = gender,
                     email = email,
                     fullName = fullName,
                     university = university,

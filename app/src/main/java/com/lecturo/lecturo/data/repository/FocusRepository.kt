@@ -7,11 +7,13 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.lecturo.lecturo.data.db.AppDatabase // 🔴 [TAMBAHAN] Untuk akses kalender
 import com.lecturo.lecturo.data.db.dao.FocusSessionDao
 import com.lecturo.lecturo.data.db.dao.TasksDao
 import com.lecturo.lecturo.data.model.FocusSession
+import com.lecturo.lecturo.notifications.NotificationScheduler // 🔴 [TAMBAHAN] Untuk cabut alarm
 import com.lecturo.lecturo.workers.SyncFocusWorker
-import com.lecturo.lecturo.workers.SyncTasksWorker // Kita butuh ini untuk trigger sync Task
+import com.lecturo.lecturo.workers.SyncTasksWorker
 
 class FocusRepository(
     private val focusSessionDao: FocusSessionDao,
@@ -31,33 +33,38 @@ class FocusRepository(
 
     // --- SAVE SESSION (Offline First) ---
     suspend fun saveSession(session: FocusSession) {
-        // 1. Set Flag
         session.isSynced = false
         session.isDeleted = false
-
-        // 2. Simpan Lokal
         focusSessionDao.insertSession(session)
-
-        // 3. Trigger Worker
         scheduleFocusSync()
     }
 
     // --- DELETE SESSION (Offline First) ---
     suspend fun deleteSession(session: FocusSession) {
-        // 1. Soft Delete Lokal
         focusSessionDao.softDeleteSession(session.id)
-
-        // 2. Trigger Worker
         scheduleFocusSync()
     }
 
     // --- UPDATE TASK STATUS (Offline First via Task Worker) ---
     suspend fun updateTaskStatus(taskId: Long, isCompleted: Boolean) {
-        // 1. Update Lokal (TasksDao) - Fungsi ini harus men-set is_synced=0 di TasksDao
-        // Pastikan TasksDao.updateCompletedStatus melakukan: SET isCompleted = :val, is_synced = 0
+        // 1. Update Lokal di tabel Tasks
         tasksDao.updateCompletedStatus(taskId, isCompleted)
 
-        // 2. Trigger Task Worker (Bukan Focus Worker)
+        // 🔴 [PERBAIKAN BUG OPSI B] Sinkronkan juga statusnya ke Kalender Agregator
+        val dbSqlite = AppDatabase.getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
+        val scheduler = NotificationScheduler(context)
+
+        // Bisikkan ke Kalender bahwa Tugas ini statusnya berubah
+        calendarDao.updateStatusBySource("TASK", taskId, isCompleted)
+
+        // Jika tugas diselesaikan, cabut alarmnya agar tidak berisik
+        if (isCompleted) {
+            val entriesToCancel = calendarDao.getEntriesForSource("TASK", taskId)
+            entriesToCancel.forEach { scheduler.cancelNotification(it.notificationId) }
+        }
+
+        // 2. Trigger Task Worker untuk lapor ke Cloud
         scheduleTaskSync()
     }
 

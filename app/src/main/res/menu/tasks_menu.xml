@@ -10,25 +10,11 @@
         app:showAsAction="ifRoom|collapseActionView"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
-<!--    <item-->
-<!--        android:id="@+id/action_filter"-->
-<!--        android:icon="@drawable/ic_filter"-->
-<!--        android:title="@string/filter"-->
-<!--        app:showAsAction="ifRoom">-->
-<!--        <menu>-->
-<!--            <item-->
-<!--                android:id="@+id/filter_all"-->
-<!--                android:title="@string/filter_all" />-->
-<!--            <item-->
-<!--                android:id="@+id/filter_today"-->
-<!--                android:title="@string/filter_today" />-->
-<!--            <item-->
-<!--                android:id="@+id/filter_this_week"-->
-<!--                android:title="@string/filter_this_week" />-->
-<!--            <item-->
-<!--                android:id="@+id/filter_this_month"-->
-<!--                android:title="@string/filter_this_month" />-->
-<!--        </menu>-->
-<!--    </item>-->
+    <item
+        android:id="@+id/action_sort"
+        android:title="Urutkan"
+        android:icon="@drawable/ic_clock_arrow_down"
+        android:iconTint="?attr/colorOnSurface"
+        app:showAsAction="always" />
 
 </menu>

@@ -3,9 +3,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_sort"
+        android:title="Urutkan"
+        android:icon="@drawable/ic_clock_arrow_down"
+        app:iconTint="?attr/colorOnSurface"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_filter_belum"
+        android:title="Tampilkan Belum Selesai"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_selesai"
+        android:title="Tampilkan Selesai Saja"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_clear_filters"
-        android:title="Clear Filters"
-        android:icon="@drawable/ic_clear"
+        android:title="Hapus Semua Filter"
         app:showAsAction="never" />
 
 </menu>

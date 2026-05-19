@@ -38,6 +38,7 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
                     phoneNumber = "", // Kosong, hanya butuh nama & foto di Beranda
                     email = session.email,
                     fullName = session.name,
+                    gender = "", // Set default kosong untuk cache (tidak apa-apa)
                     university = "",
                     faculty = "",
                     major = "",
@@ -82,6 +83,7 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
     // 2. Update Data User
     fun updateProfile(
         name: String,
+        gender: String,
         email: String,
         phone: String,
         university: String,
@@ -115,6 +117,7 @@ class ProfileViewModel(private val repository: UserRepository) : ViewModel() {
                 phoneNumber = currentPhone,
                 email = email,
                 fullName = name,
+                gender = gender, // Tambahan
                 university = university,
                 faculty = faculty,
                 major = major,

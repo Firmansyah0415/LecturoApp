@@ -24,14 +24,13 @@ class DataRestoreManager(private val context: Context) {
                 // Ini akan menghapus semua sisa calendar_entries dan tabel lainnya.
                 db.clearAllTables()
                 // ==========================
-
                 // -----------------------------------------------------------
                 // 1. Restore Teaching Rules
                 // -----------------------------------------------------------
                 val teachingResponse = api.getAllTeachingRules(uid)
                 if (teachingResponse.isSuccessful && teachingResponse.body()?.status == "success") {
                     val rules = teachingResponse.body()?.data ?: emptyList()
-                    db.teachingRuleDao().deleteAll()
+                    db.teachingScheduleDao().deleteAll()
 
                     if (rules.isNotEmpty()) {
                         // --- PERBAIKAN: Set isSynced = true & isDeleted = false ---
@@ -42,7 +41,7 @@ class DataRestoreManager(private val context: Context) {
                                 isDeleted = false  // <--- INI PENTING
                             )
                         }
-                        db.teachingRuleDao().insertAll(rulesWithStatus)
+                        db.teachingScheduleDao().insertAll(rulesWithStatus)
                     }
                 }
 

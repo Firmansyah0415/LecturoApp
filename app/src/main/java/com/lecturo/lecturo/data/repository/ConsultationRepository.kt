@@ -17,13 +17,14 @@ import com.lecturo.lecturo.data.model.ConsultationPattern
 import com.lecturo.lecturo.data.model.ConsultationSchedule
 import com.lecturo.lecturo.notifications.NotificationScheduler
 import com.lecturo.lecturo.workers.SyncConsultationWorker
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class ConsultationRepository(
     private val consultationDao: ConsultationDao,
     private val context: Context
 ) {
 
-    // --- [PERBAIKAN BUG] PENERJEMAH PRIORITAS UNTUK KALENDER ---
     private fun mapPriorityToIndo(priority: String?): String {
         return when (priority?.lowercase()) {
             "high" -> "Tinggi"
@@ -31,6 +32,11 @@ class ConsultationRepository(
             "low" -> "Rendah"
             else -> "Sedang"
         }
+    }
+
+    // --- [TRIK DALANG] Fungsi Helper untuk menerjemahkan String Status ke Boolean ---
+    private fun isStatusCompletedOrCancelled(status: String): Boolean {
+        return status == "COMPLETED" || status == "CANCELLED"
     }
 
     suspend fun syncConsultationsFromCloud() {
@@ -45,9 +51,12 @@ class ConsultationRepository(
             val snapshot = db.collection("users").document(uid).collection("consultations")
                 .get(Source.SERVER).await()
 
+            val cloudFirestoreIds = mutableListOf<String>()
+
             for (document in snapshot.documents) {
                 try {
                     val firestoreId = document.id
+                    cloudFirestoreIds.add(firestoreId)
                     val title = document.getString("title") ?: continue
                     val date = document.getString("date") ?: continue
                     val startTime = document.getString("start_time") ?: continue
@@ -79,24 +88,27 @@ class ConsultationRepository(
                             updated.firestoreId = firestoreId
                             consultationDao.updateScheduleRaw(updated)
 
+                            // 1. Bersihkan alarm & entri lama
                             scheduler.cancelConsultation(existing.id)
                             calendarDao.deleteEntriesForSource("CONSULTATION", existing.id)
 
-                            // --- [PERBAIKAN LOGIKA AGENDA HOME] ---
-                            // HANYA MASUKKAN KE AGENDA HOME JIKA STATUSNYA SCHEDULED
+                            // 2. 🔴 [PERBAIKAN OPSI B] Selalu masukkan ke Kalender sebagai riwayat
+                            val entry = CalendarEntry(
+                                title = updated.title,
+                                date = updated.date,
+                                time = updated.startTime,
+                                endTime = updated.endTime,
+                                category = "Konsultasi",
+                                priority = mapPriorityToIndo(updated.priority),
+                                sourceFeatureType = "CONSULTATION",
+                                sourceFeatureId = existing.id,
+                                notificationMinutesBefore = updated.notificationMinutesBefore,
+                                isCompleted = isStatusCompletedOrCancelled(updated.status) // <--- Trik Dalang
+                            )
+                            calendarDao.insertEntry(entry)
+
+                            // 3. Alarm HANYA bunyi jika masih SCHEDULED
                             if (updated.status == "SCHEDULED") {
-                                val entry = CalendarEntry(
-                                    title = updated.title,
-                                    date = updated.date,
-                                    time = updated.startTime,
-                                    endTime = updated.endTime,
-                                    category = "Konsultasi",
-                                    priority = mapPriorityToIndo(updated.priority),
-                                    sourceFeatureType = "CONSULTATION",
-                                    sourceFeatureId = existing.id,
-                                    notificationMinutesBefore = updated.notificationMinutesBefore
-                                )
-                                calendarDao.insertEntry(entry)
                                 scheduler.scheduleConsultation(updated)
                             }
                         }
@@ -120,58 +132,105 @@ class ConsultationRepository(
                         val newId = consultationDao.insertScheduleRaw(newSchedule)
                         val finalSchedule = newSchedule.copy(id = newId)
 
-                        // --- [PERBAIKAN LOGIKA AGENDA HOME] ---
+                        // 🔴 [PERBAIKAN OPSI B]
+                        val entry = CalendarEntry(
+                            title = finalSchedule.title,
+                            date = finalSchedule.date,
+                            time = finalSchedule.startTime,
+                            endTime = finalSchedule.endTime,
+                            category = "Konsultasi",
+                            priority = mapPriorityToIndo(finalSchedule.priority),
+                            sourceFeatureType = "CONSULTATION",
+                            sourceFeatureId = newId,
+                            notificationMinutesBefore = finalSchedule.notificationMinutesBefore,
+                            isCompleted = isStatusCompletedOrCancelled(finalSchedule.status)
+                        )
+                        calendarDao.insertEntry(entry)
+
                         if (finalSchedule.status == "SCHEDULED") {
-                            val entry = CalendarEntry(
-                                title = finalSchedule.title,
-                                date = finalSchedule.date,
-                                time = finalSchedule.startTime,
-                                endTime = finalSchedule.endTime,
-                                category = "Konsultasi",
-                                priority = mapPriorityToIndo(finalSchedule.priority),
-                                sourceFeatureType = "CONSULTATION",
-                                sourceFeatureId = newId,
-                                notificationMinutesBefore = finalSchedule.notificationMinutesBefore
-                            )
-                            calendarDao.insertEntry(entry)
                             scheduler.scheduleConsultation(finalSchedule)
                         }
                     }
                 } catch (e: Exception) { e.printStackTrace() }
             }
+
+            // PEMBASMI HANTU
+            val localSyncedSchedules = consultationDao.getSyncedSchedulesList()
+            for (localSchedule in localSyncedSchedules) {
+                if (!cloudFirestoreIds.contains(localSchedule.firestoreId)) {
+                    scheduler.cancelConsultation(localSchedule.id)
+                    calendarDao.deleteEntriesForSource("CONSULTATION", localSchedule.id)
+                    consultationDao.hardDeleteSchedule(localSchedule.id)
+                }
+            }
+
         } catch (e: Exception) { }
     }
 
-    // ================= SCHEDULES =================
-
-    suspend fun insertSchedule(schedule: ConsultationSchedule): Long {
-        schedule.isSynced = false
-        schedule.isDeleted = false
-        val id = consultationDao.insertSchedule(schedule)
-
+    suspend fun insertSchedule(baseSchedule: ConsultationSchedule, repeatMode: String, repeatValue: String) {
         val dbSqlite = AppDatabase.getDatabase(context)
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
 
-        // --- [PERBAIKAN LOGIKA AGENDA HOME] ---
-        if (schedule.status == "SCHEDULED") {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val startDate = try { dateFormat.parse(baseSchedule.date) } catch (e: Exception) { null } ?: return
+
+        val calendar = java.util.Calendar.getInstance()
+        calendar.time = startDate
+
+        var currentIteration = 0
+        var maxIterations = 1
+        var isDateLimited = false
+        var endDateLimit: java.util.Date? = null
+
+        if (repeatMode == "COUNT") {
+            maxIterations = repeatValue.toIntOrNull() ?: 1
+        } else if (repeatMode == "DATE") {
+            maxIterations = 52
+            isDateLimited = true
+            endDateLimit = try { dateFormat.parse(repeatValue) } catch (e: Exception) { null }
+        }
+
+        while (currentIteration < maxIterations) {
+
+            if (isDateLimited && endDateLimit != null && calendar.time.after(endDateLimit)) {
+                break
+            }
+
+            val currentDateStr = dateFormat.format(calendar.time)
+            val newSchedule = baseSchedule.copy(
+                id = 0,
+                date = currentDateStr,
+                isSynced = false,
+                isDeleted = false
+            )
+
+            val insertedId = consultationDao.insertSchedule(newSchedule)
+
+            // 🔴 [PERBAIKAN OPSI B]
             val entry = CalendarEntry(
-                title = schedule.title,
-                date = schedule.date,
-                time = schedule.startTime,
-                endTime = schedule.endTime,
+                title = newSchedule.title,
+                date = newSchedule.date,
+                time = newSchedule.startTime,
+                endTime = newSchedule.endTime,
                 category = "Konsultasi",
-                priority = mapPriorityToIndo(schedule.priority),
+                priority = mapPriorityToIndo(newSchedule.priority),
                 sourceFeatureType = "CONSULTATION",
-                sourceFeatureId = id,
-                notificationMinutesBefore = schedule.notificationMinutesBefore
+                sourceFeatureId = insertedId,
+                notificationMinutesBefore = newSchedule.notificationMinutesBefore,
+                isCompleted = isStatusCompletedOrCancelled(newSchedule.status)
             )
             calendarDao.insertEntry(entry)
-            scheduler.scheduleConsultation(schedule.copy(id = id))
+
+            if (newSchedule.status == "SCHEDULED") {
+                scheduler.scheduleConsultation(newSchedule.copy(id = insertedId))
+            }
+
+            calendar.add(java.util.Calendar.DAY_OF_MONTH, 7)
+            currentIteration++
         }
 
         scheduleSync()
-        return id
     }
 
     suspend fun updateSchedule(schedule: ConsultationSchedule) {
@@ -182,13 +241,12 @@ class ConsultationRepository(
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
 
-        // Bersihkan entri kalender dan alarm lama dulu
+        // 1. Bersihkan entri kalender dan alarm lama dulu
         scheduler.cancelConsultation(schedule.id)
         calendarDao.deleteEntriesForSource("CONSULTATION", schedule.id)
 
-        // --- [PERBAIKAN LOGIKA AGENDA HOME] ---
-        // Buat entri baru HANYA JIKA statusnya masih SCHEDULED
-        if (schedule.status == "SCHEDULED") {
+        // 2. 🔴 [PERBAIKAN OPSI B] Masukkan entri baru ke kalender agar menjadi riwayat
+        if (!schedule.isDeleted) {
             val entry = CalendarEntry(
                 title = schedule.title,
                 date = schedule.date,
@@ -198,10 +256,15 @@ class ConsultationRepository(
                 priority = mapPriorityToIndo(schedule.priority),
                 sourceFeatureType = "CONSULTATION",
                 sourceFeatureId = schedule.id,
-                notificationMinutesBefore = schedule.notificationMinutesBefore
+                notificationMinutesBefore = schedule.notificationMinutesBefore,
+                isCompleted = isStatusCompletedOrCancelled(schedule.status) // Dalang bekerja!
             )
             calendarDao.insertEntry(entry)
-            scheduler.scheduleConsultation(schedule)
+
+            // 3. Alarm hanya dibunyikan jika status SCHEDULED
+            if (schedule.status == "SCHEDULED") {
+                scheduler.scheduleConsultation(schedule)
+            }
         }
 
         scheduleSync()
@@ -212,6 +275,7 @@ class ConsultationRepository(
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
 
+        // Jika dihapus oleh user, baru kita bersihkan dari Kalender Beranda sepenuhnya
         scheduler.cancelConsultation(schedule.id)
         calendarDao.deleteEntriesForSource("CONSULTATION", schedule.id)
 

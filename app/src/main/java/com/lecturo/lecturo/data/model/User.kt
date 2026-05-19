@@ -27,6 +27,10 @@ data class User(
     @SerializedName("major")
     val major: String = "",
 
+    // TAMBAHKAN BARIS INI
+    @SerializedName("gender")
+    val gender: String = "",
+
     @SerializedName("photo_url")
     val photoUrl: String = "",
 

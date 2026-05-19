@@ -16,22 +16,22 @@ class SyncTeachingWorker(
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val database = AppDatabase.getDatabase(applicationContext)
-        val dao = database.teachingRuleDao()
+        val dao = database.teachingScheduleDao()
         val apiService = RetrofitClient.instance
 
-        val unsyncedRules = dao.getUnsyncedRules()
-        if (unsyncedRules.isEmpty()) return@withContext Result.success()
+        val unsyncedSchedules = dao.getUnsyncedSchedules()
+        if (unsyncedSchedules.isEmpty()) return@withContext Result.success()
 
         try {
-            for (rule in unsyncedRules) {
-                if (rule.userId.isNullOrEmpty()) continue
+            for (schedule in unsyncedSchedules) {
+                if (schedule.userId.isNullOrEmpty()) continue
 
-                if (rule.isDeleted) {
-                    if (rule.firestoreId != null) {
+                if (schedule.isDeleted) {
+                    if (schedule.firestoreId != null) {
                         try {
-                            val response = apiService.deleteTeaching(rule.userId, rule.firestoreId!!)
+                            val response = apiService.deleteTeaching(schedule.userId, schedule.firestoreId!!)
                             if (response.isSuccessful) {
-                                dao.deleteRulePermanently(rule.localId)
+                                dao.deleteSchedulePermanently(schedule.localId)
                             } else {
                                 return@withContext Result.retry()
                             }
@@ -39,29 +39,29 @@ class SyncTeachingWorker(
                             return@withContext Result.retry()
                         }
                     } else {
-                        dao.deleteRulePermanently(rule.localId)
+                        dao.deleteSchedulePermanently(schedule.localId)
                     }
                 } else {
                     val request = TeachingRequest(
-                        userId = rule.userId,
-                        id = rule.firestoreId,
-                        courseName = rule.courseName,
-                        classCode = rule.classCode,
-                        dayOfWeek = rule.dayOfWeek,
-                        startTime = rule.startTime,
-                        endTime = rule.endTime,
-                        classroom = rule.classroom,
-                        studentCount = rule.studentCount,
-                        startDate = rule.startDate,
-                        repetitionType = rule.repetitionType,
-                        repetitionValue = rule.repetitionValue,
-                        notificationMinutes = rule.notificationMinutes
+                        userId = schedule.userId,
+                        id = schedule.firestoreId,
+                        courseName = schedule.courseName,
+                        classCode = schedule.classCode,
+                        dayOfWeek = schedule.dayOfWeek,
+                        date = schedule.date,
+                        startTime = schedule.startTime,
+                        endTime = schedule.endTime,
+                        classroom = schedule.classroom,
+                        studentCount = schedule.studentCount,
+                        meetingNumber = schedule.meetingNumber,
+                        isCompleted = schedule.isCompleted,
+                        notificationMinutes = schedule.notificationMinutes
                     )
                     try {
                         val response = apiService.syncTeaching(request)
                         if (response.isSuccessful && response.body()?.status == "success") {
                             val newFirestoreId = response.body()?.data?.get("firestore_id") as? String
-                            if (newFirestoreId != null) dao.updateSyncStatus(rule.localId, newFirestoreId)
+                            if (newFirestoreId != null) dao.updateSyncStatus(schedule.localId, newFirestoreId)
                         } else {
                             return@withContext Result.retry()
                         }

@@ -4,43 +4,35 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.compose.material3.MaterialTheme
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updateLayoutParams
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.tabs.TabLayout
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
-import com.lecturo.lecturo.data.model.TeachingRule
-import com.lecturo.lecturo.data.remote.RetrofitClient
+import com.lecturo.lecturo.data.model.TeachingSchedule
 import com.lecturo.lecturo.data.repository.TeachingRepository
 import com.lecturo.lecturo.databinding.ActivityTeachingBinding
-import com.lecturo.lecturo.ui.teaching.class_schedule.ClassScheduleActivity
+import com.lecturo.lecturo.ui.components.TeachingListContent
 import com.lecturo.lecturo.viewmodel.teaching.TeachingViewModel
 import com.lecturo.lecturo.viewmodel.teaching.TeachingViewModelFactory
 
 class TeachingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityTeachingBinding
-    private lateinit var teachingAdapter: TeachingRuleAdapter
-    private var allTeachingRules: List<TeachingRule> = emptyList()
 
     private val viewModel: TeachingViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
-
-        // PANGGIL DI SINI
-        val apiService = RetrofitClient.instance
-
         val repository = TeachingRepository(
-            database.teachingRuleDao(),
+            database.teachingScheduleDao(),
             database.calendarEntryDao(),
             applicationContext
         )
@@ -49,150 +41,128 @@ class TeachingActivity : AppCompatActivity() {
 
     private val addTeachingLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            // Data akan refresh otomatis melalui LiveData
-        }
-    }
+    ) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityTeachingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // bikin status bar transparan sekali untuk semua activity
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // 1. Cek apakah aplikasi sedang di Mode Gelap
         val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-
-        // 2. atur warna status bar
         window.statusBarColor = getColor(R.color.colorPrimary)
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
 
-        // 3. atur warna teks/icon status bar
-        WindowInsetsControllerCompat(window, window.decorView)
-            .isAppearanceLightStatusBars = !isNightMode
-
-        // otomatis kasih padding top di root view sesuai status bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
             val statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-            view.setPadding(
-                view.paddingLeft,
-                statusBarInsets.top,
-                view.paddingRight,
-                view.paddingBottom
-            )
+            view.setPadding(view.paddingLeft, statusBarInsets.top, view.paddingRight, view.paddingBottom)
             insets
         }
 
-        // [SOLUSI PRO: Mendorong FAB ke atas Navigasi Sistem]
         ViewCompat.setOnApplyWindowInsetsListener(binding.fabAddTeaching) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-
-            // Konversi margin dasar 20dp dari XML ke satuan Pixel
             val baseMarginPx = (20 * resources.displayMetrics.density).toInt()
-
-            // Update HANYA margin bawahnya, ditambahkan dengan tinggi navigasi sistem
             view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = systemBars.bottom + baseMarginPx
-                rightMargin = baseMarginPx // Sesuaikan juga margin kanan agar presisi
+                rightMargin = baseMarginPx
             }
-
             insets
         }
 
-        setupToolbar()
-        setupRecyclerView()
-        setupTabs()
-        setupFab()
-        observeViewModel()
-    }
-
-    private fun setupToolbar() {
         setSupportActionBar(binding.teachingToolbar)
         supportActionBar?.title = "Jadwal Mengajar"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
 
-    private fun setupRecyclerView() {
-        teachingAdapter = TeachingRuleAdapter(
-            onDeleteClick = { rule ->
-                showDeleteConfirmation(rule)
-            },
-            onItemClick = { rule ->
-                val intent = Intent(this, AddTeachingActivity::class.java)
-                intent.putExtra("rule_id", rule.localId)
-                addTeachingLauncher.launch(intent)
-            }
-        )
-
-        binding.recyclerViewTeaching.apply {
-            layoutManager = LinearLayoutManager(this@TeachingActivity)
-            adapter = teachingAdapter
-        }
-    }
-
-    private fun setupTabs() {
-        binding.tabLayoutDays.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                filterByDay(tab?.text.toString())
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
-    }
-
-    private fun filterByDay(day: String) {
-        val filteredRules = when (day) {
-            "Semua" -> allTeachingRules
-            else -> allTeachingRules.filter { it.dayOfWeek == day }
-        }
-        teachingAdapter.submitList(filteredRules)
-        updateEmptyState(filteredRules.isEmpty())
-    }
-
-    private fun setupFab() {
         binding.fabAddTeaching.setOnClickListener {
             val intent = Intent(this, AddTeachingActivity::class.java)
             addTeachingLauncher.launch(intent)
+        }
+
+        // --- MENGHUBUNGKAN DATA BASE KE COMPOSE CONTENT STREAM ---
+        viewModel.teachingSchedules.observe(this) { schedules ->
+            binding.composeViewContent.setContent {
+                MaterialTheme {
+                    TeachingListContent(
+                        allSchedules = schedules ?: emptyList(),
+                        viewModel = viewModel, // Teruskan ViewModel untuk sinkronisasi state
+                        onEdit = { schedule ->
+                            val intent = Intent(this@TeachingActivity, AddTeachingActivity::class.java)
+                            intent.putExtra("schedule_id", schedule.localId)
+                            addTeachingLauncher.launch(intent)
+                        },
+                        onDelete = { schedule ->
+                            showDeleteConfirmation(schedule)
+                        },
+                        onStatusToggle = { schedule ->
+                            val invertedStatus = !schedule.isCompleted
+                            val updatedSchedule = schedule.copy(isCompleted = invertedStatus)
+                            viewModel.updateTeachingSchedule(updatedSchedule)
+                        }
+                    )
+                }
+            }
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.teaching_menu, menu)
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView
+
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = true
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.setSearchQuery(newText ?: "")
+                return true
+            }
+        })
+
+        searchItem?.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                viewModel.setSearchQuery("")
+                return true
+            }
+        })
+
+        val sortItem = menu.findItem(R.id.action_sort)
+        viewModel.isSortNewest.observe(this) { isNewest ->
+            sortItem?.setIcon(if (isNewest) R.drawable.ic_clock_arrow_down else R.drawable.ic_clock_arrow_up)
+        }
+
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_view_class_schedule -> {
-                val intent = Intent(this, ClassScheduleActivity::class.java)
-                startActivity(intent)
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            R.id.action_sort -> {
+                // 1. Jalankan fungsi toggle sortir
+                viewModel.toggleSort()
+
+                // 2. Ambil nilai terbaru setelah di-toggle
+                val isNewest = viewModel.isSortNewest.value ?: true
+
+                // 3. Tentukan pesan berdasarkan status
+                val message = if (isNewest) "Urut: Terbaru - Terlama" else "Urut: Terlama - Terbaru"
+
+                // 4. Tampilkan Toast
+                android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun observeViewModel() {
-        viewModel.teachingRules.observe(this) { rules ->
-            allTeachingRules = rules
-            val selectedTab = binding.tabLayoutDays.getTabAt(binding.tabLayoutDays.selectedTabPosition)
-            filterByDay(selectedTab?.text.toString())
-        }
-    }
-
-    private fun updateEmptyState(isEmpty: Boolean) {
-        binding.layoutEmptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        binding.recyclerViewTeaching.visibility = if (isEmpty) View.GONE else View.VISIBLE
-    }
-
-    private fun showDeleteConfirmation(rule: TeachingRule) {
+    private fun showDeleteConfirmation(schedule: TeachingSchedule) {
         MaterialAlertDialogBuilder(this)
             .setTitle("Hapus Jadwal")
-            .setMessage("Yakin ingin menghapus jadwal \"${rule.courseName} - ${rule.classCode}\"?\n\nPerhatian: Ini akan menghapus semua jadwal kelas terkait dari kalender.")
+            .setMessage("Yakin ingin menghapus jadwal pertemuan ke-${schedule.meetingNumber} untuk \"${schedule.courseName}\"?")
             .setPositiveButton("Hapus") { _, _ ->
-                viewModel.deleteTeachingRule(rule.localId)
+                viewModel.deleteTeachingSchedule(schedule.localId)
             }
             .setNegativeButton("Batal", null)
             .show()

@@ -15,7 +15,7 @@ import com.lecturo.lecturo.data.model.OtpResponse
 import com.lecturo.lecturo.data.model.TaskRequest
 import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.data.model.TeachingRequest
-import com.lecturo.lecturo.data.model.TeachingRule
+import com.lecturo.lecturo.data.model.TeachingSchedule
 import com.lecturo.lecturo.data.model.User // <-- Pastikan ini ter-import
 import com.lecturo.lecturo.data.model.UserResponse
 import com.lecturo.lecturo.data.model.VerifyOtpRequest
@@ -56,7 +56,7 @@ interface ApiService {
 
     // Ambil semua Teaching
     @GET("api/teachings/{uid}")
-    suspend fun getAllTeachingRules(@Path("uid") uid: String): Response<ApiResponse<List<TeachingRule>>>
+    suspend fun getAllTeachingRules(@Path("uid") uid: String): Response<ApiResponse<List<TeachingSchedule>>>
 
     // 2. Hapus Jadwal
     @DELETE("api/teachings/{uid}/{scheduleId}")

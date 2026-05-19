@@ -13,6 +13,7 @@ import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
 import com.lecturo.lecturo.notifications.NotificationScheduler
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 class TasksViewModel(
@@ -25,24 +26,54 @@ class TasksViewModel(
     private val allTasksWithStats: LiveData<List<TaskWithFocusStats>> = tasksRepository.getAllTasksWithStats()
     private val searchQuery = MutableLiveData<String>("")
 
+    // 🔴 TAMBAHAN BARU: State untuk urutan (Default: true / Terbaru)
+    val isSortNewest = MutableLiveData<Boolean>(true)
+
     // MediatorLiveData menangani TaskWithFocusStats
+    // MediatorLiveData mendengarkan 3 hal: Data asli, Pencarian, dan Urutan
     val filteredTasks = MediatorLiveData<List<TaskWithFocusStats>>().apply {
-        addSource(allTasksWithStats) { tasksWithStats -> value = applyFilters(tasksWithStats, searchQuery.value) }
-        addSource(searchQuery) { query -> value = applyFilters(allTasksWithStats.value, query) }
+        addSource(allTasksWithStats) { value = applyFiltersAndSort(it, searchQuery.value, isSortNewest.value) }
+        addSource(searchQuery) { value = applyFiltersAndSort(allTasksWithStats.value, it, isSortNewest.value) }
+        addSource(isSortNewest) { value = applyFiltersAndSort(allTasksWithStats.value, searchQuery.value, it) }
     }
 
     // Pecah berdasarkan status isCompleted milik entitas task
     val pendingTasks: LiveData<List<TaskWithFocusStats>> = filteredTasks.map { list -> list.filter { !it.task.isCompleted } }
     val completedTasks: LiveData<List<TaskWithFocusStats>> = filteredTasks.map { list -> list.filter { it.task.isCompleted } }
 
-    private fun applyFilters(tasksWithStats: List<TaskWithFocusStats>?, query: String?): List<TaskWithFocusStats> {
+    // 🔴 PERBAIKAN LOGIKA: Filter + Sorting
+    private fun applyFiltersAndSort(tasksWithStats: List<TaskWithFocusStats>?, query: String?, sortNewest: Boolean?): List<TaskWithFocusStats> {
         if (tasksWithStats == null) return emptyList()
-        if (query.isNullOrBlank()) return tasksWithStats
-        val lowerCaseQuery = query.lowercase(Locale.getDefault())
-        return tasksWithStats.filter { item ->
-            item.task.title.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                    item.task.description?.lowercase(Locale.getDefault())?.contains(lowerCaseQuery) == true
+
+        // 1. Filter Pencarian
+        var processedList = if (query.isNullOrBlank()) {
+            tasksWithStats
+        } else {
+            val lowerCaseQuery = query.lowercase(Locale.getDefault())
+            tasksWithStats.filter { item ->
+                item.task.title.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
+                        item.task.description?.lowercase(Locale.getDefault())?.contains(lowerCaseQuery) == true
+            }
         }
+
+        // 2. Sorting (Berdasarkan Tanggal)
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        processedList = processedList.sortedWith { t1, t2 ->
+            val d1 = try { dateFormat.parse(t1.task.date) } catch (e: Exception) { Date(0) }
+            val d2 = try { dateFormat.parse(t2.task.date) } catch (e: Exception) { Date(0) }
+
+            if (sortNewest == true) {
+                d2.compareTo(d1) // Terbaru di atas
+            } else {
+                d1.compareTo(d2) // Terlama di atas
+            }
+        }
+
+        return processedList
+    }
+
+    fun toggleSort() {
+        isSortNewest.value = !(isSortNewest.value ?: true)
     }
 
     fun getTasksById(id: Long): LiveData<Tasks> = tasksRepository.getTasksById(id)

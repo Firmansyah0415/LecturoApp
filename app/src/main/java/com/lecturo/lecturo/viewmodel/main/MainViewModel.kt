@@ -24,7 +24,7 @@ data class DateItem(
     val date: Date,
     val isSelected: Boolean = false,
     val isToday: Boolean = false,
-    val categories: Set<String> = emptySet() // Untuk indikator 4 warna
+    val categories: Set<String> = emptySet()
 )
 
 class MainViewModel(
@@ -42,7 +42,6 @@ class MainViewModel(
     private val todayDate: String
         get() = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
 
-    // 1. PINDAHKAN _selectedDate KE ATAS SINI
     private val _selectedDate = MutableLiveData<Date>().apply { value = Date() }
     val selectedDate: LiveData<Date> = _selectedDate
 
@@ -51,7 +50,6 @@ class MainViewModel(
     private val _calendarDates = MediatorLiveData<List<DateItem>>()
     val calendarDates: LiveData<List<DateItem>> = _calendarDates
 
-    // 2. SEKARANG BLOK INIT BISA MEMBACA _selectedDate KARENA SUDAH DIBUAT DI ATASNYA
     init {
         _calendarDates.addSource(_selectedDate) { generateCalendarDates() }
         _calendarDates.addSource(allEntries) { generateCalendarDates() }
@@ -63,7 +61,6 @@ class MainViewModel(
         val dates = mutableListOf<DateItem>()
         val selected = _selectedDate.value ?: today
 
-        // Ambil data entry yang saat ini ada
         val entries = allEntries.value ?: emptyList()
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
@@ -72,15 +69,14 @@ class MainViewModel(
             val date = calendar.time
             val dateString = dateFormat.format(date)
 
-            // PERBAIKAN: Normalisasi kategori agar indikator warna di kalender tidak dobel
             val categoriesForDay = entries
                 .filter { it.date == dateString }
                 .map { entry ->
                     when (entry.sourceFeatureType) {
                         "TASK" -> "tugas"
-                        "TEACHING_RULE" -> "mengajar"
+                        "TEACHING_SCHEDULE" -> "mengajar" // 🔴 PERBAIKAN: Kunci routing baru
                         "CONSULTATION", "Konsultasi" -> "konsultasi"
-                        "EVENT" -> "rapat" // Cukup gunakan 1 kata kunci perwakilan Event
+                        "EVENT" -> "rapat"
                         else -> entry.category
                     }
                 }
@@ -106,7 +102,6 @@ class MainViewModel(
                 cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
     }
 
-    // --- SESI PENGGUNA ---
     fun getSession(): LiveData<UserModel> {
         return userRepository.getSession().asLiveData()
     }
@@ -133,8 +128,7 @@ class MainViewModel(
         }
     }
 
-    // --- STATISTIK (PROGRESS & COUNT) ---
-    // Buat data class kecil untuk menampung progress
+    // --- STATISTIK PROGRESS BAR ---
     data class StatProgress(val completed: Int, val total: Int)
 
     val taskStats: LiveData<StatProgress> = tasksRepository.getAllTasks().map { tasks ->
@@ -146,20 +140,19 @@ class MainViewModel(
     }
 
     val consultationStats: LiveData<StatProgress> = consultationRepository.getAllSchedules().map { schedules ->
-        // Anggap status selain "SCHEDULED" (misal "COMPLETED" atau "CANCELLED") sebagai selesai dari daftar tunggu
         val total = schedules.size
-        // PERBAIKAN: Gunakan ignoreCase = true agar tahan terhadap perbedaan huruf besar/kecil
         val pending = schedules.count { it.status.equals("SCHEDULED", ignoreCase = true) }
         StatProgress(total - pending, total)
     }
 
-    // Mengajar: Hanya hitung kelas yang hari harinya sama dengan HARI INI
-    val todayTeachingCount: LiveData<Int> = teachingRepository.getAllRules().map { rules ->
-        val todayName = SimpleDateFormat("EEEE", Locale("id", "ID")).format(Date())
-        rules.count { it.dayOfWeek.equals(todayName, ignoreCase = true) }
+    // 🔴 PERBAIKAN: Statistik Mengajar kini berubah sesuai status selesai (Bukan sekadar jumlah hari ini)
+    val teachingStats: LiveData<StatProgress> = teachingRepository.getAllSchedules().map { schedules ->
+        val total = schedules.size
+        val completed = schedules.count { it.isCompleted }
+        StatProgress(completed, total)
     }
 
-    // --- AGENDA HARIAN BAWAH ---
+    // --- AGENDA HARIAN ---
     val todaysAgenda: LiveData<List<CalendarEntry>> = _selectedDate.switchMap { date ->
         val dateString = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date)
         calendarRepository.getEntriesForDate(dateString)

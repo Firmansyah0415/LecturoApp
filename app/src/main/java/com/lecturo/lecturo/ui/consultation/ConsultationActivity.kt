@@ -31,6 +31,9 @@ class ConsultationActivity : AppCompatActivity() {
     private lateinit var adapter: ConsultationAdapter
     private val viewModel: ConsultationViewModel by viewModels()
 
+    // [TAMBAHAN BARU] Default urutan bawaan database
+    private var isSortAscending = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityConsultationBinding.inflate(layoutInflater)
@@ -91,6 +94,18 @@ class ConsultationActivity : AppCompatActivity() {
         binding.btnPatternSettings.setOnClickListener {
             // Update intent ke Activity yang baru dibuat
             startActivity(Intent(this, ConsultationPatternActivity::class.java))
+        }
+
+        // [TAMBAHAN BARU] AKSI TOMBOL SORTIR
+        binding.btnSort.setOnClickListener {
+            isSortAscending = !isSortAscending // Balikkan nilainya
+
+            val pesan = if (isSortAscending) "Urut: Terlama - Terbaru" else "Urut: Terbaru - Terlama"
+            Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
+
+            // Langsung balikkan daftar yang sedang tampil di layar
+            val currentList = viewModel.schedules.value ?: emptyList()
+            adapter.submitList(if (isSortAscending) currentList.reversed() else currentList)
         }
     }
 
@@ -225,7 +240,14 @@ class ConsultationActivity : AppCompatActivity() {
 
     private fun observeData() {
         viewModel.schedules.observe(this) { listJadwal ->
-            adapter.submitList(listJadwal)
+            // [TAMBAHAN BARU] Cek mode sortir sebelum dikirim ke List
+            val sortedList = if (isSortAscending) {
+                listJadwal.reversed()
+            } else {
+                listJadwal
+            }
+
+            adapter.submitList(sortedList)
 
             if (listJadwal.isEmpty()) {
                 binding.layoutEmptyState.visibility = View.VISIBLE

@@ -63,4 +63,8 @@ interface EventDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEventRaw(event: Event): Long
+
+    // [TAMBAHAN BARU] Ambil semua event lokal yang pernah tersinkronisasi ke Cloud
+    @Query("SELECT * FROM events WHERE is_synced = 1 AND firestoreId IS NOT NULL")
+    suspend fun getSyncedEventsList(): List<Event>
 }

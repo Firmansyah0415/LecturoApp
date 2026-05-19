@@ -110,7 +110,38 @@ class TasksActivity : AppCompatActivity() {
                 return true
             }
         })
+
+        // Ubah ikon sort saat state berubah
+        val sortItem = menu.findItem(R.id.action_sort)
+        viewModel.isSortNewest.observe(this) { isNewest ->
+            sortItem?.setIcon(if (isNewest) R.drawable.ic_clock_arrow_down else R.drawable.ic_clock_arrow_up)
+        }
+
         return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            R.id.action_sort -> {
+                // 1. Jalankan fungsi toggle sortir
+                viewModel.toggleSort()
+
+                // 2. Ambil nilai terbaru setelah di-toggle
+                val isNewest = viewModel.isSortNewest.value ?: true
+
+                // 3. Tentukan pesan berdasarkan status
+                val message = if (isNewest) "Urut: Terbaru - Terlama" else "Urut: Terlama - Terbaru"
+
+                // 4. Tampilkan Toast
+                android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun setupViewPager() {

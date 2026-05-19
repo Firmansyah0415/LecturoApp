@@ -26,6 +26,15 @@
             app:navigationIcon="@drawable/ic_arrow_back">
 
             <ImageView
+                android:id="@+id/btnSort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_filter_list"
+                android:layout_gravity="end"
+                android:padding="16dp"
+                android:contentDescription="Urutkan" />
+
+            <ImageView
                 android:id="@+id/btnPatternSettings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

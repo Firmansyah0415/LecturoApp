@@ -40,9 +40,12 @@ class EventRepository(
             val snapshot = db.collection("users").document(uid).collection("events")
                 .get(Source.SERVER).await()
 
+            val cloudFirestoreIds = mutableListOf<String>()
+
             for (document in snapshot.documents) {
                 try {
                     val firestoreId = document.id
+                    cloudFirestoreIds.add(firestoreId)
                     val title = document.getString("title") ?: continue
                     val category = document.getString("category") ?: "Lainnya"
                     val date = document.getString("date") ?: continue
@@ -80,19 +83,21 @@ class EventRepository(
                             oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
                             calendarDao.deleteEntriesForSource("EVENT", existing.id)
 
+                            // 🔴 [PERBAIKAN OPSI B] Selalu masukkan untuk riwayat
+                            val entry = CalendarEntry(
+                                title = updated.title,
+                                date = updated.date,
+                                time = updated.time,
+                                endTime = updated.endTime,
+                                category = updated.category,
+                                priority = updated.priority ?: "Sedang",
+                                sourceFeatureType = "EVENT",
+                                sourceFeatureId = existing.id,
+                                notificationMinutesBefore = updated.notificationMinutesBefore,
+                                isCompleted = updated.isCompleted
+                            )
+                            val entryId = calendarDao.insertEntry(entry)
                             if (!updated.isCompleted) {
-                                val entry = CalendarEntry(
-                                    title = updated.title,
-                                    date = updated.date,
-                                    time = updated.time,
-                                    endTime = updated.endTime,
-                                    category = updated.category,
-                                    priority = updated.priority ?: "Sedang",
-                                    sourceFeatureType = "EVENT",
-                                    sourceFeatureId = existing.id,
-                                    notificationMinutesBefore = updated.notificationMinutesBefore
-                                )
-                                val entryId = calendarDao.insertEntry(entry)
                                 scheduler.scheduleNotification(entry.copy(id = entryId))
                             }
                         }
@@ -116,24 +121,37 @@ class EventRepository(
                         )
                         val newId = eventDao.insertEventRaw(newEvent)
 
+                        // 🔴 [PERBAIKAN OPSI B]
+                        val entry = CalendarEntry(
+                            title = newEvent.title,
+                            date = newEvent.date,
+                            time = newEvent.time,
+                            endTime = newEvent.endTime,
+                            category = newEvent.category,
+                            priority = newEvent.priority ?: "Sedang",
+                            sourceFeatureType = "EVENT",
+                            sourceFeatureId = newId,
+                            notificationMinutesBefore = newEvent.notificationMinutesBefore,
+                            isCompleted = newEvent.isCompleted
+                        )
+                        val entryId = calendarDao.insertEntry(entry)
                         if (!newEvent.isCompleted) {
-                            val entry = CalendarEntry(
-                                title = newEvent.title,
-                                date = newEvent.date,
-                                time = newEvent.time,
-                                endTime = newEvent.endTime,
-                                category = newEvent.category,
-                                priority = newEvent.priority ?: "Sedang",
-                                sourceFeatureType = "EVENT",
-                                sourceFeatureId = newId,
-                                notificationMinutesBefore = newEvent.notificationMinutesBefore
-                            )
-                            val entryId = calendarDao.insertEntry(entry)
                             scheduler.scheduleNotification(entry.copy(id = entryId))
                         }
                     }
                 } catch (e: Exception) { e.printStackTrace() }
             }
+
+            val localSyncedEvents = eventDao.getSyncedEventsList()
+            for (localEvent in localSyncedEvents) {
+                if (!cloudFirestoreIds.contains(localEvent.firestoreId)) {
+                    val oldEntries = calendarDao.getEntriesForSource("EVENT", localEvent.id)
+                    oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
+                    calendarDao.deleteEntriesForSource("EVENT", localEvent.id)
+                    eventDao.hardDelete(localEvent.id)
+                }
+            }
+
         } catch (e: Exception) { }
     }
 
@@ -143,30 +161,29 @@ class EventRepository(
 
         val localId = eventDao.insertOrUpdate(event)
 
-        // [BASMI HANTU UPDATE & RE-SCHEDULE ALARM]
         val dbSqlite = getDatabase(context)
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
 
-        // Hapus entri lama
         val oldEntries = calendarDao.getEntriesForSource("EVENT", localId)
         oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
         calendarDao.deleteEntriesForSource("EVENT", localId)
 
-        // Buat entri baru jika belum selesai
+        // 🔴 [PERBAIKAN OPSI B] Selalu masukkan untuk riwayat
+        val entry = CalendarEntry(
+            title = event.title,
+            date = event.date,
+            time = event.time,
+            endTime = event.endTime,
+            category = event.category,
+            priority = event.priority ?: "Sedang",
+            sourceFeatureType = "EVENT",
+            sourceFeatureId = localId,
+            notificationMinutesBefore = event.notificationMinutesBefore,
+            isCompleted = event.isCompleted
+        )
+        val entryId = calendarDao.insertEntry(entry)
         if (!event.isCompleted) {
-            val entry = CalendarEntry(
-                title = event.title,
-                date = event.date,
-                time = event.time,
-                endTime = event.endTime,
-                category = event.category,
-                priority = event.priority ?: "Sedang",
-                sourceFeatureType = "EVENT",
-                sourceFeatureId = localId,
-                notificationMinutesBefore = event.notificationMinutesBefore
-            )
-            val entryId = calendarDao.insertEntry(entry)
             scheduler.scheduleNotification(entry.copy(id = entryId))
         }
 
@@ -174,9 +191,7 @@ class EventRepository(
         return localId
     }
 
-    // --- LOGIC BARU: SOFT DELETE & CLEANUP CALENDAR ---
     suspend fun deleteById(eventId: Long) {
-        // 1. Hapus Notifikasi & Kalender Lama dulu
         val dbSqlite = getDatabase(context)
         val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
@@ -185,39 +200,37 @@ class EventRepository(
         entriesToDelete.forEach { scheduler.cancelNotification(it.notificationId) }
         calendarDao.deleteEntriesForSource("EVENT", eventId)
 
-        // 2. Soft Delete Lokal
         eventDao.softDelete(eventId)
-
-        // 3. Trigger Worker
         scheduleSync()
     }
 
-    // --- LOGIC BARU: UNIQUE WORKER ---
     private fun scheduleSync() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
-
         val syncRequest = OneTimeWorkRequestBuilder<SyncEventWorker>()
             .setConstraints(constraints)
             .build()
-
         WorkManager.getInstance(context).enqueueUniqueWork(
-            "SyncEventWork", // Nama Unik
+            "SyncEventWork",
             ExistingWorkPolicy.REPLACE,
             syncRequest
         )
     }
 
-    // --- HELPER LAINNYA ---
+    // 🔴 [PERBAIKAN OPSI B] Fungsi Checklist Selesai agar sinkron ke kalender
     suspend fun updateCompletedStatus(eventId: Long, isCompleted: Boolean) {
         eventDao.updateCompletedStatus(eventId, isCompleted)
 
-        // Matikan alarm jika event diselesaikan
+        val dbSqlite = getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
+        val scheduler = NotificationScheduler(context)
+
+        // Update status di dalam agregator kalender tanpa menghapusnya
+        calendarDao.updateStatusBySource("EVENT", eventId, isCompleted)
+
+        // Matikan alarm jika acara diselesaikan
         if (isCompleted) {
-            val dbSqlite = getDatabase(context)
-            val calendarDao = dbSqlite.calendarEntryDao()
-            val scheduler = NotificationScheduler(context)
             val entriesToCancel = calendarDao.getEntriesForSource("EVENT", eventId)
             entriesToCancel.forEach { scheduler.cancelNotification(it.notificationId) }
         }

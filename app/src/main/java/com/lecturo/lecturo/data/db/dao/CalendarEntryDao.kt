@@ -39,4 +39,8 @@ interface CalendarEntryDao {
 
     @Query("SELECT * FROM calendar_entries WHERE notificationMinutesBefore >= 0")
     suspend fun getActiveNotificationEntries(): List<CalendarEntry>
+
+    // 🔴 [TAMBAHAN BARU OPSI B] Mengubah status tanpa menghapus baris data fisik di kalender
+    @Query("UPDATE calendar_entries SET isCompleted = :isCompleted WHERE sourceFeatureType = :type AND sourceFeatureId = :id")
+    suspend fun updateStatusBySource(type: String, id: Long, isCompleted: Boolean)
 }

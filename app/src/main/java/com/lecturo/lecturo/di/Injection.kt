@@ -19,7 +19,7 @@ object Injection {
         val userRepository = UserRepository.getInstance(userPreference)
 
         val teachingRepository = TeachingRepository(
-            database.teachingRuleDao(),
+            database.teachingScheduleDao(),
             database.calendarEntryDao(),
             context.applicationContext
         )

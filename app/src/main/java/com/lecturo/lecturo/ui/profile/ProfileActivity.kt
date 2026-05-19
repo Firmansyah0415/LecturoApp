@@ -110,6 +110,11 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
+        // SETUP DROPDOWN GENDER (Keluarkan dari blok binding.apply agar 'this' dikenali dengan benar)
+        val genders = arrayOf("Laki-laki", "Perempuan")
+        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, genders)
+        binding.etGender.setAdapter(adapter)
+
         binding.apply {
             // Tombol Edit (Icon Pencil di Toolbar)
             btnEditProfileIcon.setOnClickListener {
@@ -154,6 +159,9 @@ class ProfileActivity : AppCompatActivity() {
             // Khusus Phone: Biarkan disabled agar user tidak ganti nomor sembarangan (keamanan)
             etPhone.isEnabled = false
 
+            // Atur Dropdown Gender (TextInputLayout-nya yang diatur agar rapi)
+            tilGender.isEnabled = enable
+
             if (enable) {
                 etName.requestFocus()
             }
@@ -193,6 +201,7 @@ class ProfileActivity : AppCompatActivity() {
             etUniversity.setText(user.university)
             etFaculty.setText(user.faculty)
             etMajor.setText(user.major)
+            etGender.setText(user.gender, false) // Gunakan false agar dropdown tidak muncul otomatis saat di-set
 
             // Load Foto dengan Glide
             if (!isDestroyed) {
@@ -271,6 +280,7 @@ class ProfileActivity : AppCompatActivity() {
         val uni = binding.etUniversity.text.toString().trim()
         val faculty = binding.etFaculty.text.toString().trim()
         val major = binding.etMajor.text.toString().trim()
+        val gender = binding.etGender.text.toString().trim() // Tambahan
 
         // Validasi Sederhana
         if (name.isEmpty()) {
@@ -281,6 +291,7 @@ class ProfileActivity : AppCompatActivity() {
         // Panggil ViewModel
         viewModel.updateProfile(
             name = name,
+            gender = gender, // Tambahan
             email = email,
             phone = phone,
             university = uni,

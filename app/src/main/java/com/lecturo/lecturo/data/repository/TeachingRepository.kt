@@ -13,24 +13,35 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.db.dao.CalendarEntryDao
-import com.lecturo.lecturo.data.db.dao.TeachingRuleDao
+import com.lecturo.lecturo.data.db.dao.TeachingScheduleDao
 import com.lecturo.lecturo.data.model.CalendarEntry
-import com.lecturo.lecturo.data.model.TeachingRule
+import com.lecturo.lecturo.data.model.TeachingSchedule
 import com.lecturo.lecturo.notifications.NotificationScheduler
 import com.lecturo.lecturo.workers.SyncTeachingWorker
 import java.text.SimpleDateFormat
 import java.util.*
 
 class TeachingRepository(
-    private val teachingRuleDao: TeachingRuleDao,
+    private val teachingScheduleDao: TeachingScheduleDao,
     private val calendarEntryDao: CalendarEntryDao,
     private val context: Context
 ) {
 
-    fun getAllRules(): LiveData<List<TeachingRule>> {
-        return teachingRuleDao.getAllRules()
+    fun getAllSchedules(): LiveData<List<TeachingSchedule>> {
+        return teachingScheduleDao.getAllSchedules()
     }
 
+    suspend fun getScheduleById(scheduleId: Long): TeachingSchedule? {
+        return teachingScheduleDao.getScheduleById(scheduleId)
+    }
+
+    fun getSchedulesByDay(dayOfWeek: String): LiveData<List<TeachingSchedule>> {
+        return teachingScheduleDao.getSchedulesByDay(dayOfWeek)
+    }
+
+    // ====================================================================================
+    // 1. SINKRONISASI CLOUD -> LOKAL (Mendukung Status Riwayat di Kalender)
+    // ====================================================================================
     suspend fun syncTeachingFromCloud() {
         try {
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -43,24 +54,25 @@ class TeachingRepository(
             val snapshot = db.collection("users").document(uid).collection("teaching_schedules")
                 .get(Source.SERVER).await()
 
+            val cloudFirestoreIds = mutableListOf<String>()
+
             for (document in snapshot.documents) {
                 try {
                     val firestoreId = document.id
+                    cloudFirestoreIds.add(firestoreId)
                     val courseName = document.getString("course_name") ?: continue
                     val classCode = document.getString("class_code") ?: "-"
                     val classroom = document.getString("classroom") ?: "-"
                     val dayOfWeek = document.getString("day_of_week") ?: "-"
+                    val date = document.getString("date") ?: continue
                     val startTime = document.getString("start_time") ?: continue
                     val endTime = document.getString("end_time") ?: continue
                     val studentCount = document.getLong("student_count")?.toInt() ?: 0
-                    val startDate = document.getString("start_date") ?: ""
+                    val meetingNumber = document.getLong("meeting_number")?.toInt() ?: 1
+                    val isCompleted = document.getBoolean("is_completed") ?: false
                     val notificationMinutes = document.getLong("notification_minutes")?.toInt() ?: 15
 
-                    // Kita juga ambil repetition data dari Cloud (Penting untuk generate)
-                    val repetitionType = document.getString("repetition_type") ?: "COUNT"
-                    val repetitionValue = document.getString("repetition_value") ?: "1"
-
-                    val existing = teachingRuleDao.getRuleByFirestoreId(firestoreId)
+                    val existing = teachingScheduleDao.getScheduleByFirestoreId(firestoreId)
                     if (existing != null) {
                         if (existing.isSynced) {
                             val updated = existing.copy(
@@ -69,85 +81,186 @@ class TeachingRepository(
                                 classCode = classCode,
                                 classroom = classroom,
                                 dayOfWeek = dayOfWeek,
+                                date = date,
                                 startTime = startTime,
                                 endTime = endTime,
                                 studentCount = studentCount,
-                                startDate = startDate,
-                                repetitionType = repetitionType,
-                                repetitionValue = repetitionValue,
+                                meetingNumber = meetingNumber,
+                                isCompleted = isCompleted,
                                 notificationMinutes = notificationMinutes,
                                 isSynced = true,
                                 isDeleted = false
                             )
                             updated.firestoreId = firestoreId
-                            teachingRuleDao.updateRuleRaw(updated)
+                            teachingScheduleDao.updateScheduleRaw(updated)
 
-                            val oldEntries = calendarDao.getEntriesForSource("TEACHING_RULE", existing.localId)
+                            // Bersihkan entri alarm lama agar tidak duplikat
+                            val oldEntries = calendarDao.getEntriesForSource("TEACHING_SCHEDULE", existing.localId)
                             oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
-                            calendarDao.deleteEntriesForSource("TEACHING_RULE", existing.localId)
+                            calendarDao.deleteEntriesForSource("TEACHING_SCHEDULE", existing.localId)
 
-                            // --- MENGGUNAKAN MESIN PENCETAK PERULANGAN ---
-                            generateAndScheduleEntriesFromCloud(updated.copy(localId = existing.localId), scheduler, calendarDao)
+                            // Masukkan kembali ke kalender dengan membawa status isCompleted terbaru
+                            insertToCalendarAndAlarm(updated, existing.localId, calendarDao, scheduler)
                         }
                     } else {
-                        val newRule = TeachingRule(
+                        val newSchedule = TeachingSchedule(
                             userId = uid,
                             courseName = courseName,
                             classCode = classCode,
                             classroom = classroom,
                             dayOfWeek = dayOfWeek,
+                            date = date,
                             startTime = startTime,
                             endTime = endTime,
                             studentCount = studentCount,
-                            startDate = startDate,
-                            repetitionType = repetitionType,
-                            repetitionValue = repetitionValue,
+                            meetingNumber = meetingNumber,
+                            isCompleted = isCompleted,
                             notificationMinutes = notificationMinutes,
                             firestoreId = firestoreId,
                             isSynced = true,
                             isDeleted = false
                         )
-                        val newId = teachingRuleDao.insertRuleRaw(newRule)
+                        val newId = teachingScheduleDao.insertScheduleRaw(newSchedule)
 
-                        // --- MENGGUNAKAN MESIN PENCETAK PERULANGAN ---
-                        generateAndScheduleEntriesFromCloud(newRule.copy(localId = newId), scheduler, calendarDao)
+                        insertToCalendarAndAlarm(newSchedule, newId, calendarDao, scheduler)
                     }
                 } catch (e: Exception) { e.printStackTrace() }
             }
+
+            // PEMBASMI DATA HANTU (Jika data di cloud sudah dihapus oleh user)
+            val localSyncedSchedules = teachingScheduleDao.getSyncedSchedulesList()
+            for (localSchedule in localSyncedSchedules) {
+                if (!cloudFirestoreIds.contains(localSchedule.firestoreId)) {
+                    val oldEntries = calendarDao.getEntriesForSource("TEACHING_SCHEDULE", localSchedule.localId)
+                    oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
+                    calendarDao.deleteEntriesForSource("TEACHING_SCHEDULE", localSchedule.localId)
+                    teachingScheduleDao.deleteSchedulePermanently(localSchedule.localId)
+                }
+            }
+
         } catch (e: Exception) { }
     }
 
-    // --- PERBAIKAN: Fungsi simpan sekarang otomatis mencetak jadwal ---
-    suspend fun insertOrUpdateRule(rule: TeachingRule): Long {
-        rule.isSynced = false
-        rule.isDeleted = false
-
-        val localId = teachingRuleDao.insertOrUpdateRule(rule)
-
-        // Bersihkan jadwal & alarm lama jika ini proses Update/Edit
+    // ====================================================================================
+    // 2. MESIN GENERATE JADWAL PERULANGAN LOKAL (Saat Tambah Jadwal Baru)
+    // ====================================================================================
+    suspend fun insertTeachingSchedules(baseSchedule: TeachingSchedule, repeatMode: String, repeatValue: String) {
+        val dbSqlite = AppDatabase.getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
         val scheduler = NotificationScheduler(context)
-        val oldEntries = calendarEntryDao.getEntriesForSource("TEACHING_RULE", localId)
-        oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
-        calendarEntryDao.deleteEntriesForSource("TEACHING_RULE", localId)
 
-        // Cetak jadwal baru (Gunakan mesin yang sama dengan Cloud Sync)
-        generateAndScheduleEntriesFromCloud(rule.copy(localId = localId), scheduler, calendarEntryDao)
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val startDate = try { dateFormat.parse(baseSchedule.date) } catch (e: Exception) { null } ?: return
+
+        val calendar = Calendar.getInstance()
+        calendar.time = startDate
+
+        var currentIteration = 0
+        var maxIterations = 1
+        var isDateLimited = false
+        var endDateLimit: Date? = null
+
+        if (repeatMode == "COUNT") {
+            maxIterations = repeatValue.toIntOrNull() ?: 1
+        } else if (repeatMode == "DATE") {
+            maxIterations = 52 // Sabuk Pengaman: Maksimal 1 Tahun (52 pertemuan)
+            isDateLimited = true
+            endDateLimit = try { dateFormat.parse(repeatValue) } catch (e: Exception) { null }
+        }
+
+        while (currentIteration < maxIterations) {
+            if (isDateLimited && endDateLimit != null && calendar.time.after(endDateLimit)) {
+                break
+            }
+
+            val currentDateStr = dateFormat.format(calendar.time)
+
+            val newSchedule = baseSchedule.copy(
+                localId = 0,
+                date = currentDateStr,
+                meetingNumber = currentIteration + 1, // Penomoran P1, P2, P3 secara fisik
+                isSynced = false,
+                isDeleted = false,
+                isCompleted = false
+            )
+
+            val insertedId = teachingScheduleDao.insertOrUpdateSchedule(newSchedule)
+            insertToCalendarAndAlarm(newSchedule, insertedId, calendarDao, scheduler)
+
+            calendar.add(Calendar.DAY_OF_MONTH, 7) // Loncat tiap minggu
+            currentIteration++
+        }
 
         scheduleSync()
-        return localId
     }
 
-    // --- PERBAIKAN: Fungsi hapus juga otomatis bersihkan kalender ---
-    suspend fun deleteRuleById(ruleId: Long) {
-        // 1. Bersihkan Notifikasi & Kalender
-        val scheduler = NotificationScheduler(context)
-        val entries = calendarEntryDao.getEntriesForSource("TEACHING_RULE", ruleId)
-        entries.forEach { scheduler.cancelNotification(it.notificationId) }
-        calendarEntryDao.deleteEntriesForSource("TEACHING_RULE", ruleId)
+    // ====================================================================================
+    // 3. UPDATE SINGLE SCHEDULE (Mendukung Perubahan Status & Pembaruan Notifikasi)
+    // ====================================================================================
+    suspend fun updateSingleSchedule(schedule: TeachingSchedule) {
+        schedule.isSynced = false
+        teachingScheduleDao.insertOrUpdateSchedule(schedule)
 
-        // 2. Soft Delete
-        teachingRuleDao.softDeleteRule(ruleId)
+        val dbSqlite = AppDatabase.getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
+        val scheduler = NotificationScheduler(context)
+
+        // 1. Batalkan alarm lama agar tidak terjadi penumpukan trigger di sistem
+        val oldEntries = calendarDao.getEntriesForSource("TEACHING_SCHEDULE", schedule.localId)
+        oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
+
+        // 2. Hapus entri kalender lama untuk menghindari redundansi teks lama
+        calendarDao.deleteEntriesForSource("TEACHING_SCHEDULE", schedule.localId)
+
+        // 3. Masukkan entri baru ke kalender jika statusnya tidak dihapus (soft delete)
+        if (!schedule.isDeleted) {
+            insertToCalendarAndAlarm(schedule, schedule.localId, calendarDao, scheduler)
+        }
+
         scheduleSync()
+    }
+
+    // ====================================================================================
+    // 4. SOFT DELETE JADWAL
+    // ====================================================================================
+    suspend fun deleteScheduleById(scheduleId: Long) {
+        val scheduler = NotificationScheduler(context)
+        val entries = calendarEntryDao.getEntriesForSource("TEACHING_SCHEDULE", scheduleId)
+        entries.forEach { scheduler.cancelNotification(it.notificationId) }
+        calendarEntryDao.deleteEntriesForSource("TEACHING_SCHEDULE", scheduleId)
+
+        teachingScheduleDao.softDeleteSchedule(scheduleId)
+        scheduleSync()
+    }
+
+    // ====================================================================================
+    // HELPER: MEMASUKKAN DATA KE AGREGATOR KALENDER & ALARM SYSTEM
+    // ====================================================================================
+    private suspend fun insertToCalendarAndAlarm(
+        schedule: TeachingSchedule,
+        id: Long,
+        calendarDao: CalendarEntryDao,
+        scheduler: NotificationScheduler
+    ) {
+        val entry = CalendarEntry(
+            title = "${schedule.courseName} - ${schedule.classCode}",
+            date = schedule.date,
+            time = schedule.startTime,
+            endTime = schedule.endTime,
+            category = "Mengajar",
+            priority = schedule.priority ?: "Tinggi",
+            sourceFeatureType = "TEACHING_SCHEDULE",
+            sourceFeatureId = id,
+            notificationMinutesBefore = schedule.notificationMinutes,
+            isCompleted = schedule.isCompleted // 🔴 [BEST PRACTICE] Meneruskan status riwayat langsung ke kalender
+        )
+        val newId = calendarDao.insertEntry(entry)
+        val finalEntry = entry.copy(id = newId)
+
+        // 🔴 [LOGIKA AMAN] Notifikasi hanya akan dijadwalkan jika kelas BELUM SELESAI
+        if (finalEntry.notificationMinutesBefore >= 0 && !schedule.isCompleted) {
+            scheduler.scheduleNotification(finalEntry)
+        }
     }
 
     private fun scheduleSync() {
@@ -164,96 +277,5 @@ class TeachingRepository(
             ExistingWorkPolicy.REPLACE,
             syncRequest
         )
-    }
-
-    suspend fun getRuleById(ruleId: Long): TeachingRule? {
-        return teachingRuleDao.getRuleById(ruleId)
-    }
-
-    fun getRulesByDay(dayOfWeek: String): LiveData<List<TeachingRule>> {
-        return teachingRuleDao.getRulesByDay(dayOfWeek)
-    }
-
-    suspend fun insertCalendarEntry(entry: CalendarEntry): Long {
-        return calendarEntryDao.insertEntry(entry)
-    }
-
-    suspend fun insertCalendarEntries(entries: List<CalendarEntry>) {
-        calendarEntryDao.insertEntries(entries)
-    }
-
-    suspend fun deleteCalendarEntriesForSource(type: String, id: Long) {
-        calendarEntryDao.deleteEntriesForSource(type, id)
-    }
-
-    suspend fun getCalendarEntriesForSource(type: String, id: Long): List<CalendarEntry> {
-        return calendarEntryDao.getEntriesForSource(type, id)
-    }
-
-    // ====================================================================================
-    // MESIN PENCETAK JADWAL PERULANGAN (KHUSUS UNTUK SYNC CLOUD)
-    // ====================================================================================
-    private suspend fun generateAndScheduleEntriesFromCloud(
-        rule: TeachingRule,
-        scheduler: NotificationScheduler,
-        calendarDao: CalendarEntryDao
-    ) {
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val startDate = try { dateFormat.parse(rule.startDate) } catch (e: Exception) { null } ?: return
-
-        val calendar = Calendar.getInstance()
-        calendar.time = startDate
-
-        val dayMap = mapOf(
-            "Senin" to Calendar.MONDAY, "Selasa" to Calendar.TUESDAY, "Rabu" to Calendar.WEDNESDAY,
-            "Kamis" to Calendar.THURSDAY, "Jumat" to Calendar.FRIDAY, "Sabtu" to Calendar.SATURDAY,
-            "Minggu" to Calendar.SUNDAY
-        )
-        val targetDayOfWeek = dayMap[rule.dayOfWeek] ?: return
-
-        val processAndSchedule: suspend (Date) -> Unit = { date ->
-            val tempEntry = CalendarEntry(
-                title = "${rule.courseName} - ${rule.classCode}",
-                date = dateFormat.format(date),
-                time = rule.startTime,
-                endTime = rule.endTime,
-                category = "Mengajar",
-                priority = rule.priority ?: "Tinggi",
-                sourceFeatureType = "TEACHING_RULE",
-                sourceFeatureId = rule.localId,
-                notificationMinutesBefore = rule.notificationMinutes
-            )
-            val newId = calendarDao.insertEntry(tempEntry)
-            val finalEntry = tempEntry.copy(id = newId)
-            if (finalEntry.notificationMinutesBefore >= 0) {
-                scheduler.scheduleNotification(finalEntry)
-            }
-        }
-
-        if (rule.repetitionType == "DATE") {
-            val endDate = try { dateFormat.parse(rule.repetitionValue ?: "") } catch (e: Exception) { null } ?: return
-            while (calendar.time <= endDate) {
-                if (calendar.get(Calendar.DAY_OF_WEEK) == targetDayOfWeek) {
-                    processAndSchedule(calendar.time)
-                }
-                calendar.add(Calendar.DAY_OF_MONTH, 1)
-            }
-        } else if (rule.repetitionType == "COUNT") {
-            val targetMeetings = rule.repetitionValue?.toIntOrNull() ?: return
-            if (targetMeetings <= 0) return
-            var meetingCount = 0
-            val maxCalendar = Calendar.getInstance().apply { time = startDate; add(Calendar.YEAR, 1) }
-
-            while (meetingCount < targetMeetings && calendar.time <= maxCalendar.time) {
-                if (calendar.get(Calendar.DAY_OF_WEEK) == targetDayOfWeek) {
-                    processAndSchedule(calendar.time)
-                    meetingCount++
-                }
-                calendar.add(Calendar.DAY_OF_MONTH, 1)
-            }
-        } else {
-            // Fallback: Jika suatu saat data rusak, minimal cetak 1 jadwal
-            processAndSchedule(calendar.time)
-        }
     }
 }

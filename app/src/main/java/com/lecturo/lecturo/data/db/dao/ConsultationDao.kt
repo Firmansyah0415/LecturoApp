@@ -99,4 +99,8 @@ interface ConsultationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertScheduleRaw(schedule: ConsultationSchedule): Long
+
+    // [TAMBAHAN BARU] Ambil semua jadwal konsultasi lokal yang pernah tersinkronisasi ke Cloud
+    @Query("SELECT * FROM consultation_schedules WHERE is_synced = 1 AND firestoreId IS NOT NULL")
+    suspend fun getSyncedSchedulesList(): List<ConsultationSchedule>
 }

@@ -4,6 +4,6 @@ data class UserModel(
     val email: String,
     val token: String,
     val isLogin: Boolean = false,
-    val name: String = "",       // 👈 Tambahkan ini
-    val photoUrl: String = ""    // 👈 Tambahkan ini
+    val name: String = "",
+    val photoUrl: String = ""
 )

@@ -22,8 +22,6 @@ import com.lecturo.lecturo.ui.consultation.ConsultationActivity
 import java.text.SimpleDateFormat
 import java.util.*
 
-// --- IMPORT COMPOSE ---
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,22 +37,14 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lecturo.lecturo.data.model.CalendarEntry
 import com.lecturo.lecturo.ui.components.DetailedDonutChartScreen
 import com.lecturo.lecturo.utils.EventCategories
-import kotlin.math.cos
-import kotlin.math.sin
 
 class HomeFragment : Fragment() {
 
@@ -83,9 +73,8 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerViews()
-        setupClickListeners()
         setupSwipeToRefresh()
-        setupToggleSwitch() // <-- LOGIKA BARU
+        setupToggleSwitch()
 
         if (profileViewModel.currentUser.value == null) {
             profileViewModel.loadUserProfile()
@@ -93,13 +82,10 @@ class HomeFragment : Fragment() {
 
         observeMainViewModel()
         observeProfileViewModel()
-
         updateDateDisplay()
 
         binding.composeViewDates.setContent {
-            MaterialTheme {
-                WeeklyCalendarRow(viewModel = mainViewModel)
-            }
+            MaterialTheme { WeeklyCalendarRow(viewModel = mainViewModel) }
         }
 
         binding.composeViewDashboard.setContent {
@@ -120,7 +106,6 @@ class HomeFragment : Fragment() {
 
         binding.nestedScrollView.setOnScrollChangeListener(androidx.core.widget.NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
             val dy = scrollY - oldScrollY
-
             if (dy > 10 && fab.isOrWillBeShown) {
                 fab.hide()
                 bottomAppBar.performHide()
@@ -131,11 +116,6 @@ class HomeFragment : Fragment() {
         })
     }
 
-    override fun onResume() {
-        super.onResume()
-        // mainViewModel.refreshData() // Biangkerok UI berkedip dan mendownload data dari firestore ketika user klik navigasi home.
-    }
-
     private fun setupSwipeToRefresh() {
         binding.swipeRefreshLayout.setOnRefreshListener {
             mainViewModel.refreshData()
@@ -143,7 +123,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // --- LOGIKA TOGGLE SWITCH ---
     private fun setupToggleSwitch() {
         binding.toggleViewMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
@@ -158,8 +137,6 @@ class HomeFragment : Fragment() {
     private fun showListView() {
         binding.agendaRecyclerView.visibility = View.VISIBLE
         binding.composeViewAgendaChart.visibility = View.GONE
-
-        // Cek manual apakah perlu menampilkan empty state
         val currentList = mainViewModel.todaysAgenda.value
         if (currentList.isNullOrEmpty()) {
             binding.agendaRecyclerView.visibility = View.GONE
@@ -173,11 +150,9 @@ class HomeFragment : Fragment() {
         binding.agendaRecyclerView.visibility = View.GONE
         binding.composeViewAgendaChart.visibility = View.VISIBLE
         binding.emptyAgendaLayout.visibility = View.GONE
-
         binding.composeViewAgendaChart.setContent {
             MaterialTheme {
                 val agendaData by mainViewModel.todaysAgenda.observeAsState(emptyList())
-                // PANGGIL FUNGSI YANG BARU KITA BUAT
                 DetailedDonutChartScreen(agendaData)
             }
         }
@@ -197,13 +172,10 @@ class HomeFragment : Fragment() {
         }
 
         mainViewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing ->
-            if (!isRefreshing) {
-                binding.swipeRefreshLayout.isRefreshing = false
-            }
+            if (!isRefreshing) binding.swipeRefreshLayout.isRefreshing = false
         }
 
         mainViewModel.todaysAgenda.observe(viewLifecycleOwner) { agenda ->
-            // Update List UI jika tombol "List" sedang aktif
             if (binding.toggleViewMode.checkedButtonId == R.id.btnViewList) {
                 if (agenda.isEmpty()) {
                     binding.agendaRecyclerView.visibility = View.GONE
@@ -221,18 +193,9 @@ class HomeFragment : Fragment() {
         profileViewModel.currentUser.observe(viewLifecycleOwner) { user ->
             if (user != null) {
                 val displayName = if (user.fullName.isNotEmpty()) user.fullName else user.phoneNumber
-
-                if (binding.nameTextView.text.toString() != displayName) {
-                    binding.nameTextView.text = displayName
-                }
-
+                if (binding.nameTextView.text.toString() != displayName) binding.nameTextView.text = displayName
                 if (!isDetached && context != null) {
-                    Glide.with(requireContext())
-                        .load(user.photoUrl)
-                        .placeholder(R.drawable.ic_profile_placeholder)
-                        .error(R.drawable.ic_profile_placeholder)
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .into(binding.profileImageView)
+                    Glide.with(requireContext()).load(user.photoUrl).placeholder(R.drawable.ic_profile_placeholder).error(R.drawable.ic_profile_placeholder).diskCacheStrategy(DiskCacheStrategy.ALL).into(binding.profileImageView)
                 }
             }
         }
@@ -241,7 +204,7 @@ class HomeFragment : Fragment() {
     private fun setupRecyclerViews() {
         agendaAdapter = AgendaAdapter { calendarEntry ->
             when (calendarEntry.sourceFeatureType) {
-                "TEACHING_RULE" -> startActivity(Intent(requireContext(), TeachingActivity::class.java))
+                "TEACHING_SCHEDULE" -> startActivity(Intent(requireContext(), TeachingActivity::class.java)) // 🔴 PERBAIKAN: Kunci routing baru
                 "EVENT" -> startActivity(Intent(requireContext(), EventActivity::class.java))
                 "TASK" -> startActivity(Intent(requireContext(), TasksActivity::class.java))
                 "CONSULTATION", "Konsultasi" -> startActivity(Intent(requireContext(), ConsultationActivity::class.java))
@@ -253,12 +216,9 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun setupClickListeners() {}
-
     private fun updateDateDisplay() {
         val dateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale("id", "ID"))
-        val currentDate = dateFormat.format(Date())
-        binding.dateTextView.text = currentDate
+        binding.dateTextView.text = dateFormat.format(Date())
     }
 
     override fun onDestroyView() {
@@ -266,7 +226,6 @@ class HomeFragment : Fragment() {
         _binding = null
     }
 }
-
 
 @Composable
 fun WeeklyCalendarRow(viewModel: MainViewModel) {
@@ -279,6 +238,7 @@ fun WeeklyCalendarRow(viewModel: MainViewModel) {
         items(dates) { dateItem -> DateItemCard(dateItem = dateItem, onClick = { viewModel.loadAgendaForDate(dateItem.date) }) }
     }
 }
+
 @Composable
 fun DateItemCard(dateItem: com.lecturo.lecturo.viewmodel.main.DateItem, onClick: () -> Unit) {
     val dayFormat = remember { SimpleDateFormat("EEE", Locale("id", "ID")) }
@@ -314,25 +274,28 @@ fun DateItemCard(dateItem: com.lecturo.lecturo.viewmodel.main.DateItem, onClick:
         }
     }
 }
+
 @Composable
 fun DashboardGridScreen(viewModel: MainViewModel, onCardClick: (Int) -> Unit) {
     val taskStats by viewModel.taskStats.observeAsState(MainViewModel.StatProgress(0, 0))
     val eventStats by viewModel.eventStats.observeAsState(MainViewModel.StatProgress(0, 0))
     val consultStats by viewModel.consultationStats.observeAsState(MainViewModel.StatProgress(0, 0))
-    val teachingCount by viewModel.todayTeachingCount.observeAsState(0)
+
+    // 🔴 PERBAIKAN: Menggunakan State Statistik Mengajar Baru
+    val teachingStats by viewModel.teachingStats.observeAsState(MainViewModel.StatProgress(0, 0))
+
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ProgressDashboardCard(title = "Tugas", iconRes = R.drawable.ic_task, colorRes = R.color.task_color, completed = taskStats.completed, total = taskStats.total, modifier = Modifier.weight(1f), onClick = { onCardClick(0) })
             ProgressDashboardCard(title = "Acara", iconRes = R.drawable.ic_event_2, colorRes = R.color.event_color, completed = eventStats.completed, total = eventStats.total, modifier = Modifier.weight(1f), onClick = { onCardClick(1) })
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            InfoDashboardCard(title = "Mengajar", iconRes = R.drawable.ic_class, colorRes = R.color.teaching_color, count = teachingCount, subtitle = if (teachingCount > 0) "Terjadwal" else "Libur", modifier = Modifier.weight(1f), onClick = { onCardClick(2) })
+            // 🔴 PERBAIKAN: Ganti InfoDashboardCard menjadi ProgressDashboardCard
+            ProgressDashboardCard(title = "Mengajar", iconRes = R.drawable.ic_class, colorRes = R.color.teaching_color, completed = teachingStats.completed, total = teachingStats.total, modifier = Modifier.weight(1f), onClick = { onCardClick(2) })
             ProgressDashboardCard(title = "Konsultasi", iconRes = R.drawable.ic_consultant, colorRes = R.color.consultation_color, completed = consultStats.completed, total = consultStats.total, modifier = Modifier.weight(1f), onClick = { onCardClick(3) })
         }
     }
 }
-
-
 
 @Composable
 fun ProgressDashboardCard(title: String, iconRes: Int, colorRes: Int, completed: Int, total: Int, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -363,59 +326,3 @@ fun ProgressDashboardCard(title: String, iconRes: Int, colorRes: Int, completed:
         }
     }
 }
-@Composable
-fun InfoDashboardCard(title: String, iconRes: Int, colorRes: Int, count: Int, subtitle: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val mainColor = colorResource(id = colorRes)
-    val isAvailable = count > 0
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.card_background)), elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), modifier = modifier.height(130.dp).clickable(onClick = onClick)) {
-        Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(36.dp).background(if (isAvailable) mainColor.copy(alpha = 0.15f) else Color.LightGray.copy(alpha = 0.2f), CircleShape)) {
-                    Icon(painterResource(id = iconRes), contentDescription = null, tint = if (isAvailable) mainColor else Color.Gray, modifier = Modifier.size(20.dp))
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colorResource(id = R.color.text_primary))
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(text = count.toString(), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = if (isAvailable) mainColor else Color.Gray, modifier = Modifier.alignByBaseline())
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(text = subtitle, fontSize = 12.sp, color = colorResource(id = R.color.text_secondary), fontWeight = FontWeight.Medium, modifier = Modifier.alignByBaseline().padding(bottom = 3.dp))
-            }
-        }
-    }
-}
-
-
-// 1. Preview untuk ProgressDashboardCard
-//@Preview(showBackground = true)
-//@Composable
-//fun ProgressDashboardCardPreview() {
-//    MaterialTheme {
-//        ProgressDashboardCard(
-//            title = "Tugas",
-//            iconRes = R.drawable.ic_task, // Pastikan icon ini ada di drawable
-//            colorRes = R.color.task_color, // Pastikan color ini ada di colors.xml
-//            completed = 5,
-//            total = 10,
-//            onClick = {}
-//        )
-//    }
-//}
-
-// 2. Preview untuk InfoDashboardCard
-@Preview(showBackground = true)
-@Composable
-fun InfoDashboardCardPreview() {
-    MaterialTheme {
-        InfoDashboardCard(
-            title = "Mengajar",
-            iconRes = R.drawable.ic_class,
-            colorRes = R.color.teaching_color,
-            count = 2,
-            subtitle = "Terjadwal",
-            onClick = {}
-        )
-    }
-}
-

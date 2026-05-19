@@ -70,8 +70,9 @@ class ConsultationViewModel(application: Application) : AndroidViewModel(applica
     }
 
     // --- FUNGSI CRUD + NOTIFIKASI + SYNC ---
-    fun insertSchedule(schedule: ConsultationSchedule) = viewModelScope.launch {
-        repository.insertSchedule(schedule)
+    // [PERBAIKAN] Tambahkan argumen mode dan value perulangan dengan default value
+    fun insertSchedule(schedule: ConsultationSchedule, repeatMode: String = "NONE", repeatValue: String = "") = viewModelScope.launch {
+        repository.insertSchedule(schedule, repeatMode, repeatValue)
     }
 
     fun updateSchedule(schedule: ConsultationSchedule) = viewModelScope.launch {

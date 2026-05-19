@@ -99,14 +99,14 @@
             app:backgroundTint="@color/divider_color"
             android:padding="12dp"
             android:src="@drawable/ic_edit_calendar"
-            app:tint="?attr/colorOnSurfaceVariant" />
+            app:tint="?attr/colorOnSurface" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="Edit Tugas"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>

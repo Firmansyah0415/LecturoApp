@@ -3,10 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_view_class_schedule"
-        android:title="Lihat Jadwal Kelas"
-        android:icon="@drawable/ic_teaching"
-        android:iconTint="@color/white"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/action_search"
+        android:title="@string/cari"
+        android:icon="@drawable/ic_search"
+        app:iconTint="?attr/colorOnSurface"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <item
+        android:id="@+id/action_sort"
+        android:title="Urutkan"
+        android:icon="@drawable/ic_clock_arrow_down"
+        app:iconTint="?attr/colorOnSurface"
+        app:showAsAction="always" />
 
 </menu>

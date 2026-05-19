@@ -20,5 +20,8 @@ data class CalendarEntry(
     val isRepeating: Boolean = false,
     val repeatInterval: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
-    val notificationId: Int = (System.currentTimeMillis().toInt() / 1000) + Random.nextInt()
+    val notificationId: Int = (System.currentTimeMillis().toInt() / 1000) + Random.nextInt(),
+
+    // 🔴 [TAMBAHAN BARU OPSI B] Menampung status selesai di kalender agregator
+    val isCompleted: Boolean = false
 )

@@ -34,6 +34,14 @@ class CompleteProfileActivity : AppCompatActivity() {
 
         setupToolbar()
         setupListeners()
+        setupGenderDropdown()
+    }
+
+    // TAMBAHKAN FUNGSI INI
+    private fun setupGenderDropdown() {
+        val genders = arrayOf("Laki-laki", "Perempuan")
+        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, genders)
+        binding.etGender.setAdapter(adapter)
     }
 
     private fun setupToolbar() {
@@ -53,6 +61,7 @@ class CompleteProfileActivity : AppCompatActivity() {
             val university = binding.etUniversity.text.toString().trim()
             val faculty = binding.etFaculty.text.toString().trim()
             val major = binding.etMajor.text.toString().trim()
+            val gender = binding.etGender.text.toString().trim()
 
             // 2. Ambil User ID dari Firebase
             val currentUser = auth.currentUser
@@ -74,6 +83,13 @@ class CompleteProfileActivity : AppCompatActivity() {
                 isValid = false
             } else {
                 binding.tilFullName.error = null
+            }
+
+            if (gender.isEmpty()) {
+                binding.tilGender.error = "Jenis kelamin wajib dipilih"
+                isValid = false
+            } else {
+                binding.tilGender.error = null
             }
 
             if (university.isEmpty()) {
@@ -103,6 +119,7 @@ class CompleteProfileActivity : AppCompatActivity() {
                     uid = uid,
                     phoneNumber = phoneNumber,
                     fullName = fullName,
+                    gender = gender,
                     email = email,
                     university = university,
                     faculty = faculty,

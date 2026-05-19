@@ -19,9 +19,7 @@ data class EventDto(
     @SerializedName("category") val category: String?,
     @SerializedName("date") val date: String?,
     @SerializedName("time") val time: String?,
-
     @SerializedName("end_time") val endTime: String?,
-
     @SerializedName("location") val location: String?,
     @SerializedName("description") val description: String?
 ) {

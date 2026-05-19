@@ -90,7 +90,6 @@
         <activity android:name=".ui.event.AddEventActivity" />
         <activity android:name=".ui.teaching.TeachingActivity" />
         <activity android:name=".ui.teaching.AddTeachingActivity" />
-        <activity android:name=".ui.teaching.class_schedule.ClassScheduleActivity" />
         <activity android:name=".ui.cameraocr.CameraOCRActivity" />
         <activity android:name=".ui.settings.NotificationSettingsActivity" />
 

@@ -23,7 +23,7 @@ import kotlinx.coroutines.tasks.await
 
 class TasksRepository(
     private val tasksDao: TasksDao,
-    private val focusSessionDao: FocusSessionDao, // [TAMBAHAN PENTING] Untuk akses data sesi
+    private val focusSessionDao: FocusSessionDao,
     private val context: Context
 ) {
 
@@ -39,7 +39,6 @@ class TasksRepository(
         return tasksDao.getAllTasksWithStats()
     }
 
-    // [FITUR BARU] Tarik data dari Cloud (PULL SYNC)
     suspend fun syncTasksFromCloud() {
         try {
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -52,9 +51,12 @@ class TasksRepository(
             val snapshot = db.collection("users").document(uid).collection("tasks")
                 .get(Source.SERVER).await()
 
+            val cloudFirestoreIds = mutableListOf<String>()
+
             for (document in snapshot.documents) {
                 try {
                     val firestoreId = document.id
+                    cloudFirestoreIds.add(firestoreId)
                     val title = document.getString("title") ?: continue
                     val date = document.getString("date") ?: continue
                     val time = document.getString("time") ?: continue
@@ -68,7 +70,6 @@ class TasksRepository(
                     val existingTask = tasksDao.getTaskByFirestoreId(firestoreId)
 
                     if (existingTask != null) {
-                        // [ATURAN 2]: HANYA timpa jika data lokal tidak punya perubahan tertunda (isSynced == true)
                         if (existingTask.isSynced) {
                             val updatedTask = existingTask.copy(
                                 userId = uid,
@@ -87,25 +88,28 @@ class TasksRepository(
                             updatedTask.firestoreId = firestoreId
                             tasksDao.updateTaskRaw(updatedTask)
 
-                            // [TAMBAHAN BARU] Bersihkan kalender dan alarm lama
+                            // Bersihkan entri alarm & kalender lama
                             val oldEntries = calendarDao.getEntriesForSource("TASK", existingTask.id)
                             oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
                             calendarDao.deleteEntriesForSource("TASK", existingTask.id)
 
-                            // Jika tugas belum selesai, buat alarm dan kalender baru
+                            // 🔴 [PERBAIKAN OPSI B] Selalu masukkan ke kalender sebagai riwayat
+                            val entry = CalendarEntry(
+                                title = updatedTask.title,
+                                date = updatedTask.date,
+                                time = updatedTask.time,
+                                endTime = updatedTask.endTime,
+                                category = "Tugas",
+                                priority = updatedTask.priority ?: "Sedang",
+                                sourceFeatureType = "TASK",
+                                sourceFeatureId = existingTask.id,
+                                notificationMinutesBefore = updatedTask.notificationMinutesBefore,
+                                isCompleted = updatedTask.isCompleted // Bawa status selesai
+                            )
+                            val entryId = calendarDao.insertEntry(entry)
+
+                            // Alarm hanya bunyi jika belum selesai
                             if (!updatedTask.isCompleted) {
-                                val entry = CalendarEntry(
-                                    title = updatedTask.title,
-                                    date = updatedTask.date,
-                                    time = updatedTask.time,
-                                    endTime = updatedTask.endTime,
-                                    category = "Tugas",
-                                    priority = updatedTask.priority ?: "Sedang",
-                                    sourceFeatureType = "TASK",
-                                    sourceFeatureId = existingTask.id,
-                                    notificationMinutesBefore = updatedTask.notificationMinutesBefore
-                                )
-                                val entryId = calendarDao.insertEntry(entry)
                                 scheduler.scheduleNotification(entry.copy(id = entryId))
                             }
                         }
@@ -128,28 +132,40 @@ class TasksRepository(
                         )
                         val newId = tasksDao.insertTaskRaw(newTask)
 
-                        // [TAMBAHAN BARU] Masukkan ke Agenda Home dan Set Notifikasi
+                        // 🔴 [PERBAIKAN OPSI B]
+                        val entry = CalendarEntry(
+                            title = newTask.title,
+                            date = newTask.date,
+                            time = newTask.time,
+                            endTime = newTask.endTime,
+                            category = "Tugas",
+                            priority = newTask.priority ?: "Sedang",
+                            sourceFeatureType = "TASK",
+                            sourceFeatureId = newId,
+                            notificationMinutesBefore = newTask.notificationMinutesBefore,
+                            isCompleted = newTask.isCompleted
+                        )
+                        val entryId = calendarDao.insertEntry(entry)
+
                         if (!newTask.isCompleted) {
-                            val entry = CalendarEntry(
-                                title = newTask.title,
-                                date = newTask.date,
-                                time = newTask.time,
-                                endTime = newTask.endTime,
-                                category = "Tugas",
-                                priority = newTask.priority ?: "Sedang",
-                                sourceFeatureType = "TASK",
-                                sourceFeatureId = newId,
-                                notificationMinutesBefore = newTask.notificationMinutesBefore
-                            )
-                            val entryId = calendarDao.insertEntry(entry)
                             scheduler.scheduleNotification(entry.copy(id = entryId))
                         }
                     }
                 } catch (e: Exception) { e.printStackTrace() }
             }
-        } catch (e: Exception) {
-            // Sengaja dikosongkan agar jika offline, error Source.SERVER diabaikan dengan aman
-        }
+
+            // LOGIKA PEMBASMI HANTU
+            val localSyncedTasks = tasksDao.getSyncedTasksList()
+            for (localTask in localSyncedTasks) {
+                if (!cloudFirestoreIds.contains(localTask.firestoreId)) {
+                    val oldEntries = calendarDao.getEntriesForSource("TASK", localTask.id)
+                    oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
+                    calendarDao.deleteEntriesForSource("TASK", localTask.id)
+                    tasksDao.hardDelete(localTask.id)
+                }
+            }
+
+        } catch (e: Exception) { }
     }
 
     suspend fun insertOrUpdate(tasks: Tasks): Long {
@@ -158,30 +174,30 @@ class TasksRepository(
 
         val localId = tasksDao.insertOrUpdate(tasks)
 
-        // [BASMI HANTU UPDATE & RE-SCHEDULE ALARM]
-        val dbSqlite = com.lecturo.lecturo.data.db.AppDatabase.getDatabase(context)
+        val dbSqlite = AppDatabase.getDatabase(context)
         val calendarDao = dbSqlite.calendarEntryDao()
-        val scheduler = com.lecturo.lecturo.notifications.NotificationScheduler(context)
+        val scheduler = NotificationScheduler(context)
 
-        // Hapus entri lama
         val oldEntries = calendarDao.getEntriesForSource("TASK", localId)
         oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
         calendarDao.deleteEntriesForSource("TASK", localId)
 
-        // Buat entri baru jika belum selesai
+        // 🔴 [PERBAIKAN OPSI B] Selalu masukkan untuk riwayat kalender
+        val entry = CalendarEntry(
+            title = tasks.title,
+            date = tasks.date,
+            time = tasks.time,
+            endTime = tasks.endTime,
+            category = "Tugas",
+            priority = tasks.priority ?: "Sedang",
+            sourceFeatureType = "TASK",
+            sourceFeatureId = localId,
+            notificationMinutesBefore = tasks.notificationMinutesBefore,
+            isCompleted = tasks.isCompleted
+        )
+        val entryId = calendarDao.insertEntry(entry)
+
         if (!tasks.isCompleted) {
-            val entry = CalendarEntry(
-                title = tasks.title,
-                date = tasks.date,
-                time = tasks.time,
-                endTime = tasks.endTime,
-                category = "Tugas",
-                priority = tasks.priority ?: "Sedang",
-                sourceFeatureType = "TASK",
-                sourceFeatureId = localId,
-                notificationMinutesBefore = tasks.notificationMinutesBefore
-            )
-            val entryId = calendarDao.insertEntry(entry)
             scheduler.scheduleNotification(entry.copy(id = entryId))
         }
 
@@ -189,49 +205,43 @@ class TasksRepository(
         return localId
     }
 
-    // --- LOGIC BARU: CASCADE SOFT DELETE ---
     suspend fun deleteTasks(id: Long) {
-        // 1. Tandai hapus Tugas di lokal (Soft Delete)
-        tasksDao.softDelete(id)
+        // Hapus dari kalender jika dihapus user
+        val dbSqlite = AppDatabase.getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
+        val scheduler = NotificationScheduler(context)
+        val entries = calendarDao.getEntriesForSource("TASK", id)
+        entries.forEach { scheduler.cancelNotification(it.notificationId) }
+        calendarDao.deleteEntriesForSource("TASK", id)
 
-        // 2. [TAMBAHAN] Tandai hapus SEMUA Sesi Fokus yang terkait dengan Tugas ini (Cascade Soft Delete)
+        tasksDao.softDelete(id)
         focusSessionDao.softDeleteSessionsByTaskId(id)
 
-        // 3. Trigger worker untuk hapus Tugas di cloud
         scheduleSync()
-
-        // 4. [TAMBAHAN] Trigger worker untuk hapus Sesi Fokus di cloud
         scheduleFocusSync()
     }
 
-    // --- LOGIC WORKER: SYNC TASKS ---
     private fun scheduleSync() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
-
         val syncRequest = OneTimeWorkRequestBuilder<SyncTasksWorker>()
             .setConstraints(constraints)
             .build()
-
-        // PENTING: Gunakan 'KEEP' agar worker tidak numpuk
         WorkManager.getInstance(context).enqueueUniqueWork(
-            "SyncTasksWork", // Nama Unik
+            "SyncTasksWork",
             ExistingWorkPolicy.REPLACE,
             syncRequest
         )
     }
 
-    // --- [TAMBAHAN BARU] LOGIC WORKER: SYNC FOCUS ---
     private fun scheduleFocusSync() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
-
         val syncRequest = OneTimeWorkRequestBuilder<SyncFocusWorker>()
             .setConstraints(constraints)
             .build()
-
         WorkManager.getInstance(context).enqueueUniqueWork(
             "SyncFocusWork",
             ExistingWorkPolicy.REPLACE,
@@ -239,14 +249,26 @@ class TasksRepository(
         )
     }
 
-    // Fungsi Checklist Selesai
+    // 🔴 [PERBAIKAN OPSI B] Fungsi Checklist Selesai agar sinkron ke kalender
     suspend fun updateTasksCompletedStatus(id: Long, completed: Boolean) {
-        // Otomatis set is_synced=0 di DAO
         tasksDao.updateCompletedStatus(id, completed)
+
+        val dbSqlite = AppDatabase.getDatabase(context)
+        val calendarDao = dbSqlite.calendarEntryDao()
+        val scheduler = NotificationScheduler(context)
+
+        // Update status di dalam agregator kalender tanpa menghapusnya
+        calendarDao.updateStatusBySource("TASK", id, completed)
+
+        // Matikan alarm jika tugas ditandai selesai
+        if (completed) {
+            val entriesToCancel = calendarDao.getEntriesForSource("TASK", id)
+            entriesToCancel.forEach { scheduler.cancelNotification(it.notificationId) }
+        }
+
         scheduleSync()
     }
 
-    // Helper
     suspend fun getTaskByIdSuspend(id: Long): Tasks? {
         return tasksDao.getTaskById(id)
     }

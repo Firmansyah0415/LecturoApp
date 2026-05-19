@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.teaching.AddTeachingActivity">
+    android:layout_height="match_parent">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -37,7 +36,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Course Name -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -55,7 +53,6 @@
                     android:inputType="textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Class Name and Student Count Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -85,7 +82,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:hint="Jumlah Mahasiswa *"
+                    android:hint="Jml Mhs *"
                     app:startIconDrawable="@drawable/ic_student"
                     app:startIconTint="@color/teaching_color"
                     style="@style/Widget.App.TextInputLayout.Rounded"
@@ -99,30 +96,45 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <!-- Day of Week -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/textInputLayoutDayOfWeek"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp"
-                android:hint="Hari *"
+                android:hint="Hari (Terisi Otomatis)"
                 app:startIconDrawable="@drawable/ic_calendar"
                 app:startIconTint="@color/teaching_color"
-                android:theme="@style/ThemeOverlay.App.TextInput.Teaching"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 
-                <AutoCompleteTextView
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/autoCompleteTextViewDayOfWeek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:enabled="false"
+                    android:textColor="?attr/colorOnSurface"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Start Time and End Time Row -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="Tanggal Pertemuan Pertama *"
+                app:startIconDrawable="@drawable/ic_date"
+                app:startIconTint="@color/teaching_color"
+                style="@style/Widget.App.TextInputLayout.Rounded"
+                android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editTextDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="false"
+                    android:inputType="none" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -170,11 +182,10 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <!-- Location -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:hint="Ruangan Kelas *"
                 app:startIconDrawable="@drawable/ic_location"
                 style="@style/Widget.App.TextInputLayout.Rounded"
@@ -187,95 +198,12 @@
                     android:inputType="textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Repetition Logic -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ulangi Jadwal"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold" />
-
-            <RadioGroup
-                android:id="@+id/radioGroupRepetition"
+            <androidx.compose.ui.platform.ComposeView
+                android:id="@+id/cvRepetition"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="8dp">
+                android:layout_marginBottom="8dp" />
 
-                <RadioButton
-                    android:id="@+id/radioButtonDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hingga Tanggal Tertentu"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/radioButtonCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Berdasarkan Jumlah Pertemuan" />
-            </RadioGroup>
-
-            <!-- Semester Start Date -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="Tanggal Mulai *"
-                app:startIconDrawable="@drawable/ic_date"
-                app:startIconTint="@color/teaching_color"
-                style="@style/Widget.App.TextInputLayout.Rounded"
-                android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextSemesterStartDate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="false"
-                    android:inputType="none" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Semester End Date -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutSemesterEndDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="Tanggal Selesai *"
-                app:startIconDrawable="@drawable/ic_date"
-                app:startIconTint="@color/teaching_color"
-                style="@style/Widget.App.TextInputLayout.Rounded"
-                android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextSemesterEndDate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="false"
-                    android:inputType="none" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Meeting Count -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutMeetingCount"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"
-                android:hint="Jumlah Pertemuan">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextMeetingCount"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:text="16" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Notification Setting -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -297,7 +225,6 @@
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Save Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSave"
                 android:layout_width="match_parent"
@@ -305,15 +232,13 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:layout_marginTop="14dp"
-                android:layout_gravity="bottom"
-                android:paddingVertical="12dp"
+                android:layout_marginBottom="16dp"
                 android:text="Simpan Jadwal Mengajar"
                 android:textSize="16sp"
                 android:textColor="@color/white"
                 android:backgroundTint="@color/teaching_color"/>
 
         </LinearLayout>
-
     </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

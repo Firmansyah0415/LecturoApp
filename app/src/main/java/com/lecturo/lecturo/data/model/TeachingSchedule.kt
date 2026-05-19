@@ -6,8 +6,8 @@ import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-@Entity(tableName = "teaching_rules")
-data class TeachingRule(
+@Entity(tableName = "teaching_schedules") // Nama tabel sudah benar
+data class TeachingSchedule(
     @PrimaryKey(autoGenerate = true) val localId: Long = 0,
     var firestoreId: String? = null,
 
@@ -32,6 +32,10 @@ data class TeachingRule(
     @SerializedName("day_of_week")
     val dayOfWeek: String,
 
+    // [TAMBAHAN BARU] Tanggal spesifik pertemuan
+    @SerializedName("date")
+    val date: String,
+
     @SerializedName("start_time")
     val startTime: String,
 
@@ -44,14 +48,15 @@ data class TeachingRule(
     @SerializedName("student_count")
     val studentCount: Int,
 
-    @SerializedName("start_date")
-    val startDate: String,
+    // [TAMBAHAN BARU] Penanda pertemuan ke-berapa (P1, P2, P3...)
+    @SerializedName("meeting_number")
+    @ColumnInfo(name = "meeting_number")
+    val meetingNumber: Int = 1,
 
-    @SerializedName("repetition_type")
-    val repetitionType: String? = "Weekly",
-
-    @SerializedName("repetition_value")
-    val repetitionValue: String? = "1",
+    // [TAMBAHAN BARU] Penanda apakah kelas sudah selesai
+    @SerializedName("is_completed")
+    @ColumnInfo(name = "is_completed")
+    var isCompleted: Boolean = false,
 
     @SerializedName("notification_minutes")
     val notificationMinutes: Int = 15
