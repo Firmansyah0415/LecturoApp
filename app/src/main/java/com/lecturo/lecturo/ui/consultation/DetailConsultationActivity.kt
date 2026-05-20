@@ -266,8 +266,9 @@ class DetailConsultationActivity : AppCompatActivity() {
             else -> "Medium"
         }
 
-        if (title.isEmpty() || date.isEmpty() || startTime.isEmpty() || endTime.isEmpty()) {
-            Toast.makeText(this, "Mohon lengkapi judul, tanggal, dan waktu", Toast.LENGTH_SHORT).show()
+        // 1. PERBAIKAN VALIDASI: Tambahkan || location.isEmpty()
+        if (title.isEmpty() || date.isEmpty() || startTime.isEmpty() || endTime.isEmpty() || location.isEmpty()) {
+            Toast.makeText(this, "Mohon lengkapi judul, tanggal, waktu, dan lokasi!", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -291,7 +292,7 @@ class DetailConsultationActivity : AppCompatActivity() {
 
         val schedule = ConsultationSchedule(
             id = if (scheduleId != 0L) scheduleId else 0,
-            recurringId = recurringIdFromTemplate,
+            recurringId = recurringIdFromTemplate ?: "",
             title = title,
             date = date,
             startTime = startTime,

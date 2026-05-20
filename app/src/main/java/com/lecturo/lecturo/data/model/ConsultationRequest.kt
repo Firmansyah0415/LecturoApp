@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class ConsultationRequest(
     @SerializedName("uid") val uid: String,
     @SerializedName("consultation_id") val consultationId: String?,
-    @SerializedName("recurring_id") val recurringId: String?,
+    @SerializedName("recurring_id") val recurringId: String,
     @SerializedName("title") val title: String,
     @SerializedName("date") val date: String,
     @SerializedName("start_time") val startTime: String,

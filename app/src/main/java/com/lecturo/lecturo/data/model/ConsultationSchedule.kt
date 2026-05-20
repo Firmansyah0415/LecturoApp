@@ -26,7 +26,7 @@ data class ConsultationSchedule(
 
     @SerializedName("recurring_id")
     @ColumnInfo(name = "recurring_id")
-    val recurringId: String? = null,
+    val recurringId: String = "",
 
     @SerializedName("title")
     val title: String,
@@ -42,21 +42,23 @@ data class ConsultationSchedule(
     @ColumnInfo(name = "end_time")
     val endTime: String,
 
+    // PERBAIKAN: Paksa menjadi String kosong
     @SerializedName("location")
-    val location: String? = null,
+    val location: String = "",
 
+    // PERBAIKAN: Paksa menjadi String kosong
     @SerializedName("description")
-    val description: String? = null,
+    val description: String = "",
 
     @SerializedName("priority")
-    val priority: String? = "Medium",
+    val priority: String = "Medium",
 
     @SerializedName("status")
     var status: String = "SCHEDULED",
 
     @SerializedName("input_source")
     @ColumnInfo(name = "input_source")
-    val inputSource: String? = "MANUAL",
+    val inputSource: String = "MANUAL",
 
     @SerializedName("notification_minutes")
     @ColumnInfo(name = "notification_minutes")

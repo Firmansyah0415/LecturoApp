@@ -141,8 +141,9 @@ class ManagePatternActivity : AppCompatActivity() {
             return
         }
 
-        if (title.isEmpty() || dayString.isEmpty() || startTime.isEmpty() || endTime.isEmpty()) {
-            Toast.makeText(this, "Mohon lengkapi data", Toast.LENGTH_SHORT).show()
+        // PERBAIKAN VALIDASI: Tambahkan || location.isEmpty()
+        if (title.isEmpty() || dayString.isEmpty() || startTime.isEmpty() || endTime.isEmpty() || location.isEmpty()) {
+            Toast.makeText(this, "Mohon lengkapi semua data termasuk lokasi default!", Toast.LENGTH_SHORT).show()
             return
         }
 
