@@ -59,5 +59,10 @@ data class TeachingSchedule(
     var isCompleted: Boolean = false,
 
     @SerializedName("notification_minutes")
-    val notificationMinutes: Int = 15
+    val notificationMinutes: Int = 15,
+
+    // 🔴 [TAMBAHAN BARU] Menyimpan sumber data (WA_BOT, WEB_UPLOAD, MANUAL)
+    @SerializedName("input_source")
+    @ColumnInfo(name = "input_source")
+    val inputSource: String = "MANUAL"
 ) : Serializable

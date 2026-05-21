@@ -30,7 +30,7 @@ import com.lecturo.lecturo.data.model.FocusSession
         ConsultationPattern::class,
         FocusSession::class
     ],
-    version = 20, // 🔴 PERBAIKAN: NAIKKAN KE VERSI 20
+    version = 21, // 🔴 PERBAIKAN: NAIKKAN KE VERSI 21
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -95,6 +95,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // 🔴 MIGRATION 20_21: Tambahkan input_source ke teaching_schedules
+        private val MIGRATION_20_21 = object : Migration(20, 21) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE teaching_schedules ADD COLUMN input_source TEXT NOT NULL DEFAULT 'MANUAL'")
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -103,7 +110,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "lecturo_database"
                 )
                     // Daftarkan MIGRATION_19_20 di sini
-                    .addMigrations(MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20)
+                    .addMigrations(MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21)
                     .build()
                 INSTANCE = instance
                 instance

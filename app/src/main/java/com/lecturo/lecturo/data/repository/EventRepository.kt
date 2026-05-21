@@ -56,7 +56,8 @@ class EventRepository(
                     val priority = document.getString("priority") ?: "Sedang"
                     val isCompleted = document.getBoolean("is_completed") ?: false
                     val notificationMinutes = document.getLong("notification_minutes")?.toInt() ?: 15
-
+                    // 🔴 [PERBAIKAN BUG] TANGKAP INPUT SOURCE DARI FIRESTORE
+                    val inputSource = document.getString("input_source") ?: "MANUAL"
                     val existing = eventDao.getEventByFirestoreId(firestoreId)
 
                     if (existing != null) {
@@ -73,6 +74,7 @@ class EventRepository(
                                 priority = priority,
                                 isCompleted = isCompleted,
                                 notificationMinutesBefore = notificationMinutes,
+                                inputSource = inputSource, // 🔴 MASUKKAN KE OBJECT
                                 isSynced = true,
                                 isDeleted = false
                             )
@@ -117,7 +119,7 @@ class EventRepository(
                             firestoreId = firestoreId,
                             isSynced = true,
                             isDeleted = false,
-                            inputSource = "WEB_UPLOAD"
+                            inputSource = inputSource // 🔴 GUNAKAN SUMBER ASLI DARI CLOUD
                         )
                         val newId = eventDao.insertEventRaw(newEvent)
 

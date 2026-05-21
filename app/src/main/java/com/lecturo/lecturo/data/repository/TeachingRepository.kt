@@ -72,6 +72,8 @@ class TeachingRepository(
                     val isCompleted = document.getBoolean("is_completed") ?: false
                     val notificationMinutes = document.getLong("notification_minutes")?.toInt() ?: 15
 
+                    val inputSource = document.getString("input_source") ?: "MANUAL"
+
                     val existing = teachingScheduleDao.getScheduleByFirestoreId(firestoreId)
                     if (existing != null) {
                         if (existing.isSynced) {
@@ -88,6 +90,7 @@ class TeachingRepository(
                                 meetingNumber = meetingNumber,
                                 isCompleted = isCompleted,
                                 notificationMinutes = notificationMinutes,
+                                inputSource = inputSource, // 🔴 MASUKKAN KE ENTITY
                                 isSynced = true,
                                 isDeleted = false
                             )
@@ -116,6 +119,7 @@ class TeachingRepository(
                             meetingNumber = meetingNumber,
                             isCompleted = isCompleted,
                             notificationMinutes = notificationMinutes,
+                            inputSource = inputSource, // 🔴 MASUKKAN KE ENTITY BARU
                             firestoreId = firestoreId,
                             isSynced = true,
                             isDeleted = false

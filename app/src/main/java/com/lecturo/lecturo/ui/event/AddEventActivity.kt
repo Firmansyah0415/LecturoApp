@@ -35,6 +35,9 @@ class AddEventActivity : AppCompatActivity() {
     private var isEditMode = false
     private var currentEvent: Event? = null
 
+    // 🔴 VARIABEL PENYIMPAN SUMBER AI_SCAN
+    private var sourceFromAi: String? = null
+
     private val viewModel: EventViewModel by viewModels {
         val database = AppDatabase.getDatabase(this)
         val eventRepository = EventRepository(database.eventDao(), applicationContext)
@@ -112,6 +115,9 @@ class AddEventActivity : AppCompatActivity() {
             binding.editTextEndTime.setText(it.endTime) // 🔴 TAMBAHAN: Isi End Time dari AI
             binding.editTextLocation.setText(it.location)
             binding.editTextDescription.setText(it.description)
+
+            // 🔴 STEMPEL JIKA JADWAL BERASAL DARI FITUR OCR / ML KIT
+            sourceFromAi = "AI_SCAN"
             Toast.makeText(this, "Data berhasil diisi oleh AI!", Toast.LENGTH_SHORT).show()
         }
     }
@@ -164,6 +170,9 @@ class AddEventActivity : AppCompatActivity() {
             return
         }
 
+        // 🔴 LOGIKA PENGAWALAN INPUT SOURCE
+        val finalInputSource = currentEvent?.inputSource ?: sourceFromAi ?: "MANUAL"
+
         val event = Event(
             id = if (isEditMode) eventId else 0,
             firestoreId = currentEvent?.firestoreId,
@@ -179,7 +188,7 @@ class AddEventActivity : AppCompatActivity() {
             location = location,
             description = description.ifEmpty { null },
             notificationMinutesBefore = notificationMinutes,
-            inputSource = currentEvent?.inputSource ?: "MANUAL"
+            inputSource = finalInputSource // 🔴 DIJAMIN AMAN
         )
 
         viewModel.insertOrUpdate(event)

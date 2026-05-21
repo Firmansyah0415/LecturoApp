@@ -168,7 +168,8 @@ class AddTeachingActivity : AppCompatActivity() {
             studentCount = studentCount,
             meetingNumber = currentSchedule?.meetingNumber ?: 1,
             isCompleted = currentSchedule?.isCompleted ?: false,
-            notificationMinutes = notificationMinutes
+            notificationMinutes = notificationMinutes,
+            inputSource = currentSchedule?.inputSource ?: "MANUAL"
         )
 
         if (isEditMode) {

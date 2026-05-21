@@ -55,7 +55,8 @@ class SyncTeachingWorker(
                         studentCount = schedule.studentCount,
                         meetingNumber = schedule.meetingNumber,
                         isCompleted = schedule.isCompleted,
-                        notificationMinutes = schedule.notificationMinutes
+                        notificationMinutes = schedule.notificationMinutes,
+                        inputSource = schedule.inputSource // 🔴 KIRIM KE BACKEND
                     )
                     try {
                         val response = apiService.syncTeaching(request)

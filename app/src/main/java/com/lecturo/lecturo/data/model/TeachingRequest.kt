@@ -40,5 +40,9 @@ data class TeachingRequest(
     val isCompleted: Boolean,
 
     @SerializedName("notification_minutes")
-    val notificationMinutes: Int
+    val notificationMinutes: Int,
+
+    // 🔴 [TAMBAHAN BARU]
+    @SerializedName("input_source")
+    val inputSource: String
 )
