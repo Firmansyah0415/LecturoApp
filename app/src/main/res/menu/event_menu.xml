@@ -4,24 +4,30 @@
 
     <item
         android:id="@+id/action_sort"
-        android:title="Urutkan"
+        android:title="@string/urutkan"
         android:icon="@drawable/ic_clock_arrow_down"
         app:iconTint="?attr/colorOnSurface"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_filter_belum"
-        android:title="Tampilkan Belum Selesai"
+        android:title="@string/tampilkan_belum_selesai"
+        android:icon="@drawable/ic_cancle_circle"
+        app:iconTint="?attr/colorOnSurface"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_filter_selesai"
-        android:title="Tampilkan Selesai Saja"
+        android:title="@string/tampilkan_selesai_saja"
+        android:icon="@drawable/ic_check_circle"
+        app:iconTint="?attr/colorOnSurface"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_clear_filters"
-        android:title="Hapus Semua Filter"
+        android:title="@string/hapus_filter"
+        android:icon="@drawable/ic_clear"
+        app:iconTint="@color/text_secondary"
         app:showAsAction="never" />
 
 </menu>

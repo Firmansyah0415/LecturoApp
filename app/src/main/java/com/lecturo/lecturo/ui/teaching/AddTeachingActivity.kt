@@ -38,8 +38,9 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.lecturo.lecturo.ui.base.BaseActivity
 
-class AddTeachingActivity : AppCompatActivity() {
+class AddTeachingActivity : BaseActivity() {
 
     private lateinit var binding: ActivityAddTeachingBinding
     private var scheduleId: Long = -1

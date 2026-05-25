@@ -21,11 +21,12 @@ import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.model.TeachingSchedule
 import com.lecturo.lecturo.data.repository.TeachingRepository
 import com.lecturo.lecturo.databinding.ActivityTeachingBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.ui.components.TeachingListContent
 import com.lecturo.lecturo.viewmodel.teaching.TeachingViewModel
 import com.lecturo.lecturo.viewmodel.teaching.TeachingViewModelFactory
 
-class TeachingActivity : AppCompatActivity() {
+class TeachingActivity : BaseActivity() {
 
     private lateinit var binding: ActivityTeachingBinding
 

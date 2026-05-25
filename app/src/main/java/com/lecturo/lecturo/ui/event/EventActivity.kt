@@ -37,8 +37,10 @@ import com.lecturo.lecturo.ui.components.EventListContent // Komponen Compose Ba
 import com.lecturo.lecturo.ui.components.AiOptionsComposeDialog // Komponen Dialog AI
 import kotlinx.coroutines.launch
 import java.io.File
+import androidx.core.graphics.drawable.toDrawable
+import com.lecturo.lecturo.ui.base.BaseActivity
 
-class EventActivity : AppCompatActivity() {
+class EventActivity : BaseActivity() {
 
     private lateinit var binding: ActivityEventBinding
     private lateinit var aiHelper: AiExtractionHelper
@@ -94,7 +96,6 @@ class EventActivity : AppCompatActivity() {
     private fun setupStatusBar() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-        window.statusBarColor = getColor(R.color.colorPrimary)
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
@@ -167,7 +168,7 @@ class EventActivity : AppCompatActivity() {
                 MaterialTheme {
                     EventListContent(
                         events = events ?: emptyList(),
-                        categories = categories ?: emptyList(),
+                        categories = categories,
                         activeCategory = activeCategory,
                         isSortNewest = isSortNewest,
                         onCategoryClick = { viewModel.setCategoryFilter(it) },
@@ -210,7 +211,7 @@ class EventActivity : AppCompatActivity() {
 
         aiOptionsDialog = MaterialAlertDialogBuilder(this)
             .setView(composeView)
-            .setBackground(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            .setBackground(android.graphics.Color.TRANSPARENT.toDrawable())
             .create()
 
         aiOptionsDialog?.show()

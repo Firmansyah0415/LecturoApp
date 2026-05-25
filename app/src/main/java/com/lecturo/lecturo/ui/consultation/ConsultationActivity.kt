@@ -20,12 +20,13 @@ import com.lecturo.lecturo.data.model.ConsultationSchedule
 import com.lecturo.lecturo.databinding.ActivityConsultationBinding
 import com.lecturo.lecturo.databinding.BottomSheetChoosePatternBinding
 import com.lecturo.lecturo.databinding.BottomSheetConsultationActionBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.ui.consultation.pattern.ConsultationPatternActivity
 import com.lecturo.lecturo.utils.DateHelper
 import com.lecturo.lecturo.viewmodel.consultation.ConsultationViewModel
 import com.lecturo.lecturo.viewmodel.consultation.FilterType
 
-class ConsultationActivity : AppCompatActivity() {
+class ConsultationActivity : BaseActivity() {
 
     private lateinit var binding: ActivityConsultationBinding
     private lateinit var adapter: ConsultationAdapter

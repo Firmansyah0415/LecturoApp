@@ -19,12 +19,13 @@ import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
 import com.lecturo.lecturo.databinding.ActivityAddTasksBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.viewmodel.task.TasksViewModel
 import com.lecturo.lecturo.viewmodel.task.TasksViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AddTasksActivity : AppCompatActivity() {
+class AddTasksActivity : BaseActivity() {
 
     private lateinit var binding: ActivityAddTasksBinding
 
@@ -151,7 +152,7 @@ class AddTasksActivity : AppCompatActivity() {
             title = title,
             date = date,
             time = time,
-            endTime = finalEndTime, // Simpan End Time
+            endTime = finalEndTime,
             location = location,
             description = description,
             priority = priority,

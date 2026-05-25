@@ -21,11 +21,12 @@ import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.db.AppDatabase
 import com.lecturo.lecturo.data.repository.FocusRepository
 import com.lecturo.lecturo.databinding.ActivityFocusBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.utils.FocusPreferences
 import com.lecturo.lecturo.viewmodel.focus.FocusViewModel
 import com.lecturo.lecturo.viewmodel.focus.FocusViewModelFactory
 
-class FocusActivity : AppCompatActivity() {
+class FocusActivity : BaseActivity() {
 
     private lateinit var binding: ActivityFocusBinding
 

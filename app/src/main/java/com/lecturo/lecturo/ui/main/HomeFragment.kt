@@ -204,7 +204,7 @@ class HomeFragment : Fragment() {
     private fun setupRecyclerViews() {
         agendaAdapter = AgendaAdapter { calendarEntry ->
             when (calendarEntry.sourceFeatureType) {
-                "TEACHING_SCHEDULE" -> startActivity(Intent(requireContext(), TeachingActivity::class.java)) // 🔴 PERBAIKAN: Kunci routing baru
+                "TEACHING_SCHEDULE" -> startActivity(Intent(requireContext(), TeachingActivity::class.java))
                 "EVENT" -> startActivity(Intent(requireContext(), EventActivity::class.java))
                 "TASK" -> startActivity(Intent(requireContext(), TasksActivity::class.java))
                 "CONSULTATION", "Konsultasi" -> startActivity(Intent(requireContext(), ConsultationActivity::class.java))

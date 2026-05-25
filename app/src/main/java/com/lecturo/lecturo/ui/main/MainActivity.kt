@@ -50,8 +50,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lecturo.lecturo.ui.base.BaseActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -299,7 +300,7 @@ fun ScheduleOptionItem(iconRes: Int, title: String, colorRes: Int, onClick: () -
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp)) // Agar efek klik/ripple melengkung
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp, horizontal = 8.dp)
     ) {

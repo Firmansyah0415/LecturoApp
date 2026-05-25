@@ -23,11 +23,12 @@ import com.lecturo.lecturo.data.model.Tasks
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.data.repository.TasksRepository
 import com.lecturo.lecturo.databinding.ActivityTasksBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.ui.focus.FocusActivity
 import com.lecturo.lecturo.viewmodel.task.TasksViewModel
 import com.lecturo.lecturo.viewmodel.task.TasksViewModelFactory
 
-class TasksActivity : AppCompatActivity() {
+class TasksActivity : BaseActivity() {
     private lateinit var binding: ActivityTasksBinding
 
     // --- VARIABEL UNTUK EMPTY STATE ---

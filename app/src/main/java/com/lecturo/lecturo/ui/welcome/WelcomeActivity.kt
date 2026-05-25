@@ -9,8 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.lecturo.lecturo.databinding.ActivityWelcomeBinding
 import com.lecturo.lecturo.ui.auth.LoginActivity
 import com.lecturo.lecturo.ui.auth.CompleteProfileActivity
+import com.lecturo.lecturo.ui.base.BaseActivity
 
-class WelcomeActivity : AppCompatActivity() {
+class WelcomeActivity : BaseActivity() {
     private lateinit var binding: ActivityWelcomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {

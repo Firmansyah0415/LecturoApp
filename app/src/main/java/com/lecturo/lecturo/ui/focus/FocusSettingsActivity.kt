@@ -11,9 +11,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.ActivityFocusSettingsBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.utils.FocusPreferences
 
-class FocusSettingsActivity : AppCompatActivity() {
+class FocusSettingsActivity : BaseActivity() {
 
     private lateinit var binding: ActivityFocusSettingsBinding
     private lateinit var focusPrefs: FocusPreferences

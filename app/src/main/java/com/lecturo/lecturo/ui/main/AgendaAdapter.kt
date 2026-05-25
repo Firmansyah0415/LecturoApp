@@ -46,16 +46,33 @@ class AgendaAdapter(
             timeTextView.text = entry.time
             categoryTextView.text = entry.category
 
-            // 🔴 [TAMBAHAN BARU OPSI B]: Efek visual riwayat (Coret & Pudar)
+//            // 🔴 [TAMBAHAN BARU OPSI B]: Efek visual riwayat (Coret & Pudar)
+//            if (entry.isCompleted) {
+//                // Beri efek coret (strikethrough) pada judul
+//                titleTextView.paintFlags = titleTextView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+//                // Buat seluruh item menjadi pudar (transparan 50%)
+//                itemView.alpha = 0.5f
+//            } else {
+//                // Hilangkan efek coret (normal)
+//                titleTextView.paintFlags = titleTextView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+//                // Kembalikan ke warna solid terang (100%)
+//                itemView.alpha = 1.0f
+//            }
+
+            // 🔴 PERBAIKAN: Gunakan kondisi IF-ELSE yang tegas & eksplisit
             if (entry.isCompleted) {
-                // Beri efek coret (strikethrough) pada judul
+                // Terapkan efek coret
                 titleTextView.paintFlags = titleTextView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-                // Buat seluruh item menjadi pudar (transparan 50%)
-                itemView.alpha = 0.5f
+                // Buat teks lebih redup (warna abu-abu) agar efek pudarnya lebih terasa
+                titleTextView.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                // Transparansi item
+                itemView.alpha = 0.6f
             } else {
-                // Hilangkan efek coret (normal)
+                // 🔴 PENTING: Harus ada kondisi ELSE untuk membersihkan efek coret
                 titleTextView.paintFlags = titleTextView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-                // Kembalikan ke warna solid terang (100%)
+                // Kembalikan ke warna teks normal
+                titleTextView.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                // Kembalikan ke opasitas normal
                 itemView.alpha = 1.0f
             }
 

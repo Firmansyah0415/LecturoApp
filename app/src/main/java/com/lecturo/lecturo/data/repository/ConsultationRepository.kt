@@ -67,6 +67,8 @@ class ConsultationRepository(
                     val status = document.getString("status") ?: "SCHEDULED"
                     val notificationMinutes = document.getLong("notification_minutes")?.toInt() ?: 15
 
+                    val inputSource = document.getString("input_source") ?: "MANUAL"
+
                     val existing = consultationDao.getScheduleByFirestoreId(firestoreId)
 
                     if (existing != null) {
@@ -82,6 +84,7 @@ class ConsultationRepository(
                                 priority = priority,
                                 status = status,
                                 notificationMinutesBefore = notificationMinutes,
+                                inputSource = inputSource,
                                 isSynced = true,
                                 isDeleted = false
                             )
@@ -127,7 +130,7 @@ class ConsultationRepository(
                             firestoreId = firestoreId,
                             isSynced = true,
                             isDeleted = false,
-                            inputSource = "WEB_UPLOAD"
+                            inputSource = inputSource
                         )
                         val newId = consultationDao.insertScheduleRaw(newSchedule)
                         val finalSchedule = newSchedule.copy(id = newId)

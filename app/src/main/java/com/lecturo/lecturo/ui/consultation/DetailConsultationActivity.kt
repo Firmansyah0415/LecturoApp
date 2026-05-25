@@ -32,8 +32,9 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.lecturo.lecturo.ui.base.BaseActivity
 
-class DetailConsultationActivity : AppCompatActivity() {
+class DetailConsultationActivity : BaseActivity() {
 
     private lateinit var binding: ActivityDetailConsultationBinding
 
@@ -44,6 +45,8 @@ class DetailConsultationActivity : AppCompatActivity() {
     private var scheduleId: Long = 0
     private var recurringIdFromTemplate: String? = null
     private var currentFirestoreId: String? = null
+
+    private var currentSchedule: ConsultationSchedule? = null
 
     // 1. Variabel penampung nilai menit notifikasi
     // Tidak lagi di-hardcode ke 15!
@@ -189,6 +192,7 @@ class DetailConsultationActivity : AppCompatActivity() {
     private fun loadScheduleData(id: Long) {
         viewModel.getScheduleById(id) { schedule ->
             if (schedule != null) {
+                currentSchedule = schedule
                 binding.etTitle.setText(schedule.title)
                 binding.etDate.setText(schedule.date)
                 binding.etStartTime.setText(schedule.startTime)
@@ -290,6 +294,9 @@ class DetailConsultationActivity : AppCompatActivity() {
             return
         }
 
+        // 🔴 3. AMBIL INPUT SOURCE LAMA, ATAU MANUAL JIKA BARU
+        val finalInputSource = currentSchedule?.inputSource ?: "MANUAL"
+
         val schedule = ConsultationSchedule(
             id = if (scheduleId != 0L) scheduleId else 0,
             recurringId = recurringIdFromTemplate ?: "",
@@ -301,9 +308,10 @@ class DetailConsultationActivity : AppCompatActivity() {
             description = desc,
             priority = priority,
             userId = currentUid,
-            notificationMinutesBefore = selectedNotifMinutes, // Variabel pintar
+            notificationMinutesBefore = selectedNotifMinutes,
             firestoreId = currentFirestoreId,
-            status = "SCHEDULED"
+            status = "SCHEDULED",
+            inputSource = finalInputSource
         )
 
         if (scheduleId != 0L) {

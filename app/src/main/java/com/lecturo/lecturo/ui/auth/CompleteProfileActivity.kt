@@ -10,12 +10,13 @@ import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
 import com.lecturo.lecturo.databinding.ActivityCompleteProfileBinding
 import com.lecturo.lecturo.di.ViewModelFactory
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.ui.main.MainActivity
 import com.lecturo.lecturo.utils.DataRestoreManager
 import com.lecturo.lecturo.viewmodel.auth.CompleteProfileViewModel
 import kotlinx.coroutines.launch
 
-class CompleteProfileActivity : AppCompatActivity() {
+class CompleteProfileActivity : BaseActivity() {
 
     private lateinit var binding: ActivityCompleteProfileBinding
     private lateinit var auth: FirebaseAuth

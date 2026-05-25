@@ -15,10 +15,11 @@ import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.ActivityConsultationPatternBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.ui.consultation.pattern.ManagePatternActivity
 import com.lecturo.lecturo.viewmodel.consultation.ConsultationViewModel
 
-class ConsultationPatternActivity : AppCompatActivity() {
+class ConsultationPatternActivity : BaseActivity() {
 
     private lateinit var binding: ActivityConsultationPatternBinding
     private val viewModel: ConsultationViewModel by viewModels()

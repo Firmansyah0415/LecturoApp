@@ -14,8 +14,9 @@ import androidx.core.view.updateLayoutParams
 import androidx.preference.PreferenceManager
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.ActivityNotificationSettingsBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 
-class NotificationSettingsActivity : AppCompatActivity() {
+class NotificationSettingsActivity : BaseActivity() {
 
     private lateinit var binding: ActivityNotificationSettingsBinding
     private lateinit var sharedPreferences: SharedPreferences

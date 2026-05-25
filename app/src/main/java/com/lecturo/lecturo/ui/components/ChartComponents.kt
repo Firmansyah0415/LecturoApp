@@ -192,7 +192,7 @@ fun DetailedDonutChartScreen(agendaList: List<CalendarEntry>) {
 fun getColorForFeature(featureType: String, category: String?): Color {
     val cat = category?.lowercase() ?: ""
     return when {
-        featureType == "TEACHING_RULE" -> colorResource(R.color.teaching_color)
+        featureType == "TEACHING_SCHEDULE" -> colorResource(R.color.teaching_color)
         featureType == "TASK" -> colorResource(R.color.task_color)
         featureType == "CONSULTATION" || cat == "konsultasi" -> colorResource(R.color.consultation_color)
         featureType == "EVENT" || EventCategories.list.contains(cat) -> colorResource(R.color.event_color)

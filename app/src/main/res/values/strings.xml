@@ -287,5 +287,9 @@
     <string name="consultation_title_home_id">Konsultasi</string>
 
     <string name="profile_image_description">profile image</string>
+    <string name="urutkan">Urutkan</string>
+    <string name="tampilkan_belum_selesai">Tampilkan Belum Selesai</string>
+    <string name="tampilkan_selesai_saja">Tampilkan Selesai Saja</string>
+    <string name="hapus_filter">Hapus Filter</string>
 
 </resources>

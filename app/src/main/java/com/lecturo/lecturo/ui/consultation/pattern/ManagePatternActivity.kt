@@ -18,11 +18,12 @@ import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.model.ConsultationPattern
 import com.lecturo.lecturo.databinding.ActivityManagePatternBinding
 import com.lecturo.lecturo.di.ViewModelFactory
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.viewmodel.consultation.ConsultationViewModel
 import java.util.Calendar
 import java.util.Locale
 
-class ManagePatternActivity : AppCompatActivity() {
+class ManagePatternActivity : BaseActivity() {
 
     private lateinit var binding: ActivityManagePatternBinding
     private val viewModel: ConsultationViewModel by viewModels {

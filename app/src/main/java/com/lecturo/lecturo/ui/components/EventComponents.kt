@@ -47,16 +47,20 @@ fun EventListContent(
 ) {
     var selectedEventForSheet by remember { mutableStateOf<Event?>(null) }
     val allFilters = listOf("Semua") + categories
+//    val listState = rememberLazyListState()
+//
+//    LaunchedEffect(isSortNewest) {
+//        if (events.isNotEmpty()) {
+//            listState.animateScrollToItem(0)
+//        }
+//    }
+
     val listState = rememberLazyListState()
 
-    // 🔴 Animasi Scroll Otomatis ke Atas
+    // 🔴 PERBAIKAN: Gunakan logika scroll langsung agar konsisten dengan Teaching
     LaunchedEffect(isSortNewest, activeCategory) {
         if (events.isNotEmpty()) {
-            if (listState.firstVisibleItemIndex > 5) {
-                listState.scrollToItem(5)
-            }
-            yield()
-            listState.animateScrollToItem(0)
+            listState.scrollToItem(0)
         }
     }
 

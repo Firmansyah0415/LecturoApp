@@ -22,13 +22,14 @@ import com.lecturo.lecturo.data.model.Event
 import com.lecturo.lecturo.data.repository.EventRepository
 import com.lecturo.lecturo.data.repository.CalendarRepository
 import com.lecturo.lecturo.databinding.ActivityAddEventBinding
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.viewmodel.event.EventViewModel
 import com.lecturo.lecturo.viewmodel.event.EventViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AddEventActivity : AppCompatActivity() {
+class AddEventActivity : BaseActivity() {
 
     private lateinit var binding: ActivityAddEventBinding
     private var eventId: Long = -1
@@ -65,7 +66,6 @@ class AddEventActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val isNightMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
-        window.statusBarColor = getColor(R.color.colorPrimary)
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, insets ->
@@ -112,7 +112,7 @@ class AddEventActivity : AppCompatActivity() {
             binding.autoCompleteTextViewPriority.setText(it.priority ?: "Sedang", false)
             binding.editTextDate.setText(it.date)
             binding.editTextTime.setText(it.time)
-            binding.editTextEndTime.setText(it.endTime) // 🔴 TAMBAHAN: Isi End Time dari AI
+            binding.editTextEndTime.setText(it.endTime)
             binding.editTextLocation.setText(it.location)
             binding.editTextDescription.setText(it.description)
 
@@ -133,7 +133,7 @@ class AddEventActivity : AppCompatActivity() {
                     autoCompleteTextViewPriority.setText(it.priority, false)
                     editTextDate.setText(it.date)
                     editTextTime.setText(it.time)
-                    editTextEndTime.setText(it.endTime) // 🔴 TAMBAHAN: Tampilkan End Time saat diedit
+                    editTextEndTime.setText(it.endTime)
                     editTextLocation.setText(it.location)
                     editTextDescription.setText(it.description)
                     val notificationText = getNotificationOptionText(it.notificationMinutesBefore)
@@ -149,7 +149,7 @@ class AddEventActivity : AppCompatActivity() {
         val priority = binding.autoCompleteTextViewPriority.text.toString().trim()
         val date = binding.editTextDate.text.toString().trim()
         val time = binding.editTextTime.text.toString().trim()
-        val endTime = binding.editTextEndTime.text.toString().trim() // 🔴 TAMBAHAN
+        val endTime = binding.editTextEndTime.text.toString().trim()
         val location = binding.editTextLocation.text.toString().trim()
         val description = binding.editTextDescription.text.toString().trim()
         val notificationMinutes = getSelectedNotificationValue()
@@ -170,9 +170,6 @@ class AddEventActivity : AppCompatActivity() {
             return
         }
 
-        // 🔴 LOGIKA PENGAWALAN INPUT SOURCE
-        val finalInputSource = currentEvent?.inputSource ?: sourceFromAi ?: "MANUAL"
-
         val event = Event(
             id = if (isEditMode) eventId else 0,
             firestoreId = currentEvent?.firestoreId,
@@ -184,11 +181,11 @@ class AddEventActivity : AppCompatActivity() {
             priority = priority,
             date = date,
             time = time,
-            endTime = finalEndTime, // 🔴 SIMPAN END TIME
+            endTime = finalEndTime,
             location = location,
             description = description.ifEmpty { null },
             notificationMinutesBefore = notificationMinutes,
-            inputSource = finalInputSource // 🔴 DIJAMIN AMAN
+            inputSource = currentEvent?.inputSource ?: sourceFromAi ?: "MANUAL"
         )
 
         viewModel.insertOrUpdate(event)
@@ -265,7 +262,7 @@ class AddEventActivity : AppCompatActivity() {
     private fun setupDateTimePickers() {
         binding.editTextDate.setOnClickListener { showDatePicker() }
         binding.editTextTime.setOnClickListener { showTimePicker(true) }
-        binding.editTextEndTime.setOnClickListener { showTimePicker(false) } // 🔴 LISTENER END TIME
+        binding.editTextEndTime.setOnClickListener { showTimePicker(false) }
     }
 
     private fun showDatePicker() {

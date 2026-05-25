@@ -15,10 +15,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.lecturo.lecturo.R
 import com.lecturo.lecturo.databinding.ActivitySplashBinding
 import com.lecturo.lecturo.ui.auth.LoginActivity
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.ui.main.MainActivity
 
 @SuppressLint("CustomSplashScreen")
-class SplashActivity : AppCompatActivity() {
+class SplashActivity : BaseActivity() {
 
     private lateinit var binding: ActivitySplashBinding
     private lateinit var auth: FirebaseAuth

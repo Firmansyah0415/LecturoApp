@@ -188,6 +188,7 @@
                 android:layout_marginBottom="16dp"
                 android:hint="Ruangan Kelas *"
                 app:startIconDrawable="@drawable/ic_location"
+                app:startIconTint="@color/teaching_color"
                 style="@style/Widget.App.TextInputLayout.Rounded"
                 android:theme="@style/ThemeOverlay.App.TextInput.Teaching">
 

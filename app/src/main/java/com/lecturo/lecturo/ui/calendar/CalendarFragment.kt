@@ -204,28 +204,16 @@ fun CalendarScreen(viewModel: CalendarViewModel) {
 fun DayCell(day: CalendarDay, isSelected: Boolean, onClick: () -> Unit) {
     // 1. LOGIKA WARNA BACKGROUND (Latar Belakang)
     val bgColor = when {
-        // Prioritas 1: Jika sedang diklik, warnanya colorPrimaryContainer
         isSelected -> colorResource(R.color.colorPrimaryContainer)
-
-        // Prioritas 2: Jika BUKAN yang diklik, tapi dia adalah "Hari Ini", warnanya colorOnPrimaryContainer
         day.isToday -> colorResource(R.color.colorOnPrimaryContainer)
-
-        // Prioritas 3: Tanggal biasa (Mati/Transparan)
         else -> Color.Transparent
     }
 
     // 2. LOGIKA WARNA TEKS (Angka)
     val textColor = when {
-        // Jika sedang diklik
         isSelected -> colorResource(R.color.text_primary)
-
-        // Jika hari ini
         day.isToday -> colorResource(R.color.text_tertiary)
-
-        // Jika tanggalnya redup (bulan lalu/depan)
         !day.isCurrentMonth -> colorResource(R.color.text_secondary)
-
-        // Tanggal biasa di bulan ini
         else -> colorResource(R.color.text_primary)
     }
 
@@ -241,33 +229,47 @@ fun DayCell(day: CalendarDay, isSelected: Boolean, onClick: () -> Unit) {
     ) {
         Text(text = day.dayNumber, color = textColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
 
-        // --- LOGIKA 4 TITIK WARNA ---
+        // --- LOGIKA 4 TITIK WARNA (PERBAIKAN BUG) ---
         if (day.hasSchedules() && day.isCurrentMonth) {
             Spacer(modifier = Modifier.height(2.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth() // Memastikan barisan titik selalu rata tengah
+                modifier = Modifier.fillMaxWidth()
             ) {
-                day.scheduleCategories.map { it.trim().lowercase(Locale.getDefault()) }.distinct().forEach { category ->
-                    val dotColor = when {
-                        category == "tugas" -> colorResource(R.color.task_color)
-                        category == "mengajar" -> colorResource(R.color.teaching_color)
-                        category == "konsultasi" -> colorResource(R.color.consultation_color)
-                        EventCategories.list.contains(category) -> colorResource(R.color.event_color)
+                // 🔴 PERBAIKAN: Konversi kategori mentah menjadi Kategori Induk Utama
+                val distinctParentCategories = day.scheduleCategories.mapNotNull { rawCategory ->
+                    val cleanCat = rawCategory.trim().lowercase(Locale.getDefault())
+                    when {
+                        cleanCat == "tugas" -> "tugas"
+                        cleanCat == "mengajar" -> "mengajar"
+                        cleanCat == "konsultasi" -> "konsultasi"
+                        EventCategories.list.contains(cleanCat) -> "acara" // Semua Rapat, Seminar, dll jadi "acara"
+                        else -> null
+                    }
+                }.distinct() // Filter duplikat Induk Utama (1 Acara, 1 Tugas, dst.)
+
+                // Gambar titik berdasarkan Kategori Induk yang sudah difilter
+                distinctParentCategories.forEach { parentCategory ->
+                    val dotColor = when (parentCategory) {
+                        "tugas" -> colorResource(R.color.task_color)
+                        "mengajar" -> colorResource(R.color.teaching_color)
+                        "konsultasi" -> colorResource(R.color.consultation_color)
+                        "acara" -> colorResource(R.color.event_color)
                         else -> Color.Transparent
                     }
+
                     if (dotColor != Color.Transparent) {
                         Box(
                             modifier = Modifier
-                                .size(6.dp) // 1. Diperbesar menjadi 6dp
-                                .background(color = dotColor, shape = CircleShape) // 2. Warna dasar
-                                .border( // 3. Garis tepi (stroke) putih untuk kontras
+                                .size(6.dp)
+                                .background(color = dotColor, shape = CircleShape)
+                                .border(
                                     width = 1.dp,
                                     color = Color.White,
                                     shape = CircleShape
                                 )
                         )
-                        Spacer(modifier = Modifier.width(2.dp)) // Jarak antar titik
+                        Spacer(modifier = Modifier.width(2.dp))
                     }
                 }
             }
@@ -322,9 +324,6 @@ fun ScheduleItemCard(schedule: CalendarEntry) {
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
-//            IconButton(onClick = { /* Handle Klik Aksi */ }, modifier = Modifier.align(Alignment.CenterVertically)) {
-//                Icon(painterResource(R.drawable.ic_more_vert), contentDescription = "Aksi", tint = Color.Gray)
-//            }
         }
     }
 }

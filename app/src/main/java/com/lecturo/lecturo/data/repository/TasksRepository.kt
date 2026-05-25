@@ -67,6 +67,8 @@ class TasksRepository(
                     val isCompleted = document.getBoolean("is_completed") ?: false
                     val notificationMinutes = document.getLong("notification_minutes")?.toInt() ?: 15
 
+                    val inputSource = document.getString("input_source") ?: "MANUAL"
+
                     val existingTask = tasksDao.getTaskByFirestoreId(firestoreId)
 
                     if (existingTask != null) {
@@ -82,6 +84,7 @@ class TasksRepository(
                                 priority = priority,
                                 isCompleted = isCompleted,
                                 notificationMinutesBefore = notificationMinutes,
+                                inputSource = inputSource,
                                 isSynced = true,
                                 isDeleted = false
                             )
@@ -93,7 +96,6 @@ class TasksRepository(
                             oldEntries.forEach { scheduler.cancelNotification(it.notificationId) }
                             calendarDao.deleteEntriesForSource("TASK", existingTask.id)
 
-                            // 🔴 [PERBAIKAN OPSI B] Selalu masukkan ke kalender sebagai riwayat
                             val entry = CalendarEntry(
                                 title = updatedTask.title,
                                 date = updatedTask.date,
@@ -128,11 +130,10 @@ class TasksRepository(
                             firestoreId = firestoreId,
                             isSynced = true,
                             isDeleted = false,
-                            inputSource = "WEB_UPLOAD"
+                            inputSource = inputSource
                         )
                         val newId = tasksDao.insertTaskRaw(newTask)
 
-                        // 🔴 [PERBAIKAN OPSI B]
                         val entry = CalendarEntry(
                             title = newTask.title,
                             date = newTask.date,

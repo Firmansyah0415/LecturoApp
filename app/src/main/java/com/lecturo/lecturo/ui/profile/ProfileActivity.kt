@@ -24,9 +24,10 @@ import com.lecturo.lecturo.R
 import com.lecturo.lecturo.data.model.User
 import com.lecturo.lecturo.databinding.ActivityProfileBinding // Pastikan nama file XML Anda activity_profile.xml
 import com.lecturo.lecturo.di.ViewModelFactory
+import com.lecturo.lecturo.ui.base.BaseActivity
 import com.lecturo.lecturo.viewmodel.profile.ProfileViewModel
 
-class ProfileActivity : AppCompatActivity() {
+class ProfileActivity : BaseActivity() {
 
     private lateinit var binding: ActivityProfileBinding
 
